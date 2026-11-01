@@ -1,0 +1,211 @@
+# schedule_search: החלטות ושינויים מתוכננים
+
+המסמך מרכז את ההחלטות שהתקבלו בשיחת התכנון (01/11/2026) ואת השינויים שנגזרים מהן.
+הוא משלים את `PLAN.md`. ב־PLAN כתוב **מה** בונים ובאיזה סדר, וכאן כתוב **איך** ולמה.
+
+---
+
+## 1. החלטות שהתקבלו
+
+| # | נושא | החלטה | נימוק |
+|---|---|---|---|
+| D1 | מה זה "סידור" | **צירוף**: משמרת היא קבוצת עובדים, וכולם עובדים את כל המשמרת. {יוסי, דני} ו־{דני, יוסי} הם אותו סידור. השדה `role` נשאר אופציונלי במבנה, כדי שבעתיד אפשר יהיה לפצל משמרת לתפקידים ("תאים") | החיפוש קטן בהרבה, והמבנה פתוח להרחבה |
+| D2 | חוקי או מיטבי | **הסידור הטוב ביותר.** שלב 5 (תנאים רכים, Branch & Bound) הופך לחובה | זה מה שמבדיל את הפרויקט מתרגיל רגיל |
+| D3 | פורמט קלט | **JSON** כקובץ ראשי שמתאר את כל הבעיה, ו־**CSV** לייבוא זמינות בלבד | JSON הוא הסטנדרט בין מערכות שיבוץ (Timefold, Deputy, When I Work). CSV הוא מה שמנהלים מוציאים מאקסל |
+| D4 | זמן | **תאריכים אמיתיים** (`YYYY-MM-DD`, ISO 8601) במקום `day_idx` | אין עמימות לגבי "יום 0", ואפשר לתכנן תקופה של כמה שבועות |
+| D5 | סוגי זמינות | `available` / `preferred` / `unavailable` | "מעדיף" הוא הבסיס לתנאים הרכים (D2) |
+| D6 | רמות תנאים | **Hard** (הפרה גוזמת ענף), **Medium** (משמרת לא מאוישת עד `min`), **Soft** (העדפות, הוגנות, מילוי עד `wanted`) | המודל המקובל במנועי שיבוץ |
+| D7 | מערכת build | **CMake**. Visual Studio פותח אותו ישירות (File → Open → Folder) | רץ בכל מערכת הפעלה ובכל IDE, וזה הסטנדרט בתעשייה |
+| D8 | ספריות | `nlohmann/json` (header אחד) לקריאת JSON. ספריית בדיקות: Catch2 או GoogleTest | מקובלות, קלות להתקנה, ונטענות דרך CMake `FetchContent` |
+| D9 | ניהול גרסאות | Git עם `.gitignore` ו־README | |
+
+---
+
+## 2. פורמט הקלט החדש
+
+### 2.1 קובץ הבעיה: `data/example_week.json`
+
+```json
+{
+  "period": { "start": "2026-11-08", "end": "2026-11-14" },
+
+  "employees": [
+    {
+      "id": 101,
+      "name": "Yossi Cohen",
+      "maxShifts": 5,
+      "roles": ["cashier"],
+      "availability": [
+        { "date": "2026-11-08", "time": "08:00-16:00", "type": "available" },
+        { "date": "2026-11-09", "time": "12:00-20:00", "type": "preferred" },
+        { "date": "2026-11-10", "type": "unavailable" }
+      ]
+    },
+    {
+      "id": 102,
+      "name": "Dana Levi",
+      "availability": [
+        { "date": "2026-11-08", "time": "09:00-17:00", "type": "available" }
+      ]
+    }
+  ],
+
+  "shifts": [
+    { "id": "S1", "date": "2026-11-08", "time": "08:00-16:00", "min": 1, "wanted": 2 },
+    { "id": "S2", "date": "2026-11-08", "time": "22:00-06:00", "min": 1, "wanted": 1, "role": "guard" }
+  ],
+
+  "rules": {
+    "minRestHours": 8,
+    "maxConsecutiveDays": 5,
+    "maxShiftsPerDay": 1
+  }
+}
+```
+
+**כללים לפורמט:**
+- שם העובד מופיע **פעם אחת** בלבד, ולא בכל שורת זמינות.
+- `time` משתמש בפורמט הקיים `HH:MM-HH:MM`. אם שעת הסיום קטנה משעת ההתחלה, המשמרת חוצה את חצות (`TimePeriod` כבר תומך בזה).
+- כשאין `time` ברשומת זמינות, היא חלה על כל היום. זה שימושי בעיקר עבור `unavailable`.
+- שדות אופציונליים: `maxShifts`, `roles`, `role`, וכל אחד מ־`rules`. לכל אחד מהם יש ברירת מחדל בקוד.
+- רשומת זמינות שעונה ל־`available` או ל־`preferred` חייבת להכיל את כל המשמרת (`contains`), כמו היום.
+
+### 2.2 ייבוא זמינות: `availability.csv` (אופציונלי)
+
+```csv
+# employee_id,date,time,type
+101,2026-11-08,08:00-16:00,available
+101,2026-11-09,12:00-20:00,preferred
+102,2026-11-10,,unavailable
+```
+- שורה ראשונה היא כותרת. שורות ריקות ושורות שמתחילות ב־`#` מדולגות.
+- העובדים עצמם מוגדרים ב־JSON, וה־CSV רק מוסיף להם זמינות.
+
+### 2.3 טיפול בשגיאות בטעינה
+- שורה או שדה פגומים יוצרים הודעה עם **שם הקובץ, מספר השורה והסיבה**, והטעינה ממשיכה. אין קריסה על `stoi`.
+- בסוף הטעינה התוכנה בודקת את הנתונים: מזהים כפולים, `min > wanted`, תאריך מחוץ ל־`period`, ועובד שמופיע ב־CSV ולא קיים ב־JSON.
+
+---
+
+## 3. מבנה הקוד
+
+### 3.1 הפרדה בין הבעיה לפתרון (השינוי המרכזי)
+
+היום `Shift` מחזיק את העובדים המשובצים, ו־`Person` מחזיק את `shift_count`. כך הנתונים הקבועים ומצב החיפוש מעורבבים זה בזה.
+
+**המבנה החדש:**
+
+| מחלקה | תפקיד | משתנה בזמן החיפוש? |
+|---|---|---|
+| `Employee` | מזהה, שם, תפקידים, זמינות | לא |
+| `Shift` | מזהה, תאריך, `TimePeriod`, `min`, `wanted`, `role` | לא |
+| `Rules` | הפרמטרים מ־`rules` | לא |
+| `Problem` | `vector<Employee>`, `vector<Shift>`, `Rules`, וגם טבלה מחושבת מראש של מועמדים לכל משמרת | לא |
+| `Assignment` / `State` | לכל משמרת `vector<int>` של אינדקסי עובדים, ולכל עובד מונים (משמרות, שעות, ימים) | **כן** |
+| `Solver` | ה־DFS, הגיזום, ושמירת הפתרון הטוב ביותר | |
+| `Constraint` | `bool allows(const Problem&, const State&, int emp, int shift) const` | |
+| `JsonLoader` / `CsvLoader` | קריאת קבצים אל `Problem` | |
+| `Printer` / `Exporter` | פלט לטבלה ול־CSV | |
+
+- כל ההפניות הן **אינדקסים (`int`)** ולא עותקים של אובייקטים.
+- `assign` ו־`unassign` מעדכנים רק את `State`, ולכן ה־backtracking מחזיר את המצב לקדמותו בדיוק.
+
+### 3.2 החיפוש לפי החלטה D1 (צירוף)
+
+כדי לא לבדוק את אותה קבוצה בסדרים שונים, בתוך כל משמרת בוחרים עובדים **בסדר עולה של אינדקס**. כל קריאה רקורסיבית מקבלת את האינדקס שממנו ממשיכים:
+
+```cpp
+void Solver::dfs(int shiftIdx, int nextEmp) {
+    // finished all shifts -> evaluate / record solution
+    // try employees from nextEmp onward; after choosing e -> dfs(shiftIdx, e + 1)
+    // when count >= min -> also try moving on: dfs(shiftIdx + 1, 0)
+}
+```
+
+### 3.3 תיקונים בקוד הקיים
+
+- [ ] `canAssignPersonToShift` מחזירה תמיד `true`. צריך לחבר אותה לבדיקת זמינות ולבדיקה "לא פעמיים באותה משמרת". `Shift::canAssign` ו־`NoDoubleShiftConstraint` כבר קיימות, אבל אף אחד לא קורא להן.
+- [ ] `main` מחזיר `1` (קוד שגיאה). צריך להחזיר `0`, להריץ את ה־solver ולהדפיס תוצאה.
+- [ ] `shift.txt` לא קיים. יוחלף בקובץ `data/example_week.json`.
+- [ ] `days_count` סופר חלונות זמינות ולא ימים. יימחק, כי `State` יספור ימים.
+- [ ] `ScheduleContext::getConsecutiveDays` מוצהרת ואין לה מימוש. הלוגיקה עוברת אל `State`.
+- [ ] ב־`Schedule.h` חסר `#include <map>`.
+- [ ] `dstaff_size` לא בשימוש, וב־`Person.h` יש `#include <map>` כפול.
+- [ ] לשמור את כל הקבצים ב־UTF-8 **בלי BOM**.
+
+### 3.4 סגנון C++
+
+- [ ] **אין `using namespace std;` בקבצי header.** בקבצי `.cpp` זה מותר, אבל עדיף `std::`.
+- [ ] כל header כולל רק את מה שהוא צריך. למשל `Person.h` לא צריך `iostream`, `fstream` או `sstream`.
+- [ ] const-correctness: פונקציה שרק קוראת מקבלת `const&` ומסומנת `const`.
+- [ ] `enum class AvailabilityType { Available, Preferred, Unavailable };` במקום מחרוזות.
+- [ ] שמות עקביים: מחלקות ב־`PascalCase`, פונקציות ב־`camelCase`, משתני מחלקה עם סיומת `_` או בלי, ובלבד שזה אחיד בכל הקוד.
+
+---
+
+## 4. מבנה התיקיות
+
+```
+schedule_search/
+├── CMakeLists.txt
+├── README.md
+├── PLAN.md
+├── DECISIONS.md
+├── .gitignore            # .vs/ x64/ build/ out/ *.user
+├── include/
+│   ├── TimePeriod.h
+│   ├── Employee.h
+│   ├── Shift.h
+│   ├── Rules.h
+│   ├── Problem.h
+│   ├── State.h
+│   ├── Solver.h
+│   ├── Constraint.h
+│   └── io/
+│       ├── JsonLoader.h
+│       ├── CsvLoader.h
+│       └── Printer.h
+├── src/
+│   ├── main.cpp
+│   └── ...cpp            # one per header
+├── tests/
+│   ├── test_timeperiod.cpp
+│   ├── test_loader.cpp
+│   └── test_solver.cpp   # small instances with a known answer
+└── data/
+    ├── example_week.json
+    └── availability.csv
+```
+
+`CMakeLists.txt` כולל: C++17, `FetchContent` עבור nlohmann/json ועבור ספריית הבדיקות, יעד ראשי `schedule_search` ויעד בדיקות `tests`.
+
+הרצה מהשורה:
+```
+schedule_search data/example_week.json [--availability data/availability.csv]
+```
+נתיב הקובץ מגיע כארגומנט. כך נפתרת בעיית ה־Working Directory ב־VS.
+
+---
+
+## 5. עדכון לשלב 0 ב־PLAN.md
+
+שלב 0 ("בסיס שרץ") מתעדכן כך:
+
+- [ ] ליצור Git ו־`.gitignore`, ולהעביר את התיקיות `.vs/` ו־`x64/` מחוץ למעקב
+- [ ] להעביר ל־CMake ולמבנה התיקיות שבסעיף 4
+- [ ] להוסיף את nlohmann/json
+- [ ] ליצור `Employee`, `Shift` ו־`Problem` לפי סעיף 3.1. `TimePeriod` נשאר כמו שהוא
+- [ ] `JsonLoader`: לטעון את `example_week.json`, כולל הודעות שגיאה ובדיקות תקינות (סעיף 2.3)
+- [ ] להדפיס את העובדים והמשמרות שנטענו
+- [ ] בדיקות ראשונות ל־`TimePeriod` (חציית חצות, `contains`, `overlaps`)
+- [ ] הניקיונות שבסעיפים 3.3 ו־3.4
+
+`CsvLoader` נכנס בשלב 3 (דרישות משתמש), ובשלב 1 מתחילים לעבוד עם `State` ו־`Solver`.
+
+---
+
+## 6. שאלות פתוחות להמשך
+
+- האם התנאים הרכים ייקבעו עם משקלים ב־`rules` (למשל `"weights": { "preferred": 3, "fairness": 5 }`), או שהמשקלים יהיו קבועים בקוד בשלב הראשון?
+- פלט: טבלה בקונסול, CSV או HTML? ואולי ממשק גרפי בהמשך?
+- האם צריך לתמוך בהפסקה של החיפוש אחרי זמן מוגבל (anytime), ולהחזיר את הסידור הטוב ביותר שנמצא עד אז?

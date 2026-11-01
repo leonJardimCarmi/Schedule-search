@@ -1,0 +1,17 @@
+# Visual Studio: per-user caches and IntelliSense databases
+.vs/
+*.user
+*.suo
+
+# Build output (MSBuild and CMake)
+x64/
+Debug/
+Release/
+build/
+out/
+*.obj
+*.pdb
+*.ilk
+*.exe
+*.tlog/
+*.log
