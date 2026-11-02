@@ -18,7 +18,7 @@
 - ✅ נתיב הקובץ כארגומנט, `main` מחזיר 0 ומדפיס את מה שנטען
 - ✅ בדיקות ל־`TimePeriod`, `Date` ו־`JsonLoader` (18 בדיקות, 63 assertions)
 - ✅ ניקיון וסגנון (סעיפים 3.3 ו־3.4): בלי `using namespace std` ב־headers, includes מינימליים, const-correctness, UTF-8 בלי BOM
-- ⛔ מוחלף: `DataLoader`, `staff.txt`, `shift.txt`, `day_idx`, `ScheduleContext`
+- ✅ הקוד הישן נמחק (`DataLoader`, `Person`, `Schedule`, `ScheduleContext`, `staff.txt`, ה־`.sln`). נשאר ב־Git ב־commit `b74ddea`
 
 ## 📍 שלב 1: DFS חוקי ומינימלי ⬜
 חיפוש שמחזיר סידור חוקי כשקיים אחד.
