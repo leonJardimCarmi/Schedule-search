@@ -1,0 +1,15 @@
+{
+  "period": { "start": "2026-11-08", "end": "2026-11-14" },
+  "employees": [
+    { "id": 101, "name": "Yossi Cohen",
+      "availability": [ { "date": "2026-02-30", "time": "08:00-16:00", "type": "available" } ] },
+    { "id": 101, "name": "Yossi Again",
+      "availability": [ { "date": "2026-11-08", "time": "25:00-16:00", "type": "maybe" } ] },
+    { "name": "No Id" }
+  ],
+  "shifts": [
+    { "id": "S1", "date": "2026-11-08", "time": "08:00-16:00", "min": 3, "wanted": 2 },
+    { "id": "S2", "date": "2026-12-01", "time": "08:00-16:00", "min": 1, "wanted": 1, "role": "chef" }
+  ],
+  "rules": { "minRestHour": 8 }
+}

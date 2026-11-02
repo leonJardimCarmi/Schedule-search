@@ -32,6 +32,12 @@ FetchContent_MakeAvailable(json)
 # and tested exactly as it runs.
 add_library(schedule_core STATIC
     src/TimePeriod.cpp
+    src/Date.cpp
+    src/Employee.cpp
+    src/Problem.cpp
+    src/io/Diagnostics.cpp
+    src/io/JsonLoader.cpp
+    src/io/Printer.cpp
 )
 target_include_directories(schedule_core PUBLIC include)
 target_link_libraries(schedule_core PUBLIC nlohmann_json::nlohmann_json)
@@ -53,6 +59,8 @@ if(SCHEDULE_BUILD_TESTS)
 
     add_executable(tests
         tests/test_timeperiod.cpp
+        tests/test_date.cpp
+        tests/test_loader.cpp
     )
     # Catch2WithMain supplies main() for the test runner.
     target_link_libraries(tests PRIVATE schedule_core Catch2::Catch2WithMain)

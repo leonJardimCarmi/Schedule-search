@@ -1,6 +1,7 @@
 #include <iostream>
 
-#include "TimePeriod.h"
+#include "io/JsonLoader.h"
+#include "io/Printer.h"
 
 int main(int argc, char* argv[]) {
     if (argc < 2) {
@@ -8,10 +9,17 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    // Temporary smoke check until the JSON loader exists (stage 0.4).
-    TimePeriod night = TimePeriod::fromString("22:00-06:00");
-    std::cout << "input: " << argv[1] << '\n'
-              << "night shift " << night.toString()
-              << " lasts " << night.duration() / 60 << " hours\n";
+    const LoadResult result = JsonLoader::loadFile(argv[1]);
+
+    // Warnings and errors go to stderr, so they stay separate from the output.
+    for (const Diagnostic& d : result.diagnostics.all())
+        std::cerr << d << '\n';
+
+    if (!result.ok()) {
+        std::cerr << "input has errors, stopping.\n";
+        return 1;
+    }
+
+    printProblem(std::cout, *result.problem);
     return 0;
 }

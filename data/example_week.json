@@ -1,0 +1,65 @@
+{
+  "period": { "start": "2026-11-08", "end": "2026-11-14" },
+
+  "employees": [
+    {
+      "id": 101,
+      "name": "Yossi Cohen",
+      "maxShifts": 4,
+      "roles": ["cashier"],
+      "availability": [
+        { "date": "2026-11-08", "time": "08:00-16:00", "type": "available" },
+        { "date": "2026-11-09", "time": "08:00-20:00", "type": "preferred" },
+        { "date": "2026-11-10", "type": "unavailable" }
+      ]
+    },
+    {
+      "id": 102,
+      "name": "Dana Levi",
+      "roles": ["cashier"],
+      "availability": [
+        { "date": "2026-11-08", "time": "09:00-17:00", "type": "available" },
+        { "date": "2026-11-08", "time": "16:00-00:00", "type": "preferred" },
+        { "date": "2026-11-09", "time": "08:00-16:00", "type": "available" },
+        { "date": "2026-11-10", "time": "08:00-00:00", "type": "available" }
+      ]
+    },
+    {
+      "id": 103,
+      "name": "Avi Mizrahi",
+      "roles": ["cashier", "guard"],
+      "availability": [
+        { "date": "2026-11-08", "time": "22:00-06:00", "type": "available" },
+        { "date": "2026-11-09", "time": "22:00-06:00", "type": "preferred" },
+        { "date": "2026-11-10", "time": "08:00-16:00", "type": "available" }
+      ]
+    },
+    {
+      "id": 104,
+      "name": "Noa Shapira",
+      "roles": ["cashier"],
+      "availability": [
+        { "date": "2026-11-08", "time": "08:00-16:00", "type": "preferred" },
+        { "date": "2026-11-09", "time": "16:00-00:00", "type": "available" },
+        { "date": "2026-11-10", "time": "16:00-00:00", "type": "available" }
+      ]
+    }
+  ],
+
+  "shifts": [
+    { "id": "SUN-M", "date": "2026-11-08", "time": "08:00-16:00", "min": 1, "wanted": 2 },
+    { "id": "SUN-E", "date": "2026-11-08", "time": "16:00-00:00", "min": 1, "wanted": 1 },
+    { "id": "SUN-N", "date": "2026-11-08", "time": "22:00-06:00", "min": 1, "wanted": 1, "role": "guard" },
+    { "id": "MON-M", "date": "2026-11-09", "time": "08:00-16:00", "min": 1, "wanted": 2 },
+    { "id": "MON-E", "date": "2026-11-09", "time": "16:00-00:00", "min": 1, "wanted": 1 },
+    { "id": "MON-N", "date": "2026-11-09", "time": "22:00-06:00", "min": 1, "wanted": 1, "role": "guard" },
+    { "id": "TUE-M", "date": "2026-11-10", "time": "08:00-16:00", "min": 1, "wanted": 2 },
+    { "id": "TUE-E", "date": "2026-11-10", "time": "16:00-00:00", "min": 1, "wanted": 1 }
+  ],
+
+  "rules": {
+    "minRestHours": 8,
+    "maxConsecutiveDays": 5,
+    "maxShiftsPerDay": 1
+  }
+}
