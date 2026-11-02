@@ -17,5 +17,8 @@ cmake --build build
 
 ## הרצה
 ```
-schedule_search data/example_week.json
+schedule_search data/example_week.json             # the schedule only
+schedule_search data/example_week.json --verbose   # also the input, the candidates and the search size
 ```
+
+קודי יציאה: `0` נמצא סידור · `1` ארגומנטים או קובץ קלט שגויים · `2` הקלט תקין אבל אין סידור אפשרי

@@ -1,7 +1,7 @@
 # schedule_search: תוכנית עבודה
 
 מטרה: מנוע שמוצא את **הסידור הטוב ביותר** למשמרות לפי דרישות שהמשתמש מגדיר, באמצעות DFS עם backtracking, תנאים ו־Branch & Bound.
-ה"איך" וה"למה" מפורטים ב־`DECISIONS.md` (ההפניות כאן הן D1–D11 וסעיפים שם).
+ה"איך" וה"למה" מפורטים ב־`DECISIONS.md` (ההפניות כאן הן D1–D12 וסעיפים שם).
 
 מקרא: ✅ הושלם · 🔶 בתהליך · ⬜ טרם התחיל · 📍 אנחנו כאן
 
@@ -20,16 +20,16 @@
 - ✅ ניקיון וסגנון (סעיפים 3.3 ו־3.4): בלי `using namespace std` ב־headers, includes מינימליים, const-correctness, UTF-8 בלי BOM
 - ✅ הקוד הישן נמחק (`DataLoader`, `Person`, `Schedule`, `ScheduleContext`, `staff.txt`, ה־`.sln`). נשאר ב־Git ב־commit `b74ddea`
 
-## 📍 שלב 1: DFS חוקי ומינימלי 🔶
+## שלב 1: DFS חוקי ומינימלי ✅
 חיפוש שמחזיר סידור חוקי כשקיים אחד.
 - ✅ 1.1 `State`: לכל משמרת אינדקסי עובדים, ולכל עובד אינדקסי משמרות. `assign` ו־`unassign` עובדים כמו מחסנית (המונים יתווספו בשלב 2, לפי הצורך)
 - ✅ 1.2 `availabilityFit`: האם עובד יכול לעבוד במשמרת (`No`/`Yes`/`Preferred`). הזמינות חייבת לכסות את כל המשמרת, `unavailable` מנצח, והמודל הוא opt-in
 - ✅ 1.3 `Solver`: DFS על המשמרות בסדר כרונולוגי, צירופים דרך `nextCandidate` (D1). טבלת המועמדים נבנית ב־`Solver` ולא ב־`Problem`
 - ✅ 1.4 min/wanted: קודם `wanted`, ויורדים עד `min` (D10). `min` הוא תנאי קשיח עד שלב 5 (D11)
-- ⬜ 1.5 הדפסת הסידור (`Printer`) במקום הקוד הזמני ב־`main`, או הודעה שאין פתרון
-- ✅ בדיקות: `test_state`, `test_availability` ו־`test_solver` (39 בדיקות בסך הכול)
+- ✅ 1.5 `printSchedule` (לפי יום ולפי עובד) ו־`printCandidates`. `main` מדפיס רק את הסידור, ו־`--verbose` מוסיף את השאר (D12). קודי יציאה 0/1/2
+- ✅ בדיקות: `test_state`, `test_availability` ו־`test_solver` ו־`test_printer` (41 בדיקות בסך הכול)
 
-## שלב 2: תנאים קשיחים (Hard) ⬜
+## 📍 שלב 2: תנאים קשיחים (Hard) ⬜
 תנאים שאם הם מופרים, הענף נגזם (D6).
 - ממשק `Constraint::allows(problem, state, emp, shift)`
 - התנאים ש־`rules` מגדיר: `minRestHours`, `maxConsecutiveDays`, `maxShiftsPerDay`
@@ -60,7 +60,7 @@
 ---
 
 ## החלטות שנסגרו
-סדר בתוך משמרת לא משנה, כי משמרת היא צירוף (D1) · המטרה היא הסידור הטוב ביותר (D2) · JSON ו־CSV (D3) · תאריכי ISO (D4) · CMake (D7) · קודם wanted ואז יורדים ל־min (D10) · min קשיח עד שלב 5 (D11)
+סדר בתוך משמרת לא משנה, כי משמרת היא צירוף (D1) · המטרה היא הסידור הטוב ביותר (D2) · JSON ו־CSV (D3) · תאריכי ISO (D4) · CMake (D7) · קודם wanted ואז יורדים ל־min (D10) · min קשיח עד שלב 5 (D11) · פלט: רק הסידור, ו־`--verbose` לשאר (D12)
 
 ## שאלות פתוחות (מ־DECISIONS סעיף 6)
 - משקלי התנאים הרכים: ב־`rules` (`weights`), או קבועים בקוד בהתחלה?

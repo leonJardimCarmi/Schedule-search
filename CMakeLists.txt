@@ -67,6 +67,7 @@ if(SCHEDULE_BUILD_TESTS)
         tests/test_state.cpp
         tests/test_availability.cpp
         tests/test_solver.cpp
+        tests/test_printer.cpp
     )
     # Catch2WithMain supplies main() for the test runner.
     target_link_libraries(tests PRIVATE schedule_core Catch2::Catch2WithMain)

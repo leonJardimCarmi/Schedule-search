@@ -1,6 +1,9 @@
 #include "io/Printer.h"
 
 #include <iomanip>
+#include <string>
+
+#include "solver/Availability.h"
 
 namespace {
 
@@ -50,4 +53,57 @@ void printProblem(std::ostream& out, const Problem& p) {
     printOptional(out, "minRestHours", p.rules.minRestHours, " h");
     printOptional(out, "maxConsecutiveDays", p.rules.maxConsecutiveDays, " days");
     out << "  " << std::left << std::setw(20) << "maxShiftsPerDay" << p.rules.maxShiftsPerDay << '\n';
+}
+
+void printCandidates(std::ostream& out, const Problem& p, const Solver& solver) {
+    out << "\nWho can work each shift\n";
+    for (int s = 0; s < static_cast<int>(p.shifts.size()); ++s) {
+        const Shift& shift = p.shifts[s];
+        out << "  " << std::left << std::setw(7) << shift.id;
+        const auto& candidates = solver.candidatesOf(s);
+        if (candidates.empty()) out << " (nobody)";
+        for (int e : candidates) {
+            out << "  " << p.employees[e].name;
+            if (availabilityFit(p.employees[e], shift) == Fit::Preferred) out << " (preferred)";
+        }
+        out << '\n';
+    }
+}
+
+void printSchedule(std::ostream& out, const Problem& p, const State& schedule) {
+    out << "Schedule " << p.periodStart.toString() << " .. " << p.periodEnd.toString() << '\n';
+
+    // 1. By day. Shifts are already in chronological order, so a new day
+    //    header is printed whenever the date changes.
+    for (int s = 0; s < static_cast<int>(p.shifts.size()); ++s) {
+        const Shift& shift = p.shifts[s];
+        if (s == 0 || shift.date != p.shifts[s - 1].date)
+            out << '\n' << weekdayName(shift.date) << ' ' << shift.date.toString() << '\n';
+
+        const int staffed = schedule.assignedCount(s);
+        out << "  " << std::left << std::setw(7) << shift.id << shift.time.toString() << "  "
+            << staffed << '/' << shift.wantedStaff << "  ";
+
+        const auto& staff = schedule.staffOf(s);
+        for (std::size_t i = 0; i < staff.size(); ++i)
+            out << (i ? ", " : "") << p.employees[staff[i]].name;
+        if (staff.empty()) out << "-";
+        if (!shift.role.empty()) out << "  [" << shift.role << ']';
+        if (staffed < shift.wantedStaff) out << "  (below wanted)";
+        out << '\n';
+    }
+
+    // 2. Per employee: how many shifts and hours each person got.
+    out << "\nPer employee\n";
+    for (int e = 0; e < static_cast<int>(p.employees.size()); ++e) {
+        const auto& shifts = schedule.shiftsOf(e);
+        int minutes = 0;
+        for (int s : shifts) minutes += p.shifts[s].time.duration();
+
+        out << "  " << std::left << std::setw(16) << p.employees[e].name
+            << std::right << std::setw(2) << shifts.size() << " shifts "
+            << std::setw(3) << minutes / 60 << " h  ";
+        for (int s : shifts) out << ' ' << p.shifts[s].id;
+        out << '\n';
+    }
 }

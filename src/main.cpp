@@ -1,57 +1,84 @@
 #include <iostream>
+#include <optional>
+#include <string>
 
 #include "io/JsonLoader.h"
 #include "io/Printer.h"
-#include "solver/Availability.h"
 #include "solver/Solver.h"
 
+namespace {
+
+// Exit codes, so scripts can tell what happened without reading the text.
+constexpr int kOk = 0;           // a schedule was found
+constexpr int kBadInput = 1;     // wrong arguments or errors in the input file
+constexpr int kNoSchedule = 2;   // the input is fine but no schedule exists
+
+void printUsage() {
+    std::cerr << "usage: schedule_search <problem.json> [--verbose]\n"
+                 "  --verbose  also print the loaded input and who can work each shift\n";
+}
+
+struct Options {
+    std::string inputPath;
+    bool verbose = false;
+};
+
+// Arguments may come in any order: "file --verbose" or "--verbose file".
+std::optional<Options> parseArgs(int argc, char* argv[]) {
+    Options options;
+    for (int i = 1; i < argc; ++i) {
+        const std::string arg = argv[i];
+        if (arg == "--verbose" || arg == "-v") {
+            options.verbose = true;
+        } else if (!arg.empty() && arg[0] == '-') {
+            std::cerr << "unknown option: " << arg << '\n';
+            return std::nullopt;
+        } else if (options.inputPath.empty()) {
+            options.inputPath = arg;
+        } else {
+            std::cerr << "only one input file is supported\n";
+            return std::nullopt;
+        }
+    }
+    if (options.inputPath.empty()) return std::nullopt;
+    return options;
+}
+
+}  // namespace
+
 int main(int argc, char* argv[]) {
-    if (argc < 2) {
-        std::cerr << "usage: schedule_search <problem.json>\n";
-        return 1;
+    const std::optional<Options> options = parseArgs(argc, argv);
+    if (!options) {
+        printUsage();
+        return kBadInput;
     }
 
-    const LoadResult result = JsonLoader::loadFile(argv[1]);
-
-    // Warnings and errors go to stderr, so they stay separate from the output.
+    // 1. Load. Warnings and errors go to stderr, separate from the output.
+    const LoadResult result = JsonLoader::loadFile(options->inputPath);
     for (const Diagnostic& d : result.diagnostics.all())
         std::cerr << d << '\n';
-
     if (!result.ok()) {
         std::cerr << "input has errors, stopping.\n";
-        return 1;
+        return kBadInput;
     }
-
     const Problem& problem = *result.problem;
-    printProblem(std::cout, problem);
 
-    // Temporary (stage 1.2): show who could work each shift.
-    std::cout << "\nWho can work each shift\n";
-    for (const Shift& shift : problem.shifts) {
-        std::cout << "  " << shift.id << ":";
-        for (const Employee& e : problem.employees) {
-            const Fit fit = availabilityFit(e, shift);
-            if (fit == Fit::No) continue;
-            std::cout << "  " << e.name;
-            if (fit == Fit::Preferred) std::cout << " (preferred)";
-        }
-        std::cout << '\n';
-    }
-
-    // Temporary (stage 1.4): run the search and show the result.
+    // 2. Search.
     Solver solver(problem);
-    const std::optional<State> schedule = solver.findFirst();
-    std::cout << "\nSearch visited " << solver.nodesVisited() << " nodes\n";
-    if (!schedule) {
-        std::cout << "No schedule found.\n";
-        return 2;
-    }
-    std::cout << "Schedule (min..wanted, wanted tried first)\n";
-    for (int s = 0; s < static_cast<int>(problem.shifts.size()); ++s) {
-        std::cout << "  " << problem.shifts[s].id << ":";
-        for (int e : schedule->staffOf(s)) std::cout << "  " << problem.employees[e].name;
+    if (options->verbose) {
+        printProblem(std::cout, problem);
+        printCandidates(std::cout, problem, solver);
         std::cout << '\n';
     }
-    std::cout << "Different schedules possible: " << solver.countAll() << '\n';
-    return 0;
+    const std::optional<State> schedule = solver.findFirst();
+    if (options->verbose)
+        std::cout << "Search visited " << solver.nodesVisited() << " nodes\n\n";
+
+    // 3. Report.
+    if (!schedule) {
+        std::cout << "No schedule satisfies the input.\n";
+        return kNoSchedule;
+    }
+    printSchedule(std::cout, problem, *schedule);
+    return kOk;
 }
