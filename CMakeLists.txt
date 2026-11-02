@@ -39,6 +39,7 @@ add_library(schedule_core STATIC
     src/io/JsonLoader.cpp
     src/io/Printer.cpp
     src/solver/State.cpp
+    src/solver/Availability.cpp
 )
 target_include_directories(schedule_core PUBLIC include)
 target_link_libraries(schedule_core PUBLIC nlohmann_json::nlohmann_json)
@@ -63,6 +64,7 @@ if(SCHEDULE_BUILD_TESTS)
         tests/test_date.cpp
         tests/test_loader.cpp
         tests/test_state.cpp
+        tests/test_availability.cpp
     )
     # Catch2WithMain supplies main() for the test runner.
     target_link_libraries(tests PRIVATE schedule_core Catch2::Catch2WithMain)

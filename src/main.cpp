@@ -2,6 +2,7 @@
 
 #include "io/JsonLoader.h"
 #include "io/Printer.h"
+#include "solver/Availability.h"
 
 int main(int argc, char* argv[]) {
     if (argc < 2) {
@@ -20,6 +21,20 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    printProblem(std::cout, *result.problem);
+    const Problem& problem = *result.problem;
+    printProblem(std::cout, problem);
+
+    // Temporary (stage 1.2): show who could work each shift.
+    std::cout << "\nWho can work each shift\n";
+    for (const Shift& shift : problem.shifts) {
+        std::cout << "  " << shift.id << ":";
+        for (const Employee& e : problem.employees) {
+            const Fit fit = availabilityFit(e, shift);
+            if (fit == Fit::No) continue;
+            std::cout << "  " << e.name;
+            if (fit == Fit::Preferred) std::cout << " (preferred)";
+        }
+        std::cout << '\n';
+    }
     return 0;
 }
