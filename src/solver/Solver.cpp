@@ -1,5 +1,7 @@
 #include "solver/Solver.h"
 
+#include <algorithm>
+
 #include "solver/Availability.h"
 
 Solver::Solver(const Problem& problem)
@@ -24,26 +26,23 @@ void Solver::reset() {
 std::optional<State> Solver::findFirst() {
     reset();
     stopAtFirst_ = true;
-    dfs(0, 0);
+    startShift(0);
     return found_;
 }
 
 long long Solver::countAll() {
     reset();
     stopAtFirst_ = false;
-    dfs(0, 0);
+    startShift(0);
     return solutions_;
 }
 
-// shiftIdx      - the shift being filled now
-// nextCandidate - position in candidates_[shiftIdx] to continue from.
-//                 Everyone before it was already decided for this shift,
-//                 which is what makes the search pick combinations
-//                 ({A,B}) and not permutations ({A,B} and {B,A}).
-bool Solver::dfs(int shiftIdx, int nextCandidate) {
+// Entering a new shift: decide how many people it gets.
+// Tries the largest size first (wanted), then one less, down to min.
+bool Solver::startShift(int shiftIdx) {
     ++nodes_;
 
-    // 1. Every shift is staffed: this is a complete schedule.
+    // Every shift is staffed: this is a complete schedule.
     if (shiftIdx == static_cast<int>(problem_.shifts.size())) {
         ++solutions_;
         if (stopAtFirst_) {
@@ -53,23 +52,43 @@ bool Solver::dfs(int shiftIdx, int nextCandidate) {
         return false;          // keep looking for more
     }
 
-    // 2. This shift has enough people: move on to the next shift.
     const Shift& shift = problem_.shifts[shiftIdx];
-    if (state_.assignedCount(shiftIdx) == shift.minStaff)
-        return dfs(shiftIdx + 1, 0);
+    const int candidateCount = static_cast<int>(candidates_[shiftIdx].size());
 
-    // 3. Try each remaining candidate: assign, go deeper, undo.
+    // No point aiming for more people than there are candidates.
+    const int largest = std::min(shift.wantedStaff, candidateCount);
+
+    for (int target = largest; target >= shift.minStaff; --target)
+        if (fill(shiftIdx, 0, target)) return true;
+
+    // Not even minStaff could be reached: dead end, go back.
+    return false;
+}
+
+// Choosing exactly `target` people for one shift, as a combination.
+//
+// nextCandidate - position in candidates_[shiftIdx] to continue from.
+//                 Everyone before it was already decided for this shift,
+//                 which is what makes the search pick combinations
+//                 ({A,B}) and not permutations ({A,B} and {B,A}).
+bool Solver::fill(int shiftIdx, int nextCandidate, int target) {
+    ++nodes_;
+
+    const int needed = target - state_.assignedCount(shiftIdx);
+    if (needed == 0) return startShift(shiftIdx + 1);   // this shift is done
+
     const std::vector<int>& candidates = candidates_[shiftIdx];
     for (int i = nextCandidate; i < static_cast<int>(candidates.size()); ++i) {
-        const int emp = candidates[i];
+        // Fewer candidates left than people still needed: no combination
+        // from here can reach the target, so stop trying.
+        if (static_cast<int>(candidates.size()) - i < needed) break;
 
-        state_.assign(emp, shiftIdx);              // write in pencil
-        const bool stop = dfs(shiftIdx, i + 1);    // same shift, later candidates only
-        state_.unassign(emp, shiftIdx);            // erase
+        const int emp = candidates[i];
+        state_.assign(emp, shiftIdx);                       // write in pencil
+        const bool stop = fill(shiftIdx, i + 1, target);    // same shift, later candidates only
+        state_.unassign(emp, shiftIdx);                     // erase
 
         if (stop) return true;
     }
-
-    // 4. Ran out of candidates before reaching minStaff: dead end, go back.
     return false;
 }

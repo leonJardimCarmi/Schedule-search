@@ -29,6 +29,10 @@ Shift sundayShift(const std::string& id, const std::string& time, int minStaff) 
     return Shift{id, kSunday, TimePeriod::fromString(time), minStaff, minStaff, ""};
 }
 
+Shift sundayShift(const std::string& id, const std::string& time, int minStaff, int wantedStaff) {
+    return Shift{id, kSunday, TimePeriod::fromString(time), minStaff, wantedStaff, ""};
+}
+
 Problem makeProblem(std::vector<Employee> employees, std::vector<Shift> shifts) {
     return Problem{kSunday, kSunday, std::move(employees), std::move(shifts), Rules{}};
 }
@@ -89,4 +93,37 @@ TEST_CASE("the state is clean after a full search", "[Solver]") {
     auto result = solver.findFirst();
     REQUIRE(result.has_value());
     CHECK(result->assignedCount(0) == 1);
+}
+
+TEST_CASE("wanted is tried first", "[Solver][wanted]") {
+    Problem p = makeProblem({freeOnSunday(1), freeOnSunday(2), freeOnSunday(3)},
+                            {sundayShift("S", "08:00-16:00", 1, 2)});
+    Solver solver(p);
+    auto result = solver.findFirst();
+    REQUIRE(result.has_value());
+    CHECK(result->staffOf(0) == std::vector<int>{0, 1});   // 2 people, not 1
+}
+
+TEST_CASE("every size between min and wanted is a different schedule", "[Solver][wanted]") {
+    // min 1, wanted 2, 3 candidates: C(3,2) + C(3,1) = 3 + 3 = 6.
+    Problem p = makeProblem({freeOnSunday(1), freeOnSunday(2), freeOnSunday(3)},
+                            {sundayShift("S", "08:00-16:00", 1, 2)});
+    Solver solver(p);
+    CHECK(solver.countAll() == 6);
+}
+
+TEST_CASE("wanted larger than the candidates is capped", "[Solver][wanted]") {
+    Problem p = makeProblem({freeOnSunday(1), freeOnSunday(2), neverAvailable(3)},
+                            {sundayShift("S", "08:00-16:00", 1, 3)});
+    Solver solver(p);
+    auto result = solver.findFirst();
+    REQUIRE(result.has_value());
+    CHECK(result->assignedCount(0) == 2);
+}
+
+TEST_CASE("min stays a hard limit even when wanted is larger", "[Solver][wanted]") {
+    Problem p = makeProblem({freeOnSunday(1), neverAvailable(2)},
+                            {sundayShift("S", "08:00-16:00", 2, 3)});
+    Solver solver(p);
+    CHECK_FALSE(solver.findFirst().has_value());
 }

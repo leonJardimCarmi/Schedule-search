@@ -38,7 +38,7 @@ int main(int argc, char* argv[]) {
         std::cout << '\n';
     }
 
-    // Temporary (stage 1.3): run the search and show the result.
+    // Temporary (stage 1.4): run the search and show the result.
     Solver solver(problem);
     const std::optional<State> schedule = solver.findFirst();
     std::cout << "\nSearch visited " << solver.nodesVisited() << " nodes\n";
@@ -46,7 +46,7 @@ int main(int argc, char* argv[]) {
         std::cout << "No schedule found.\n";
         return 2;
     }
-    std::cout << "Schedule (each shift filled to min)\n";
+    std::cout << "Schedule (min..wanted, wanted tried first)\n";
     for (int s = 0; s < static_cast<int>(problem.shifts.size()); ++s) {
         std::cout << "  " << problem.shifts[s].id << ":";
         for (int e : schedule->staffOf(s)) std::cout << "  " << problem.employees[e].name;

@@ -7,8 +7,9 @@
 
 // Depth-first search with backtracking over the shifts, in chronological order.
 //
-// Stage 1.3: every shift is staffed with exactly `minStaff` employees,
-// chosen only by availability. Other rules come in later stages.
+// Stage 1.4: each shift gets between `minStaff` and `wantedStaff` employees.
+// Larger staffings are tried first (DECISIONS D10); fewer than minStaff is
+// a dead end (D11). Employees are chosen only by availability for now.
 class Solver {
 public:
     explicit Solver(const Problem& problem);
@@ -26,8 +27,9 @@ public:
     const std::vector<int>& candidatesOf(int shift) const { return candidates_[shift]; }
 
 private:
-    // Returns true when the search should stop.
-    bool dfs(int shiftIdx, int nextCandidate);
+    // Both return true when the search should stop.
+    bool startShift(int shiftIdx);
+    bool fill(int shiftIdx, int nextCandidate, int target);
     void reset();
 
     const Problem& problem_;
