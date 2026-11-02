@@ -3,6 +3,7 @@
 #include "io/JsonLoader.h"
 #include "io/Printer.h"
 #include "solver/Availability.h"
+#include "solver/Solver.h"
 
 int main(int argc, char* argv[]) {
     if (argc < 2) {
@@ -36,5 +37,21 @@ int main(int argc, char* argv[]) {
         }
         std::cout << '\n';
     }
+
+    // Temporary (stage 1.3): run the search and show the result.
+    Solver solver(problem);
+    const std::optional<State> schedule = solver.findFirst();
+    std::cout << "\nSearch visited " << solver.nodesVisited() << " nodes\n";
+    if (!schedule) {
+        std::cout << "No schedule found.\n";
+        return 2;
+    }
+    std::cout << "Schedule (each shift filled to min)\n";
+    for (int s = 0; s < static_cast<int>(problem.shifts.size()); ++s) {
+        std::cout << "  " << problem.shifts[s].id << ":";
+        for (int e : schedule->staffOf(s)) std::cout << "  " << problem.employees[e].name;
+        std::cout << '\n';
+    }
+    std::cout << "Different schedules possible: " << solver.countAll() << '\n';
     return 0;
 }
