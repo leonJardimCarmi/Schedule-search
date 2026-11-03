@@ -68,7 +68,9 @@ int main(int argc, char* argv[]) {
     if (options->verbose) {
         printProblem(std::cout, problem);
         printCandidates(std::cout, problem, solver);
-        std::cout << '\n';
+        std::cout << "\nHard rules:";
+        for (const auto& constraint : solver.constraints()) std::cout << ' ' << constraint->name();
+        std::cout << "\n\n";
     }
     const std::optional<State> schedule = solver.findFirst();
     if (options->verbose)

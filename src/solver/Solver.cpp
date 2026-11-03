@@ -7,6 +7,7 @@
 Solver::Solver(const Problem& problem)
     : problem_(problem),
       candidates_(problem.shifts.size()),
+      constraints_(makeConstraints(problem)),
       state_(static_cast<int>(problem.employees.size()), static_cast<int>(problem.shifts.size())) {
     // Availability never changes during the search, so it is checked once
     // here instead of millions of times inside dfs().
@@ -14,6 +15,12 @@ Solver::Solver(const Problem& problem)
         for (std::size_t e = 0; e < problem.employees.size(); ++e)
             if (availabilityFit(problem.employees[e], problem.shifts[s]) != Fit::No)
                 candidates_[s].push_back(static_cast<int>(e));
+}
+
+bool Solver::allowed(int emp, int shift) const {
+    for (const auto& constraint : constraints_)
+        if (!constraint->allows(problem_, state_, emp, shift)) return false;
+    return true;
 }
 
 void Solver::reset() {
@@ -84,6 +91,8 @@ bool Solver::fill(int shiftIdx, int nextCandidate, int target) {
         if (static_cast<int>(candidates.size()) - i < needed) break;
 
         const int emp = candidates[i];
+        if (!allowed(emp, shiftIdx)) continue;              // a hard rule says no
+
         state_.assign(emp, shiftIdx);                       // write in pencil
         const bool stop = fill(shiftIdx, i + 1, target);    // same shift, later candidates only
         state_.unassign(emp, shiftIdx);                     // erase
