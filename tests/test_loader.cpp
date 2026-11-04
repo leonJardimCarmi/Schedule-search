@@ -39,8 +39,9 @@ TEST_CASE("a valid file loads without diagnostics", "[loader]") {
     REQUIRE(r.problem->employees.size() == 1);
     REQUIRE(r.problem->shifts.size() == 1);
     CHECK(r.problem->employees[0].availability[0].type == AvailabilityType::Available);
-    CHECK(r.problem->rules.maxShiftsPerDay == 1);          // default
-    CHECK_FALSE(r.problem->rules.minRestHours.has_value()); // not set = no limit
+    CHECK(r.problem->rules.minRestHours == 10);                   // default (D15)
+    CHECK(r.problem->rules.blockGapMinutes == 0);                 // default (D14)
+    CHECK_FALSE(r.problem->rules.maxConsecutiveDays.has_value()); // not set = no limit
 }
 
 TEST_CASE("shifts are sorted chronologically, across midnight too", "[loader]") {

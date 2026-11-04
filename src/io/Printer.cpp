@@ -50,9 +50,9 @@ void printProblem(std::ostream& out, const Problem& p) {
     }
 
     out << "\nRules\n";
-    printOptional(out, "minRestHours", p.rules.minRestHours, " h");
+    out << "  " << std::left << std::setw(20) << "minRestHours" << p.rules.minRestHours << " h\n";
+    out << "  " << std::left << std::setw(20) << "blockGapMinutes" << p.rules.blockGapMinutes << " min\n";
     printOptional(out, "maxConsecutiveDays", p.rules.maxConsecutiveDays, " days");
-    out << "  " << std::left << std::setw(20) << "maxShiftsPerDay" << p.rules.maxShiftsPerDay << '\n';
 }
 
 void printCandidates(std::ostream& out, const Problem& p, const Solver& solver) {

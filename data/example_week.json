@@ -58,8 +58,8 @@
   ],
 
   "rules": {
-    "minRestHours": 8,
-    "maxConsecutiveDays": 5,
-    "maxShiftsPerDay": 1
+    "minRestHours": 10,
+    "blockGapMinutes": 0,
+    "maxConsecutiveDays": 5
   }
 }

@@ -42,6 +42,7 @@ add_library(schedule_core STATIC
     src/solver/Availability.cpp
     src/solver/Solver.cpp
     src/solver/Constraint.cpp
+    src/solver/WorkBlocks.cpp
 )
 target_include_directories(schedule_core PUBLIC include)
 target_link_libraries(schedule_core PUBLIC nlohmann_json::nlohmann_json)

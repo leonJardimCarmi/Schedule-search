@@ -5,6 +5,7 @@
 
 #include "solver/Constraint.h"
 #include "solver/Solver.h"
+#include "solver/WorkBlocks.h"
 
 namespace {
 
@@ -54,7 +55,7 @@ TEST_CASE("the factory builds the rules", "[Constraint]") {
     ConstraintList list = makeConstraints(p);
     REQUIRE(list.size() == 2);
     CHECK(std::string(list[0]->name()) == "no-overlap");
-    CHECK(std::string(list[1]->name()) == "max-shifts-per-day");
+    CHECK(std::string(list[1]->name()) == "min-rest");
 }
 
 // ---- The rule inside the search ----------------------------------------------
@@ -89,48 +90,79 @@ TEST_CASE("lastDay: night shifts reach the next day, midnight endings do not", "
     CHECK(makeShift("N", kSunday, "22:00-06:00").lastDay() == kMonday);
 }
 
-// ---- max-shifts-per-day ------------------------------------------------------
+// ---- Work blocks (DECISIONS D14) --------------------------------------------
 
-TEST_CASE("max-shifts-per-day", "[Constraint][max-shifts-per-day]") {
+TEST_CASE("buildBlocks joins adjacent shifts and splits the rest", "[WorkBlocks][D14]") {
+    Problem p{kSunday, kMonday, {},
+              {makeShift("M", kSunday, "08:00-16:00"),    // 0
+               makeShift("E", kSunday, "16:00-00:00"),    // 1  starts when M ends
+               makeShift("L", kSunday, "17:00-23:00"),    // 2  1 hour after M
+               makeShift("X", kMonday, "10:00-14:00")},   // 3
+              Rules{}};
+
+    SECTION("no gap allowed: only touching shifts join") {
+        auto blocks = buildBlocks(p, {3, 1, 0}, 0);   // any input order
+        REQUIRE(blocks.size() == 2);
+        CHECK(blocks[0].shifts == std::vector<int>{0, 1});   // M + E = one block
+        CHECK(blocks[0].minutes() == 16 * 60);
+        CHECK(blocks[1].shifts == std::vector<int>{3});
+    }
+
+    SECTION("a one-hour gap splits blocks when blockGapMinutes is 0") {
+        auto blocks = buildBlocks(p, {0, 2}, 0);
+        CHECK(blocks.size() == 2);
+    }
+
+    SECTION("...and joins them when blockGapMinutes is 60") {
+        auto blocks = buildBlocks(p, {0, 2}, 60);
+        REQUIRE(blocks.size() == 1);
+        CHECK(blocks[0].minutes() == 15 * 60);   // 08:00 to 23:00
+    }
+}
+
+// ---- min-rest (DECISIONS D15) ------------------------------------------------
+
+TEST_CASE("min-rest", "[Constraint][min-rest]") {
     Problem p{kSunday, kMonday, {freeOn(1, {kSunday, kMonday})},
               {makeShift("SUN-M", kSunday, "08:00-16:00"),    // 0
                makeShift("SUN-E", kSunday, "16:00-00:00"),    // 1
-               makeShift("SUN-N", kSunday, "22:00-06:00"),    // 2  Sunday + Monday
+               makeShift("SUN-N", kSunday, "22:00-06:00"),    // 2  ends Mon 06:00
                makeShift("MON-M", kMonday, "08:00-16:00"),    // 3
-               makeShift("MON-E", kMonday, "16:00-00:00")},   // 4
+               makeShift("MON-E", kMonday, "16:00-00:00"),    // 4
+               makeShift("MON-L", kMonday, "10:00-14:00")},   // 5
               Rules{}};
-    State state(1, 5);
+    MinRestConstraint rule(10, 0);   // the defaults
+    State state(1, 6);
 
-    SECTION("with max 1, a second shift on the same day is rejected") {
-        MaxShiftsPerDayConstraint rule(1);
-        state.assign(0, 0);                          // SUN-M
-        CHECK_FALSE(rule.allows(p, state, 0, 1));    // SUN-E: also Sunday
-        CHECK(rule.allows(p, state, 0, 3));          // MON-M: another day
+    SECTION("evening then next morning is only 8 hours: rejected") {
+        state.assign(0, 1);                          // SUN-E ends 00:00
+        CHECK_FALSE(rule.allows(p, state, 0, 3));    // MON-M starts 08:00
     }
 
-    SECTION("an evening shift ending at midnight does not use up the next day") {
-        MaxShiftsPerDayConstraint rule(1);
-        state.assign(0, 1);                          // SUN-E (ends 00:00)
-        CHECK(rule.allows(p, state, 0, 3));          // MON-M is fine
+    SECTION("night then next morning is only 2 hours: rejected") {
+        state.assign(0, 2);                          // SUN-N ends Mon 06:00
+        CHECK_FALSE(rule.allows(p, state, 0, 3));    // MON-M 08:00
     }
 
-    SECTION("a night shift counts on both days") {
-        MaxShiftsPerDayConstraint rule(1);
-        state.assign(0, 2);                          // SUN-N
-        CHECK_FALSE(rule.allows(p, state, 0, 4));    // MON-E: Monday is taken by SUN-N
+    SECTION("night then next evening is 10 hours: allowed") {
+        state.assign(0, 2);                          // SUN-N ends Mon 06:00
+        CHECK(rule.allows(p, state, 0, 4));          // MON-E 16:00
     }
 
-    SECTION("a night shift is rejected if either of its days is full") {
-        MaxShiftsPerDayConstraint rule(1);
-        state.assign(0, 3);                          // MON-M
-        CHECK_FALSE(rule.allows(p, state, 0, 2));    // SUN-N would touch Monday too
+    SECTION("morning then evening of the same day is one block: no rest needed") {
+        state.assign(0, 0);                          // SUN-M 08-16
+        CHECK(rule.allows(p, state, 0, 1));          // SUN-E 16-00 (a double; step 2.3 decides)
     }
 
-    SECTION("with max 2, two shifts a day are fine, three are not") {
-        MaxShiftsPerDayConstraint rule(2);
-        state.assign(0, 0);                          // SUN-M
-        CHECK(rule.allows(p, state, 0, 1));          // SUN-E
-        state.assign(0, 1);
-        CHECK_FALSE(rule.allows(p, state, 0, 2));    // SUN-N would be the third on Sunday
+    SECTION("the new shift is checked against blocks on both sides") {
+        state.assign(0, 0);                          // SUN-M ends Sun 16:00
+        state.assign(0, 4);                          // MON-E starts Mon 16:00
+        CHECK_FALSE(rule.allows(p, state, 0, 5));    // MON-L 10-14: only 2h before MON-E
+    }
+
+    SECTION("a smaller minRestHours allows more") {
+        MinRestConstraint relaxed(8, 0);
+        state.assign(0, 1);                          // SUN-E ends 00:00
+        CHECK(relaxed.allows(p, state, 0, 3));       // exactly 8 hours: allowed
     }
 }

@@ -193,10 +193,10 @@ Rules readRules(Reader& r, const json& root) {
     if (it == root.end()) return rules;                // all defaults
     if (!it->is_object()) { r.error("rules", "expected an object"); return rules; }
 
-    r.warnUnknownKeys(*it, "rules", {"minRestHours", "maxConsecutiveDays", "maxShiftsPerDay"});
-    rules.minRestHours = r.optionalInt(*it, "rules", "minRestHours");
+    r.warnUnknownKeys(*it, "rules", {"minRestHours", "blockGapMinutes", "maxConsecutiveDays"});
+    if (auto v = r.optionalInt(*it, "rules", "minRestHours")) rules.minRestHours = *v;
+    if (auto v = r.optionalInt(*it, "rules", "blockGapMinutes")) rules.blockGapMinutes = *v;
     rules.maxConsecutiveDays = r.optionalInt(*it, "rules", "maxConsecutiveDays");
-    if (auto v = r.optionalInt(*it, "rules", "maxShiftsPerDay")) rules.maxShiftsPerDay = *v;
     return rules;
 }
 
@@ -237,9 +237,9 @@ void validate(Reader& r, const Problem& p) {
     }
 
     const Rules& rules = p.rules;
-    if (rules.minRestHours && *rules.minRestHours < 0) r.error("rules.minRestHours", "must not be negative");
+    if (rules.minRestHours < 0) r.error("rules.minRestHours", "must not be negative");
+    if (rules.blockGapMinutes < 0) r.error("rules.blockGapMinutes", "must not be negative");
     if (rules.maxConsecutiveDays && *rules.maxConsecutiveDays < 1) r.error("rules.maxConsecutiveDays", "must be at least 1");
-    if (rules.maxShiftsPerDay < 1) r.error("rules.maxShiftsPerDay", "must be at least 1");
 }
 
 }  // namespace

@@ -1,13 +1,6 @@
 #include "solver/Constraint.h"
 
-namespace {
-
-// Does shift `s` count on calendar day `day`? (DECISIONS D13)
-bool touchesDay(const Shift& s, const Date& day) {
-    return s.date <= day && day <= s.lastDay();
-}
-
-}  // namespace
+#include "solver/WorkBlocks.h"
 
 bool NoOverlapConstraint::allows(const Problem& problem, const State& state, int emp, int shift) const {
     const Shift& candidate = problem.shifts[shift];
@@ -23,16 +16,16 @@ bool NoOverlapConstraint::allows(const Problem& problem, const State& state, int
     return true;
 }
 
-bool MaxShiftsPerDayConstraint::allows(const Problem& problem, const State& state, int emp, int shift) const {
-    const Shift& candidate = problem.shifts[shift];
+bool MinRestConstraint::allows(const Problem& problem, const State& state, int emp, int shift) const {
+    // The employee's shifts as they would be with the new one added.
+    std::vector<int> shifts = state.shiftsOf(emp);
+    shifts.push_back(shift);
 
-    // Check every day the new shift touches: one day, or two for a night shift.
-    for (Date day = candidate.date; day <= candidate.lastDay(); day = day + 1) {
-        int count = 0;
-        for (int other : state.shiftsOf(emp))
-            if (touchesDay(problem.shifts[other], day)) ++count;
-
-        if (count + 1 > max_) return false;   // +1 for the shift being added
+    // Rest is measured between consecutive blocks, never inside one.
+    const std::vector<WorkBlock> blocks = buildBlocks(problem, shifts, blockGapMinutes_);
+    for (std::size_t i = 1; i < blocks.size(); ++i) {
+        const int rest = blocks[i].start - blocks[i - 1].end;
+        if (rest < minRestMinutes_) return false;
     }
     return true;
 }
@@ -40,7 +33,7 @@ bool MaxShiftsPerDayConstraint::allows(const Problem& problem, const State& stat
 ConstraintList makeConstraints(const Problem& problem) {
     ConstraintList list;
     list.push_back(std::make_unique<NoOverlapConstraint>());
-    list.push_back(std::make_unique<MaxShiftsPerDayConstraint>(problem.rules.maxShiftsPerDay));
+    list.push_back(std::make_unique<MinRestConstraint>(problem.rules.minRestHours, problem.rules.blockGapMinutes));
     // More rules from problem.rules are added here in the next steps.
     return list;
 }

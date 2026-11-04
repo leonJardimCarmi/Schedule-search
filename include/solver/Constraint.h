@@ -32,16 +32,20 @@ public:
     const char* name() const override { return "no-overlap"; }
 };
 
-// An employee works at most `max` shifts on any calendar day.
-// An overnight shift counts on every day it touches (DECISIONS D13).
-class MaxShiftsPerDayConstraint : public Constraint {
+// At least `minRestHours` between any two work blocks of the same employee
+// (DECISIONS D15). Shifts no more than `blockGapMinutes` apart are one block
+// (D14), so a double (e.g. 08-16 + 16-00) needs no rest in the middle.
+// Whether a double is allowed at all is a separate rule (step 2.3).
+class MinRestConstraint : public Constraint {
 public:
-    explicit MaxShiftsPerDayConstraint(int max) : max_(max) {}
+    MinRestConstraint(int minRestHours, int blockGapMinutes)
+        : minRestMinutes_(minRestHours * 60), blockGapMinutes_(blockGapMinutes) {}
     bool allows(const Problem& problem, const State& state, int emp, int shift) const override;
-    const char* name() const override { return "max-shifts-per-day"; }
+    const char* name() const override { return "min-rest"; }
 
 private:
-    int max_;
+    int minRestMinutes_;
+    int blockGapMinutes_;
 };
 
 // ---- Factory -----------------------------------------------------------------
