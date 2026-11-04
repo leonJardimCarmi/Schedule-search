@@ -18,4 +18,9 @@ struct Shift {
     // work across days and across midnight with plain subtraction.
     int absoluteStart() const { return date.daysSinceEpoch() * TimePeriod::MINUTES_PER_DAY + time.getStart(); }
     int absoluteEnd() const { return date.daysSinceEpoch() * TimePeriod::MINUTES_PER_DAY + time.getEnd(); }
+
+    // The last calendar day this shift touches (DECISIONS D13).
+    // 22:00-06:00 on Sunday -> Monday. 16:00-00:00 ends exactly at midnight,
+    // so it never reaches Monday: one minute before the end is still Sunday.
+    Date lastDay() const { return Date::fromDays((absoluteEnd() - 1) / TimePeriod::MINUTES_PER_DAY); }
 };

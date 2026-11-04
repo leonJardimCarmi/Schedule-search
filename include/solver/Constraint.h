@@ -32,6 +32,18 @@ public:
     const char* name() const override { return "no-overlap"; }
 };
 
+// An employee works at most `max` shifts on any calendar day.
+// An overnight shift counts on every day it touches (DECISIONS D13).
+class MaxShiftsPerDayConstraint : public Constraint {
+public:
+    explicit MaxShiftsPerDayConstraint(int max) : max_(max) {}
+    bool allows(const Problem& problem, const State& state, int emp, int shift) const override;
+    const char* name() const override { return "max-shifts-per-day"; }
+
+private:
+    int max_;
+};
+
 // ---- Factory -----------------------------------------------------------------
 
 // Builds the list of rules that apply to this problem.

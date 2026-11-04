@@ -80,8 +80,18 @@ TEST_CASE("the search counts combinations, not permutations", "[Solver]") {
     // Total 6 * 4 = 24. With permutations it would be 12 * 4 = 48.
     Problem p = makeProblem({freeOnSunday(1), freeOnSunday(2), freeOnSunday(3), freeOnSunday(4)},
                             {sundayShift("A", "08:00-16:00", 2), sundayShift("B", "16:00-23:00", 1)});
-    Solver solver(p);
-    CHECK(solver.countAll() == 24);
+
+    SECTION("counting only (two shifts a day allowed, so no rule interferes)") {
+        p.rules.maxShiftsPerDay = 2;
+        Solver solver(p);
+        CHECK(solver.countAll() == 24);
+    }
+
+    SECTION("with the default of one shift a day") {
+        // B must now go to one of the 2 people not in A: 6 * 2 = 12.
+        Solver solver(p);
+        CHECK(solver.countAll() == 12);
+    }
 }
 
 TEST_CASE("the state is clean after a full search", "[Solver]") {
