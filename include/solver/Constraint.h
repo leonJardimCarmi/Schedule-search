@@ -75,6 +75,19 @@ public:
     const char* name() const override { return "max-shifts"; }
 };
 
+// No more than `maxDays` calendar days in a row with any work.
+// A shift counts on every day it touches (DECISIONS D13): a night shift
+// Sunday 22:00-06:00 makes both Sunday and Monday work days.
+class MaxConsecutiveDaysConstraint : public Constraint {
+public:
+    explicit MaxConsecutiveDaysConstraint(int maxDays) : maxDays_(maxDays) {}
+    bool allows(const Problem& problem, const State& state, int emp, int shift) const override;
+    const char* name() const override { return "max-consecutive-days"; }
+
+private:
+    int maxDays_;
+};
+
 // ---- Factory -----------------------------------------------------------------
 
 // Builds the list of rules that apply to this problem.

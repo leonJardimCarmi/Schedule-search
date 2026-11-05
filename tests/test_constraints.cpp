@@ -50,6 +50,16 @@ TEST_CASE("no-overlap: shifts at the same time are rejected", "[Constraint][no-o
     CHECK_FALSE(rule.allows(p, state, 0, 4));   // Mon 05:00 is still inside N
 }
 
+TEST_CASE("an optional rule is added only when the input sets it", "[Constraint]") {
+    Problem p{kSunday, kSunday, {}, {}, Rules{}};
+    CHECK(makeConstraints(p).size() == 4);          // maxConsecutiveDays not set
+
+    p.rules.maxConsecutiveDays = 5;
+    ConstraintList list = makeConstraints(p);
+    REQUIRE(list.size() == 5);
+    CHECK(std::string(list[4]->name()) == "max-consecutive-days");
+}
+
 TEST_CASE("the factory builds the rules", "[Constraint]") {
     Problem p{kSunday, kSunday, {}, {}, Rules{}};
     ConstraintList list = makeConstraints(p);
@@ -253,4 +263,51 @@ TEST_CASE("max-shifts", "[Constraint][max-shifts]") {
 
     state.assign(1, 0);
     CHECK(rule.allows(p, state, 1, 1));          // no limit at all
+}
+
+// ---- max-consecutive-days (DECISIONS D13) ------------------------------------
+
+TEST_CASE("max-consecutive-days", "[Constraint][consecutive]") {
+    // One morning shift on each of 7 days, Sunday (0) to Saturday (6),
+    // plus a Sunday night shift (7) that reaches into Monday.
+    std::vector<Shift> shifts;
+    for (int d = 0; d < 7; ++d)
+        shifts.push_back(makeShift("D" + std::to_string(d), kSunday + d, "08:00-16:00"));
+    shifts.push_back(makeShift("SUN-N", kSunday, "22:00-06:00"));
+
+    Problem p{kSunday, kSunday + 6, {freeOn(1, {kSunday})}, shifts, Rules{}};
+    State state(1, 8);
+
+    SECTION("five days in a row are fine, a sixth is not") {
+        MaxConsecutiveDaysConstraint rule(5);
+        for (int d = 0; d < 5; ++d) {
+            CHECK(rule.allows(p, state, 0, d));
+            state.assign(0, d);
+        }
+        CHECK_FALSE(rule.allows(p, state, 0, 5));   // Friday would be day 6
+    }
+
+    SECTION("a free day breaks the run") {
+        MaxConsecutiveDaysConstraint rule(3);
+        state.assign(0, 0);                          // Sun
+        state.assign(0, 1);                          // Mon
+        state.assign(0, 3);                          // Wed (Tue is free)
+        state.assign(0, 4);                          // Thu
+        CHECK(rule.allows(p, state, 0, 5));          // Fri: Wed-Thu-Fri = 3
+    }
+
+    SECTION("filling a gap joins two runs") {
+        MaxConsecutiveDaysConstraint rule(4);
+        state.assign(0, 0);                          // Sun
+        state.assign(0, 1);                          // Mon
+        state.assign(0, 3);                          // Wed
+        state.assign(0, 4);                          // Thu
+        CHECK_FALSE(rule.allows(p, state, 0, 2));    // Tue would make Sun..Thu = 5
+    }
+
+    SECTION("a night shift counts on both days (D13)") {
+        MaxConsecutiveDaysConstraint rule(2);
+        state.assign(0, 7);                          // SUN-N: Sunday + Monday
+        CHECK_FALSE(rule.allows(p, state, 0, 2));    // Tue morning: Sun..Tue = 3
+    }
 }

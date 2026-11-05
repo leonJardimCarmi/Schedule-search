@@ -1,5 +1,7 @@
 #include "solver/Constraint.h"
 
+#include <set>
+
 #include "solver/WorkBlocks.h"
 
 namespace {
@@ -64,6 +66,27 @@ bool MaxShiftsConstraint::allows(const Problem& problem, const State& state, int
     return static_cast<int>(state.shiftsOf(emp).size()) < *limit;
 }
 
+bool MaxConsecutiveDaysConstraint::allows(const Problem& problem, const State& state, int emp, int shift) const {
+    // 1. Every day the employee would work, as day numbers (D13).
+    std::set<int> workDays;
+    auto addDays = [&](const Shift& s) {
+        for (Date d = s.date; d <= s.lastDay(); d = d + 1) workDays.insert(d.daysSinceEpoch());
+    };
+    for (int other : state.shiftsOf(emp)) addDays(problem.shifts[other]);
+    const Shift& candidate = problem.shifts[shift];
+    addDays(candidate);
+
+    // 2. The run of consecutive days that contains the new shift: start at
+    //    its days and grow in both directions while the next day is worked.
+    //    Other runs were already checked when they were built.
+    int first = candidate.date.daysSinceEpoch();
+    int last = candidate.lastDay().daysSinceEpoch();
+    while (workDays.count(first - 1)) --first;
+    while (workDays.count(last + 1)) ++last;
+
+    return last - first + 1 <= maxDays_;
+}
+
 ConstraintList makeConstraints(const Problem& problem) {
     ConstraintList list;
     list.push_back(std::make_unique<NoOverlapConstraint>());
@@ -72,6 +95,10 @@ ConstraintList makeConstraints(const Problem& problem) {
     list.push_back(std::make_unique<DoubleShiftConstraint>(rules.doubleAboveHours, rules.maxDoubleHours,
                                                            rules.blockGapMinutes));
     list.push_back(std::make_unique<MaxShiftsConstraint>());
+
+    // Optional rules: added only when the input sets them.
+    if (rules.maxConsecutiveDays)
+        list.push_back(std::make_unique<MaxConsecutiveDaysConstraint>(*rules.maxConsecutiveDays));
     // More rules from problem.rules are added here in the next steps.
     return list;
 }
