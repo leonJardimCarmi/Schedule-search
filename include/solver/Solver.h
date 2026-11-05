@@ -36,10 +36,12 @@ private:
     bool startShift(int shiftIdx);
     bool fill(int shiftIdx, int nextCandidate, int target);
     void reset();
+    void orderCandidates(int shiftIdx);
     bool allowed(int emp, int shift) const;   // every constraint says yes
 
     const Problem& problem_;
     std::vector<std::vector<int>> candidates_;   // [shift] -> employee indices
+    std::vector<std::vector<int>> order_;        // [shift] -> candidates in the order to try
     ConstraintList constraints_;
 
     State state_;

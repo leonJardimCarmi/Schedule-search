@@ -36,7 +36,7 @@ void printProblem(std::ostream& out, const Problem& p) {
         for (const AvailabilitySlot& s : e.availability) {
             out << "      " << s.date.toString() << ' ' << weekdayName(s.date) << "  "
                 << std::left << std::setw(12) << (s.time ? s.time->toString() : "all day")
-                << toString(s.type) << '\n';
+                << toString(s.type) << (s.allowsDouble ? "  (double ok)" : "") << '\n';
         }
     }
 
@@ -52,6 +52,8 @@ void printProblem(std::ostream& out, const Problem& p) {
     out << "\nRules\n";
     out << "  " << std::left << std::setw(20) << "minRestHours" << p.rules.minRestHours << " h\n";
     out << "  " << std::left << std::setw(20) << "blockGapMinutes" << p.rules.blockGapMinutes << " min\n";
+    out << "  " << std::left << std::setw(20) << "doubleAboveHours" << p.rules.doubleAboveHours << " h\n";
+    out << "  " << std::left << std::setw(20) << "maxDoubleHours" << p.rules.maxDoubleHours << " h\n";
     printOptional(out, "maxConsecutiveDays", p.rules.maxConsecutiveDays, " days");
 }
 

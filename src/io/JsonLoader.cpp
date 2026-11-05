@@ -47,6 +47,13 @@ public:
         return v->get<std::string>();
     }
 
+    std::optional<bool> optionalBool(const json& obj, const std::string& path, const char* key) {
+        const json* v = find(obj, path, key, false);
+        if (!v) return std::nullopt;
+        if (!v->is_boolean()) { error(join(path, key), "expected true or false"); return std::nullopt; }
+        return v->get<bool>();
+    }
+
     std::optional<int> requiredInt(const json& obj, const std::string& path, const char* key) {
         const json* v = find(obj, path, key, true);
         return v ? toInt(*v, join(path, key)) : std::nullopt;
@@ -108,7 +115,7 @@ std::optional<AvailabilityType> parseAvailabilityType(const std::string& s) {
 
 std::optional<AvailabilitySlot> readSlot(Reader& r, const json& j, const std::string& path) {
     if (!j.is_object()) { r.error(path, "expected an object"); return std::nullopt; }
-    r.warnUnknownKeys(j, path, {"date", "time", "type"});
+    r.warnUnknownKeys(j, path, {"date", "time", "type", "double"});
 
     std::optional<Date> date;
     if (auto s = r.requiredString(j, path, "date"))
@@ -127,8 +134,12 @@ std::optional<AvailabilitySlot> readSlot(Reader& r, const json& j, const std::st
         if (!type) r.error(Reader::join(path, "type"), "must be available, preferred or unavailable");
     }
 
+    const bool allowsDouble = r.optionalBool(j, path, "double").value_or(false);
+    if (allowsDouble && type == AvailabilityType::Unavailable)
+        r.warning(Reader::join(path, "double"), "has no meaning on an unavailable slot, ignored");
+
     if (!date || !type || !timeOk) return std::nullopt;
-    return AvailabilitySlot{*date, time, *type};
+    return AvailabilitySlot{*date, time, *type, allowsDouble && *type != AvailabilityType::Unavailable};
 }
 
 std::optional<Employee> readEmployee(Reader& r, const json& j, const std::string& path) {
@@ -193,9 +204,12 @@ Rules readRules(Reader& r, const json& root) {
     if (it == root.end()) return rules;                // all defaults
     if (!it->is_object()) { r.error("rules", "expected an object"); return rules; }
 
-    r.warnUnknownKeys(*it, "rules", {"minRestHours", "blockGapMinutes", "maxConsecutiveDays"});
+    r.warnUnknownKeys(*it, "rules", {"minRestHours", "blockGapMinutes", "doubleAboveHours",
+                                     "maxDoubleHours", "maxConsecutiveDays"});
     if (auto v = r.optionalInt(*it, "rules", "minRestHours")) rules.minRestHours = *v;
     if (auto v = r.optionalInt(*it, "rules", "blockGapMinutes")) rules.blockGapMinutes = *v;
+    if (auto v = r.optionalInt(*it, "rules", "doubleAboveHours")) rules.doubleAboveHours = *v;
+    if (auto v = r.optionalInt(*it, "rules", "maxDoubleHours")) rules.maxDoubleHours = *v;
     rules.maxConsecutiveDays = r.optionalInt(*it, "rules", "maxConsecutiveDays");
     return rules;
 }
@@ -239,6 +253,9 @@ void validate(Reader& r, const Problem& p) {
     const Rules& rules = p.rules;
     if (rules.minRestHours < 0) r.error("rules.minRestHours", "must not be negative");
     if (rules.blockGapMinutes < 0) r.error("rules.blockGapMinutes", "must not be negative");
+    if (rules.doubleAboveHours < 1) r.error("rules.doubleAboveHours", "must be at least 1");
+    if (rules.maxDoubleHours < rules.doubleAboveHours)
+        r.error("rules.maxDoubleHours", "must not be smaller than doubleAboveHours");
     if (rules.maxConsecutiveDays && *rules.maxConsecutiveDays < 1) r.error("rules.maxConsecutiveDays", "must be at least 1");
 }
 

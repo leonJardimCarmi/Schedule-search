@@ -13,6 +13,7 @@ struct AvailabilitySlot {
     Date date;
     std::optional<TimePeriod> time;   // empty = the whole day
     AvailabilityType type;
+    bool allowsDouble = false;          // "double": true (DECISIONS D16)
 };
 
 // Fixed input data: nothing here changes while the solver searches.

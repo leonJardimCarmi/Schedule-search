@@ -53,9 +53,10 @@ TEST_CASE("no-overlap: shifts at the same time are rejected", "[Constraint][no-o
 TEST_CASE("the factory builds the rules", "[Constraint]") {
     Problem p{kSunday, kSunday, {}, {}, Rules{}};
     ConstraintList list = makeConstraints(p);
-    REQUIRE(list.size() == 2);
+    REQUIRE(list.size() == 3);
     CHECK(std::string(list[0]->name()) == "no-overlap");
     CHECK(std::string(list[1]->name()) == "min-rest");
+    CHECK(std::string(list[2]->name()) == "double-needs-approval");
 }
 
 // ---- The rule inside the search ----------------------------------------------
@@ -164,5 +165,70 @@ TEST_CASE("min-rest", "[Constraint][min-rest]") {
         MinRestConstraint relaxed(8, 0);
         state.assign(0, 1);                          // SUN-E ends 00:00
         CHECK(relaxed.allows(p, state, 0, 3));       // exactly 8 hours: allowed
+    }
+}
+
+// ---- double-needs-approval (DECISIONS D16) ----------------------------------
+
+namespace {
+
+// An employee available all of Sunday 08:00-00:00, optionally approving a double.
+Employee sundayWorker(bool approvesDouble) {
+    Employee e;
+    e.id = 1;
+    e.name = "W";
+    e.availability.push_back({kSunday, TimePeriod::fromString("08:00-00:00"),
+                              AvailabilityType::Available, approvesDouble});
+    return e;
+}
+
+}  // namespace
+
+TEST_CASE("double-needs-approval", "[Constraint][double]") {
+    const std::vector<Shift> shifts = {makeShift("M", kSunday, "08:00-16:00"),    // 0
+                                       makeShift("E", kSunday, "16:00-00:00"),    // 1
+                                       makeShift("A", kSunday, "08:00-12:00"),    // 2
+                                       makeShift("B", kSunday, "12:00-16:00")};   // 3
+    DoubleShiftConstraint rule(10, 16, 0);   // the defaults
+
+    SECTION("a short block is not a double: no approval needed") {
+        Problem p{kSunday, kSunday, {sundayWorker(false)}, shifts, Rules{}};
+        State state(1, 4);
+        state.assign(0, 2);                        // A 08-12
+        CHECK(rule.allows(p, state, 0, 3));        // + B 12-16 = 8 hours
+    }
+
+    SECTION("a 16-hour block without approval is rejected") {
+        Problem p{kSunday, kSunday, {sundayWorker(false)}, shifts, Rules{}};
+        State state(1, 4);
+        state.assign(0, 0);                        // M 08-16
+        CHECK_FALSE(rule.allows(p, state, 0, 1));  // + E 16-00
+    }
+
+    SECTION("...and allowed with approval") {
+        Problem p{kSunday, kSunday, {sundayWorker(true)}, shifts, Rules{}};
+        State state(1, 4);
+        state.assign(0, 0);
+        CHECK(rule.allows(p, state, 0, 1));
+    }
+
+    SECTION("approval must cover the whole block") {
+        Employee e;
+        e.id = 1;
+        e.name = "W";
+        e.availability.push_back({kSunday, TimePeriod::fromString("08:00-20:00"),
+                                  AvailabilityType::Available, true});   // ends at 20:00
+        Problem p{kSunday, kSunday, {e}, shifts, Rules{}};
+        State state(1, 4);
+        state.assign(0, 0);
+        CHECK_FALSE(rule.allows(p, state, 0, 1));  // the block runs until 00:00
+    }
+
+    SECTION("never longer than maxDoubleHours, even with approval") {
+        DoubleShiftConstraint strict(10, 12, 0);   // business allows at most 12 hours
+        Problem p{kSunday, kSunday, {sundayWorker(true)}, shifts, Rules{}};
+        State state(1, 4);
+        state.assign(0, 0);
+        CHECK_FALSE(strict.allows(p, state, 0, 1));   // 16 > 12
     }
 }

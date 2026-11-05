@@ -24,3 +24,13 @@ std::vector<WorkBlock> buildBlocks(const Problem& problem, std::vector<int> shif
     }
     return blocks;
 }
+
+WorkBlock blockWith(const Problem& problem, const State& state, int emp, int shift, int maxGapMinutes) {
+    std::vector<int> shifts = state.shiftsOf(emp);
+    shifts.push_back(shift);
+
+    for (const WorkBlock& block : buildBlocks(problem, shifts, maxGapMinutes))
+        if (std::find(block.shifts.begin(), block.shifts.end(), shift) != block.shifts.end())
+            return block;
+    return WorkBlock{};   // not reached: `shift` is always in one of the blocks
+}

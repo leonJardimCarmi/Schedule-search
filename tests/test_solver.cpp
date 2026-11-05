@@ -129,3 +129,36 @@ TEST_CASE("min stays a hard limit even when wanted is larger", "[Solver][wanted]
     Solver solver(p);
     CHECK_FALSE(solver.findFirst().has_value());
 }
+
+TEST_CASE("a double is the last resort", "[Solver][double]") {
+    // Dana can work all day and approves a double. Noa can work only the evening.
+    Employee dana;
+    dana.id = 1;
+    dana.name = "Dana";
+    dana.availability.push_back({kSunday, TimePeriod::fromString("08:00-00:00"),
+                                 AvailabilityType::Available, true});
+    Employee noa;
+    noa.id = 2;
+    noa.name = "Noa";
+    noa.availability.push_back({kSunday, TimePeriod::fromString("16:00-00:00"),
+                                AvailabilityType::Available, false});
+
+    const std::vector<Shift> shifts = {sundayShift("M", "08:00-16:00", 1),
+                                       sundayShift("E", "16:00-00:00", 1)};
+
+    SECTION("when someone else can take the evening, Dana does not double") {
+        // Dana is first in the list, so without the ordering she would be tried first.
+        Problem p = makeProblem({dana, noa}, shifts);
+        auto result = Solver(p).findFirst();
+        REQUIRE(result.has_value());
+        CHECK(result->staffOf(0) == std::vector<int>{0});   // M: Dana
+        CHECK(result->staffOf(1) == std::vector<int>{1});   // E: Noa
+    }
+
+    SECTION("when nobody else can, the approved double is used") {
+        Problem p = makeProblem({dana}, shifts);
+        auto result = Solver(p).findFirst();
+        REQUIRE(result.has_value());
+        CHECK(result->staffOf(1) == std::vector<int>{0});   // E: Dana, a double
+    }
+}

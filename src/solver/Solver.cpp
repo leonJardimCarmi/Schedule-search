@@ -3,10 +3,12 @@
 #include <algorithm>
 
 #include "solver/Availability.h"
+#include "solver/WorkBlocks.h"
 
 Solver::Solver(const Problem& problem)
     : problem_(problem),
       candidates_(problem.shifts.size()),
+      order_(problem.shifts.size()),
       constraints_(makeConstraints(problem)),
       state_(static_cast<int>(problem.employees.size()), static_cast<int>(problem.shifts.size())) {
     // Availability never changes during the search, so it is checked once
@@ -44,6 +46,25 @@ long long Solver::countAll() {
     return solutions_;
 }
 
+// Decides in which order to try this shift's candidates (DECISIONS D16):
+// people for whom this shift would NOT be a double come first, so a double
+// is used only when there is no other way. stable_partition keeps the
+// original order inside each group, so the search stays predictable.
+//
+// It is computed when entering the shift, from the current state. Adding one
+// employee to this shift does not change whether it is a double for another,
+// so the order stays valid while this shift is being filled.
+void Solver::orderCandidates(int shiftIdx) {
+    const int doubleAbove = problem_.rules.doubleAboveHours * 60;
+    const int gap = problem_.rules.blockGapMinutes;
+
+    std::vector<int>& order = order_[shiftIdx];
+    order = candidates_[shiftIdx];
+    std::stable_partition(order.begin(), order.end(), [&](int emp) {
+        return blockWith(problem_, state_, emp, shiftIdx, gap).minutes() <= doubleAbove;
+    });
+}
+
 // Entering a new shift: decide how many people it gets.
 // Tries the largest size first (wanted), then one less, down to min.
 bool Solver::startShift(int shiftIdx) {
@@ -61,6 +82,7 @@ bool Solver::startShift(int shiftIdx) {
 
     const Shift& shift = problem_.shifts[shiftIdx];
     const int candidateCount = static_cast<int>(candidates_[shiftIdx].size());
+    orderCandidates(shiftIdx);
 
     // No point aiming for more people than there are candidates.
     const int largest = std::min(shift.wantedStaff, candidateCount);
@@ -74,7 +96,7 @@ bool Solver::startShift(int shiftIdx) {
 
 // Choosing exactly `target` people for one shift, as a combination.
 //
-// nextCandidate - position in candidates_[shiftIdx] to continue from.
+// nextCandidate - position in order_[shiftIdx] to continue from.
 //                 Everyone before it was already decided for this shift,
 //                 which is what makes the search pick combinations
 //                 ({A,B}) and not permutations ({A,B} and {B,A}).
@@ -84,7 +106,7 @@ bool Solver::fill(int shiftIdx, int nextCandidate, int target) {
     const int needed = target - state_.assignedCount(shiftIdx);
     if (needed == 0) return startShift(shiftIdx + 1);   // this shift is done
 
-    const std::vector<int>& candidates = candidates_[shiftIdx];
+    const std::vector<int>& candidates = order_[shiftIdx];
     for (int i = nextCandidate; i < static_cast<int>(candidates.size()); ++i) {
         // Fewer candidates left than people still needed: no combination
         // from here can reach the target, so stop trying.

@@ -104,3 +104,21 @@ TEST_CASE("a missing file is an error", "[loader]") {
     CHECK_FALSE(r.ok());
     CHECK(reported(r, "no/such/file.json", "cannot open"));
 }
+
+TEST_CASE("the double flag is read from availability", "[loader][double]") {
+    const std::string employees = R"([
+        { "id": 1, "name": "A", "availability": [
+            { "date": "2026-11-08", "time": "08:00-00:00", "type": "available", "double": true },
+            { "date": "2026-11-09", "time": "08:00-16:00", "type": "available" },
+            { "date": "2026-11-10", "type": "unavailable", "double": true },
+            { "date": "2026-11-11", "time": "08:00-16:00", "type": "available", "double": "yes" } ] } ])";
+    LoadResult r = JsonLoader::loadString(makeJson(employees, kOneShift), "t.json");
+
+    CHECK(reported(r, "availability[3].double", "expected true or false"));         // error
+    CHECK(reported(r, "availability[2].double", "no meaning on an unavailable"));   // warning
+    REQUIRE(r.problem.has_value());
+    const auto& slots = r.problem->employees[0].availability;
+    CHECK(slots[0].allowsDouble);
+    CHECK_FALSE(slots[1].allowsDouble);   // default
+    CHECK_FALSE(slots[2].allowsDouble);   // ignored on unavailable
+}

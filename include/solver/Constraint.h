@@ -48,6 +48,25 @@ private:
     int blockGapMinutes_;
 };
 
+// A work block longer than `doubleAboveHours` is a double (DECISIONS D16).
+// A double is allowed only if the employee approved it in their availability
+// ("double": true on a slot that covers the whole block), and never longer
+// than `maxDoubleHours`. Preferring non-doubles is the solver's job (step 2.3).
+class DoubleShiftConstraint : public Constraint {
+public:
+    DoubleShiftConstraint(int doubleAboveHours, int maxDoubleHours, int blockGapMinutes)
+        : doubleAboveMinutes_(doubleAboveHours * 60),
+          maxDoubleMinutes_(maxDoubleHours * 60),
+          blockGapMinutes_(blockGapMinutes) {}
+    bool allows(const Problem& problem, const State& state, int emp, int shift) const override;
+    const char* name() const override { return "double-needs-approval"; }
+
+private:
+    int doubleAboveMinutes_;
+    int maxDoubleMinutes_;
+    int blockGapMinutes_;
+};
+
 // ---- Factory -----------------------------------------------------------------
 
 // Builds the list of rules that apply to this problem.

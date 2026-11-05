@@ -21,7 +21,7 @@
         { "date": "2026-11-08", "time": "09:00-17:00", "type": "available" },
         { "date": "2026-11-08", "time": "16:00-00:00", "type": "preferred" },
         { "date": "2026-11-09", "time": "08:00-16:00", "type": "available" },
-        { "date": "2026-11-10", "time": "08:00-00:00", "type": "available" }
+        { "date": "2026-11-10", "time": "08:00-00:00", "type": "available", "double": true }
       ]
     },
     {
@@ -60,6 +60,8 @@
   "rules": {
     "minRestHours": 10,
     "blockGapMinutes": 0,
+    "doubleAboveHours": 10,
+    "maxDoubleHours": 16,
     "maxConsecutiveDays": 5
   }
 }

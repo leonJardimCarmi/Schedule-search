@@ -2,6 +2,26 @@
 
 #include "solver/WorkBlocks.h"
 
+namespace {
+
+// Did the employee mark "double": true on a slot that covers the whole block?
+bool approvedDouble(const Employee& employee, const WorkBlock& block) {
+    for (const AvailabilitySlot& slot : employee.availability) {
+        if (!slot.allowsDouble) continue;
+
+        // The slot on the same absolute timeline as the block.
+        // A slot without time covers its whole day.
+        const int dayStart = slot.date.daysSinceEpoch() * TimePeriod::MINUTES_PER_DAY;
+        const int slotStart = dayStart + (slot.time ? slot.time->getStart() : 0);
+        const int slotEnd = dayStart + (slot.time ? slot.time->getEnd() : TimePeriod::MINUTES_PER_DAY);
+
+        if (slotStart <= block.start && block.end <= slotEnd) return true;
+    }
+    return false;
+}
+
+}  // namespace
+
 bool NoOverlapConstraint::allows(const Problem& problem, const State& state, int emp, int shift) const {
     const Shift& candidate = problem.shifts[shift];
 
@@ -30,10 +50,21 @@ bool MinRestConstraint::allows(const Problem& problem, const State& state, int e
     return true;
 }
 
+bool DoubleShiftConstraint::allows(const Problem& problem, const State& state, int emp, int shift) const {
+    const WorkBlock block = blockWith(problem, state, emp, shift, blockGapMinutes_);
+
+    if (block.minutes() <= doubleAboveMinutes_) return true;    // not a double
+    if (block.minutes() > maxDoubleMinutes_) return false;      // too long, even with approval
+    return approvedDouble(problem.employees[emp], block);       // a double: needs approval
+}
+
 ConstraintList makeConstraints(const Problem& problem) {
     ConstraintList list;
     list.push_back(std::make_unique<NoOverlapConstraint>());
-    list.push_back(std::make_unique<MinRestConstraint>(problem.rules.minRestHours, problem.rules.blockGapMinutes));
+    const Rules& rules = problem.rules;
+    list.push_back(std::make_unique<MinRestConstraint>(rules.minRestHours, rules.blockGapMinutes));
+    list.push_back(std::make_unique<DoubleShiftConstraint>(rules.doubleAboveHours, rules.maxDoubleHours,
+                                                           rules.blockGapMinutes));
     // More rules from problem.rules are added here in the next steps.
     return list;
 }

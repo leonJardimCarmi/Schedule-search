@@ -33,8 +33,8 @@
 תנאים שאם הם מופרים, הענף נגזם (D6).
 - ✅ 2.1 ממשק `Constraint::allows(problem, state, emp, shift)`, `makeConstraints`, והחוק `no-overlap` (פעיל תמיד)
 - ✅ 2.2 רצפי עבודה (`buildBlocks`) והחוק `min-rest`: `minRestHours` בין רצפים (D14, D15). **מחליף את `maxShiftsPerDay`**, שנכתב ואחרי דיון בוטל (D13)
-- 🔶 2.3 כפולות: רצף מעל `doubleAboveHours` מותר רק עם `"double": true` בזמינות, ועד `maxDoubleHours` (D16). ניסיון קודם של עובדים שלא נכנסים לכפולה
-- ⬜ 2.4 `maxShifts` לעובד, והתאמה בין `role` של המשמרת ל־`roles` של העובד
+- ✅ 2.3 כפולות: החוק `double-needs-approval`. רצף מעל `doubleAboveHours` מותר רק עם `"double": true` בזמינות, ועד `maxDoubleHours` (D16). "מוצא אחרון": `orderCandidates` מנסה קודם עובדים שלא נכנסים לכפולה
+- 🔶 2.4 `maxShifts` לעובד, והתאמה בין `role` של המשמרת ל־`roles` של העובד
 - ⬜ 2.5 `maxConsecutiveDays`, כשמשמרת לילה נספרת בשני הימים (D13)
 
 ## שלב 3: דרישות משתמש גמישות ⬜
