@@ -76,8 +76,9 @@ public:
 };
 
 // No more than `maxDays` calendar days in a row with any work.
-// A shift counts on every day it touches (DECISIONS D13): a night shift
-// Sunday 22:00-06:00 makes both Sunday and Monday work days.
+// A shift counts on the day it starts (DECISIONS D13): five night shifts
+// Sunday to Thursday are five work days, not six. Short rest after a night
+// shift is the job of min-rest, not of this rule.
 class MaxConsecutiveDaysConstraint : public Constraint {
 public:
     explicit MaxConsecutiveDaysConstraint(int maxDays) : maxDays_(maxDays) {}

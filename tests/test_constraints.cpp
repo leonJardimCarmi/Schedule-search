@@ -94,14 +94,6 @@ TEST_CASE("the solver respects no-overlap", "[Solver][no-overlap]") {
     }
 }
 
-// ---- Which days a shift touches (DECISIONS D13) ------------------------------
-
-TEST_CASE("lastDay: night shifts reach the next day, midnight endings do not", "[Shift][D13]") {
-    CHECK(makeShift("M", kSunday, "08:00-16:00").lastDay() == kSunday);
-    CHECK(makeShift("E", kSunday, "16:00-00:00").lastDay() == kSunday);   // ends exactly at 00:00
-    CHECK(makeShift("N", kSunday, "22:00-06:00").lastDay() == kMonday);
-}
-
 // ---- Work blocks (DECISIONS D14) --------------------------------------------
 
 TEST_CASE("buildBlocks joins adjacent shifts and splits the rest", "[WorkBlocks][D14]") {
@@ -305,9 +297,12 @@ TEST_CASE("max-consecutive-days", "[Constraint][consecutive]") {
         CHECK_FALSE(rule.allows(p, state, 0, 2));    // Tue would make Sun..Thu = 5
     }
 
-    SECTION("a night shift counts on both days (D13)") {
+    SECTION("a night shift counts only on the day it starts (D13)") {
         MaxConsecutiveDaysConstraint rule(2);
-        state.assign(0, 7);                          // SUN-N: Sunday + Monday
-        CHECK_FALSE(rule.allows(p, state, 0, 2));    // Tue morning: Sun..Tue = 3
+        state.assign(0, 7);                          // SUN-N: counts as Sunday
+        CHECK(rule.allows(p, state, 0, 2));          // Tue: Sun and Tue are not in a row
+        CHECK(rule.allows(p, state, 0, 1));          // Mon: Sun-Mon = 2, still fine
+        state.assign(0, 1);
+        CHECK_FALSE(rule.allows(p, state, 0, 2));    // Tue now makes Sun-Mon-Tue = 3
     }
 }

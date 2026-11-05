@@ -67,20 +67,18 @@ bool MaxShiftsConstraint::allows(const Problem& problem, const State& state, int
 }
 
 bool MaxConsecutiveDaysConstraint::allows(const Problem& problem, const State& state, int emp, int shift) const {
-    // 1. Every day the employee would work, as day numbers (D13).
+    // 1. Every day the employee would work, as day numbers. A shift counts
+    //    on the day it starts, also a night shift (DECISIONS D13).
     std::set<int> workDays;
-    auto addDays = [&](const Shift& s) {
-        for (Date d = s.date; d <= s.lastDay(); d = d + 1) workDays.insert(d.daysSinceEpoch());
-    };
-    for (int other : state.shiftsOf(emp)) addDays(problem.shifts[other]);
-    const Shift& candidate = problem.shifts[shift];
-    addDays(candidate);
+    for (int other : state.shiftsOf(emp)) workDays.insert(problem.shifts[other].date.daysSinceEpoch());
+    const int day = problem.shifts[shift].date.daysSinceEpoch();
+    workDays.insert(day);
 
     // 2. The run of consecutive days that contains the new shift: start at
-    //    its days and grow in both directions while the next day is worked.
+    //    its day and grow in both directions while the next day is worked.
     //    Other runs were already checked when they were built.
-    int first = candidate.date.daysSinceEpoch();
-    int last = candidate.lastDay().daysSinceEpoch();
+    int first = day;
+    int last = day;
     while (workDays.count(first - 1)) --first;
     while (workDays.count(last + 1)) ++last;
 
