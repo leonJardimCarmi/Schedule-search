@@ -53,10 +53,11 @@ TEST_CASE("no-overlap: shifts at the same time are rejected", "[Constraint][no-o
 TEST_CASE("the factory builds the rules", "[Constraint]") {
     Problem p{kSunday, kSunday, {}, {}, Rules{}};
     ConstraintList list = makeConstraints(p);
-    REQUIRE(list.size() == 3);
+    REQUIRE(list.size() == 4);
     CHECK(std::string(list[0]->name()) == "no-overlap");
     CHECK(std::string(list[1]->name()) == "min-rest");
     CHECK(std::string(list[2]->name()) == "double-needs-approval");
+    CHECK(std::string(list[3]->name()) == "max-shifts");
 }
 
 // ---- The rule inside the search ----------------------------------------------
@@ -231,4 +232,25 @@ TEST_CASE("double-needs-approval", "[Constraint][double]") {
         state.assign(0, 0);
         CHECK_FALSE(strict.allows(p, state, 0, 1));   // 16 > 12
     }
+}
+
+// ---- max-shifts --------------------------------------------------------------
+
+TEST_CASE("max-shifts", "[Constraint][max-shifts]") {
+    Employee limited = freeOn(1, {kSunday, kMonday});
+    limited.maxShifts = 1;
+    Employee unlimited = freeOn(2, {kSunday, kMonday});   // no maxShifts
+
+    Problem p{kSunday, kMonday, {limited, unlimited},
+              {makeShift("SUN", kSunday, "08:00-16:00"), makeShift("MON", kMonday, "08:00-16:00")},
+              Rules{}};
+    MaxShiftsConstraint rule;
+    State state(2, 2);
+
+    CHECK(rule.allows(p, state, 0, 0));          // first shift: fine
+    state.assign(0, 0);
+    CHECK_FALSE(rule.allows(p, state, 0, 1));    // a second one: over the limit
+
+    state.assign(1, 0);
+    CHECK(rule.allows(p, state, 1, 1));          // no limit at all
 }

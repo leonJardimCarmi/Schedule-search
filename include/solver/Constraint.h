@@ -67,6 +67,14 @@ private:
     int blockGapMinutes_;
 };
 
+// An employee with "maxShifts" in the input never gets more shifts than that.
+// Employees without it have no personal limit. A double counts as two shifts.
+class MaxShiftsConstraint : public Constraint {
+public:
+    bool allows(const Problem& problem, const State& state, int emp, int shift) const override;
+    const char* name() const override { return "max-shifts"; }
+};
+
 // ---- Factory -----------------------------------------------------------------
 
 // Builds the list of rules that apply to this problem.

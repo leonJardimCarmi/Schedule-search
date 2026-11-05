@@ -83,3 +83,20 @@ TEST_CASE("unavailable that does not touch the shift changes nothing", "[Availab
                             slot(kSunday, "18:00-20:00", kUnavail)});
     CHECK(availabilityFit(e, makeShift(kSunday, "08:00-16:00")) == Fit::Yes);
 }
+
+// ---- roleFits ----------------------------------------------------------------
+
+TEST_CASE("roleFits: a shift without a role takes anyone", "[Availability][role]") {
+    Employee guard;
+    guard.roles = {"guard"};
+    Employee nobody;   // no roles at all
+
+    Shift anyJob = makeShift(kSunday, "08:00-16:00");
+    Shift guardJob = makeShift(kSunday, "22:00-06:00");
+    guardJob.role = "guard";
+
+    CHECK(roleFits(guard, anyJob));
+    CHECK(roleFits(nobody, anyJob));
+    CHECK(roleFits(guard, guardJob));
+    CHECK_FALSE(roleFits(nobody, guardJob));
+}

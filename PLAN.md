@@ -34,8 +34,8 @@
 - ✅ 2.1 ממשק `Constraint::allows(problem, state, emp, shift)`, `makeConstraints`, והחוק `no-overlap` (פעיל תמיד)
 - ✅ 2.2 רצפי עבודה (`buildBlocks`) והחוק `min-rest`: `minRestHours` בין רצפים (D14, D15). **מחליף את `maxShiftsPerDay`**, שנכתב ואחרי דיון בוטל (D13)
 - ✅ 2.3 כפולות: החוק `double-needs-approval`. רצף מעל `doubleAboveHours` מותר רק עם `"double": true` בזמינות, ועד `maxDoubleHours` (D16). "מוצא אחרון": `orderCandidates` מנסה קודם עובדים שלא נכנסים לכפולה
-- 🔶 2.4 `maxShifts` לעובד, והתאמה בין `role` של המשמרת ל־`roles` של העובד
-- ⬜ 2.5 `maxConsecutiveDays`, כשמשמרת לילה נספרת בשני הימים (D13)
+- ✅ 2.4 החוק `max-shifts` (מגבלה אישית, וכפולה נספרת כשתי משמרות). התאמת `role` נבדקת ב־`roleFits` בבניית טבלת המועמדים ולא כחוק, כי היא לא תלויה בשיבוצים
+- 🔶 2.5 `maxConsecutiveDays`, כשמשמרת לילה נספרת בשני הימים (D13)
 
 ## שלב 3: דרישות משתמש גמישות ⬜
 - ברירות מחדל בקוד לכל שדה אופציונלי ב־`rules` ובעובד

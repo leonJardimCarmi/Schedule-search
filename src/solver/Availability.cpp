@@ -30,6 +30,10 @@ Fit availabilityFit(const Employee& employee, const Shift& shift) {
     return Fit::No;
 }
 
+bool roleFits(const Employee& employee, const Shift& shift) {
+    return shift.role.empty() || employee.hasRole(shift.role);
+}
+
 const char* toString(Fit fit) {
     switch (fit) {
         case Fit::No:        return "no";

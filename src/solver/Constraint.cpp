@@ -58,6 +58,12 @@ bool DoubleShiftConstraint::allows(const Problem& problem, const State& state, i
     return approvedDouble(problem.employees[emp], block);       // a double: needs approval
 }
 
+bool MaxShiftsConstraint::allows(const Problem& problem, const State& state, int emp, int /*shift*/) const {
+    const std::optional<int>& limit = problem.employees[emp].maxShifts;
+    if (!limit) return true;   // no personal limit
+    return static_cast<int>(state.shiftsOf(emp).size()) < *limit;
+}
+
 ConstraintList makeConstraints(const Problem& problem) {
     ConstraintList list;
     list.push_back(std::make_unique<NoOverlapConstraint>());
@@ -65,6 +71,7 @@ ConstraintList makeConstraints(const Problem& problem) {
     list.push_back(std::make_unique<MinRestConstraint>(rules.minRestHours, rules.blockGapMinutes));
     list.push_back(std::make_unique<DoubleShiftConstraint>(rules.doubleAboveHours, rules.maxDoubleHours,
                                                            rules.blockGapMinutes));
+    list.push_back(std::make_unique<MaxShiftsConstraint>());
     // More rules from problem.rules are added here in the next steps.
     return list;
 }

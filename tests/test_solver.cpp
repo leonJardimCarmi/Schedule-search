@@ -162,3 +162,19 @@ TEST_CASE("a double is the last resort", "[Solver][double]") {
         CHECK(result->staffOf(1) == std::vector<int>{0});   // E: Dana, a double
     }
 }
+
+TEST_CASE("only employees with the shift's role are candidates", "[Solver][role]") {
+    Employee guard = freeOnSunday(1);
+    guard.roles = {"cashier", "guard"};
+    Employee cashier = freeOnSunday(2);
+    cashier.roles = {"cashier"};
+
+    Shift night = sundayShift("N", "22:00-06:00", 1);
+    night.role = "guard";
+    Shift morning = sundayShift("M", "08:00-16:00", 1);   // no role: anyone
+
+    Problem p = makeProblem({cashier, guard}, {morning, night});
+    Solver solver(p);
+    CHECK(solver.candidatesOf(0) == std::vector<int>{0, 1});   // both can do the morning
+    CHECK(solver.candidatesOf(1) == std::vector<int>{1});      // only the guard at night
+}

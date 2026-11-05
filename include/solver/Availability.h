@@ -20,3 +20,8 @@ enum class Fit {
 Fit availabilityFit(const Employee& employee, const Shift& shift);
 
 const char* toString(Fit fit);
+
+// Can this employee do the job the shift needs? A shift without a role can
+// be filled by anyone; a shift with a role only by employees who have it.
+// Like availability, this never changes during the search.
+bool roleFits(const Employee& employee, const Shift& shift);

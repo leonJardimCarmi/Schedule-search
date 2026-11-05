@@ -11,12 +11,15 @@ Solver::Solver(const Problem& problem)
       order_(problem.shifts.size()),
       constraints_(makeConstraints(problem)),
       state_(static_cast<int>(problem.employees.size()), static_cast<int>(problem.shifts.size())) {
-    // Availability never changes during the search, so it is checked once
-    // here instead of millions of times inside dfs().
+    // Availability and role never change during the search, so they are
+    // checked once here instead of millions of times inside the search.
     for (std::size_t s = 0; s < problem.shifts.size(); ++s)
-        for (std::size_t e = 0; e < problem.employees.size(); ++e)
-            if (availabilityFit(problem.employees[e], problem.shifts[s]) != Fit::No)
+        for (std::size_t e = 0; e < problem.employees.size(); ++e) {
+            const Employee& employee = problem.employees[e];
+            const Shift& shift = problem.shifts[s];
+            if (availabilityFit(employee, shift) != Fit::No && roleFits(employee, shift))
                 candidates_[s].push_back(static_cast<int>(e));
+        }
 }
 
 bool Solver::allowed(int emp, int shift) const {
