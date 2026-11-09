@@ -1,5 +1,6 @@
 #include <iostream>
 #include <optional>
+#include <stdexcept>
 #include <string>
 
 #include "io/CsvLoader.h"
@@ -13,17 +14,23 @@ namespace {
 constexpr int kOk = 0;           // a schedule was found
 constexpr int kBadInput = 1;     // wrong arguments or errors in the input file
 constexpr int kNoSchedule = 2;   // the input is fine but no schedule exists
+constexpr int kLimitReached = 3; // stopped by --time-limit / --max-nodes (D24)
+
+constexpr double kDefaultTimeLimit = 60;   // seconds (D23)
 
 void printUsage() {
-    std::cerr << "usage: schedule_search <problem.json> [--availability <file.csv>] [--verbose]\n"
-                 "  --availability  add availability lines from a CSV file\n"
-                 "                  (employee_id,date,time,type[,double])\n"
-                 "  --verbose       also print the loaded input and who can work each shift\n";
+    std::cerr << "usage: schedule_search <problem.json> [options]\n"
+                 "  --availability <file.csv>  add availability lines from a CSV file\n"
+                 "                             (employee_id,date,time,type[,double])\n"
+                 "  --time-limit <seconds>     stop the search after this long (default 60)\n"
+                 "  --max-nodes <n>            stop the search after n nodes (default: no limit)\n"
+                 "  --verbose                  also print the input, the candidates and the search size\n";
 }
 
 struct Options {
     std::string inputPath;
     std::string availabilityPath;   // empty = no CSV
+    SearchLimits limits{kDefaultTimeLimit, std::nullopt};
     bool verbose = false;
 };
 
@@ -34,12 +41,31 @@ std::optional<Options> parseArgs(int argc, char* argv[]) {
         const std::string arg = argv[i];
         if (arg == "--verbose" || arg == "-v") {
             options.verbose = true;
-        } else if (arg == "--availability") {
-            if (i + 1 >= argc) {   // the option needs a value after it
-                std::cerr << "--availability needs a file name\n";
+        } else if (arg == "--availability" || arg == "--time-limit" || arg == "--max-nodes") {
+            if (i + 1 >= argc) {   // these options need a value after them
+                std::cerr << arg << " needs a value\n";
                 return std::nullopt;
             }
-            options.availabilityPath = argv[++i];
+            const std::string value = argv[++i];
+            if (arg == "--availability") {
+                options.availabilityPath = value;
+                continue;
+            }
+            try {
+                std::size_t used = 0;
+                if (arg == "--time-limit") {
+                    const double seconds = std::stod(value, &used);
+                    if (used != value.size() || seconds <= 0) throw std::invalid_argument("");
+                    options.limits.seconds = seconds;
+                } else {
+                    const long long nodes = std::stoll(value, &used);
+                    if (used != value.size() || nodes <= 0) throw std::invalid_argument("");
+                    options.limits.maxNodes = nodes;
+                }
+            } catch (const std::exception&) {
+                std::cerr << arg << " needs a positive number, got '" << value << "'\n";
+                return std::nullopt;
+            }
         } else if (!arg.empty() && arg[0] == '-') {
             std::cerr << "unknown option: " << arg << '\n';
             return std::nullopt;
@@ -78,6 +104,7 @@ int main(int argc, char* argv[]) {
 
     // 2. Search.
     Solver solver(problem);
+    solver.setLimits(options->limits);
     if (options->verbose) {
         printProblem(std::cout, problem);
         printCandidates(std::cout, problem, solver);
@@ -90,6 +117,12 @@ int main(int argc, char* argv[]) {
         std::cout << "Search visited " << solver.nodesVisited() << " nodes\n\n";
 
     // 3. Report.
+    if (solver.status() == SearchStatus::LimitReached) {
+        std::cout << "Search stopped after " << solver.nodesVisited()
+                  << " nodes (time or node limit). No schedule found yet;\n"
+                     "a schedule may still exist. Try a larger --time-limit.\n";
+        return kLimitReached;
+    }
     if (!schedule) {
         std::cout << "No schedule satisfies the input.\n";
         return kNoSchedule;

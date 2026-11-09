@@ -33,6 +33,29 @@ void Solver::reset() {
     found_.reset();
     solutions_ = 0;
     nodes_ = 0;
+    limitHit_ = false;
+    startTime_ = std::chrono::steady_clock::now();
+}
+
+// Called once per node. Returns true when the search must stop.
+bool Solver::limitReached() {
+    ++nodes_;
+    if (limitHit_) return true;
+
+    if (limits_.maxNodes && nodes_ > *limits_.maxNodes) {
+        limitHit_ = true;
+    } else if (limits_.seconds && nodes_ % 1024 == 0) {
+        // Reading the clock costs more than a whole node, so it is done
+        // only once every 1024 nodes: a few microseconds late at most.
+        const std::chrono::duration<double> elapsed = std::chrono::steady_clock::now() - startTime_;
+        if (elapsed.count() >= *limits_.seconds) limitHit_ = true;
+    }
+    return limitHit_;
+}
+
+SearchStatus Solver::status() const {
+    if (found_) return SearchStatus::Found;
+    return limitHit_ ? SearchStatus::LimitReached : SearchStatus::NoSchedule;
 }
 
 std::optional<State> Solver::findFirst() {
@@ -71,7 +94,7 @@ void Solver::orderCandidates(int shiftIdx) {
 // Entering a new shift: decide how many people it gets.
 // Tries the largest size first (wanted), then one less, down to min.
 bool Solver::startShift(int shiftIdx) {
-    ++nodes_;
+    if (limitReached()) return true;   // "stop": unwinds the whole search
 
     // Every shift is staffed: this is a complete schedule.
     if (shiftIdx == static_cast<int>(problem_.shifts.size())) {
@@ -104,7 +127,7 @@ bool Solver::startShift(int shiftIdx) {
 //                 which is what makes the search pick combinations
 //                 ({A,B}) and not permutations ({A,B} and {B,A}).
 bool Solver::fill(int shiftIdx, int nextCandidate, int target) {
-    ++nodes_;
+    if (limitReached()) return true;
 
     const int needed = target - state_.assignedCount(shiftIdx);
     if (needed == 0) return startShift(shiftIdx + 1);   // this shift is done

@@ -178,3 +178,68 @@ TEST_CASE("only employees with the shift's role are candidates", "[Solver][role]
     CHECK(solver.candidatesOf(0) == std::vector<int>{0, 1});   // both can do the morning
     CHECK(solver.candidatesOf(1) == std::vector<int>{1});      // only the guard at night
 }
+
+// ---- search limits (DECISIONS D23, D24) --------------------------------------
+// Tested with a node limit, not a time limit: the number of nodes is the same
+// on every computer and every run, while time depends on how fast and how
+// busy the machine is. A test that depends on time would sometimes fail.
+
+namespace {
+
+// Four shifts that anyone can work, then a last shift nobody can work.
+// The search must try every combination of the first four before it can
+// say "no schedule": a small version of the month benchmark.
+Problem hopelessAtTheEnd() {
+    std::vector<Employee> people;
+    for (int id = 1; id <= 5; ++id) people.push_back(freeOnSunday(id));
+    // Back-to-back one-hour shifts: together a short work block, so no rule
+    // limits who takes them, and the search tree is as wide as possible.
+    std::vector<Shift> shifts = {sundayShift("S0", "01:00-02:00", 1, 2),
+                                 sundayShift("S1", "02:00-03:00", 1, 2),
+                                 sundayShift("S2", "03:00-04:00", 1, 2),
+                                 sundayShift("S3", "04:00-05:00", 1, 2)};
+    Shift impossible = sundayShift("X", "20:00-21:00", 1);
+    impossible.role = "nobody-has-this";
+    shifts.push_back(impossible);
+    return makeProblem(people, shifts);
+}
+
+}  // namespace
+
+TEST_CASE("without a limit the search proves there is no schedule", "[Solver][limits]") {
+    Problem p = hopelessAtTheEnd();
+    Solver solver(p);
+    CHECK_FALSE(solver.findFirst().has_value());
+    CHECK(solver.status() == SearchStatus::NoSchedule);
+    CHECK(solver.nodesVisited() > 1000);   // it really had to search
+}
+
+TEST_CASE("a node limit stops the search and says so", "[Solver][limits]") {
+    Problem p = hopelessAtTheEnd();
+    Solver solver(p);
+    solver.setLimits({std::nullopt, 100});
+
+    CHECK_FALSE(solver.findFirst().has_value());
+    CHECK(solver.status() == SearchStatus::LimitReached);   // not "no schedule"
+    CHECK(solver.nodesVisited() == 101);                     // stopped right away
+}
+
+TEST_CASE("a limit that is not reached changes nothing", "[Solver][limits]") {
+    Problem p = makeProblem({freeOnSunday(1)}, {sundayShift("S", "08:00-16:00", 1)});
+    Solver solver(p);
+    solver.setLimits({60.0, 1000000});
+    REQUIRE(solver.findFirst().has_value());
+    CHECK(solver.status() == SearchStatus::Found);
+}
+
+TEST_CASE("the next search starts with a fresh limit", "[Solver][limits]") {
+    Problem p = hopelessAtTheEnd();
+    Solver solver(p);
+    solver.setLimits({std::nullopt, 100});
+    solver.findFirst();
+    REQUIRE(solver.status() == SearchStatus::LimitReached);
+
+    solver.setLimits({});                    // no limits now
+    solver.findFirst();
+    CHECK(solver.status() == SearchStatus::NoSchedule);
+}

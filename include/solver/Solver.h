@@ -1,4 +1,5 @@
 #pragma once
+#include <chrono>
 #include <optional>
 #include <vector>
 
@@ -12,14 +13,32 @@
 // Larger staffings are tried first (DECISIONS D10); fewer than minStaff is
 // a dead end (D11). An employee is tried only if available for the shift
 // and every hard rule in constraints() allows it (stage 2).
+// When to give up (DECISIONS D23). Empty = no limit of that kind.
+struct SearchLimits {
+    std::optional<double> seconds;
+    std::optional<long long> maxNodes;
+};
+
+// How the last search ended.
+enum class SearchStatus {
+    Found,          // a schedule was found
+    NoSchedule,     // the whole tree was searched: no schedule exists
+    LimitReached    // stopped by a limit before an answer (D24)
+};
+
 class Solver {
 public:
     explicit Solver(const Problem& problem);
 
-    // The first legal schedule found, or nothing if none exists.
+    void setLimits(const SearchLimits& limits) { limits_ = limits; }
+
+    // The first legal schedule found, or nothing. status() tells whether
+    // "nothing" means "none exists" or "stopped by a limit".
     std::optional<State> findFirst();
+    SearchStatus status() const;
 
     // How many different legal schedules exist (explores the whole tree).
+    // If a limit stops it, the count is partial and status() says so.
     long long countAll();
 
     // How many times dfs() was called in the last search: a measure of work.
@@ -38,6 +57,7 @@ private:
     void reset();
     void orderCandidates(int shiftIdx);
     bool allowed(int emp, int shift) const;   // every constraint says yes
+    bool limitReached();                      // counts a node, checks the limits
 
     const Problem& problem_;
     std::vector<std::vector<int>> candidates_;   // [shift] -> employee indices
@@ -49,4 +69,8 @@ private:
     std::optional<State> found_;
     long long solutions_ = 0;
     long long nodes_ = 0;
+
+    SearchLimits limits_;
+    std::chrono::steady_clock::time_point startTime_;
+    bool limitHit_ = false;
 };

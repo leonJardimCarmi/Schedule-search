@@ -174,7 +174,9 @@ Per employee
 Dana is available Monday morning, but she isn't assigned to it: she finished Sunday's evening shift at midnight, and 8 hours of rest is below the 10-hour minimum.
 
 `--verbose` also prints the loaded input, the candidates for each shift, and the number of search nodes.
-Exit codes: `0` schedule found · `1` bad arguments or input · `2` valid input but no schedule exists.
+`--time-limit <seconds>` (default 60) and `--max-nodes <n>` stop a search that takes too long.
+
+Exit codes: `0` schedule found · `1` bad arguments or input · `2` valid input, and no schedule exists (the whole search space was checked) · `3` stopped by a limit before finding a schedule (one may still exist).
 
 ---
 
@@ -213,7 +215,7 @@ src/                implementations, same layout
 tests/              Catch2 unit tests
 data/               example inputs
 PLAN.md             roadmap and status of each stage (Hebrew)
-DECISIONS.md        design decisions D1–D22 and the reasoning behind them (Hebrew)
+DECISIONS.md        design decisions D1–D24 and the reasoning behind them (Hebrew)
 ```
 
 ## Roadmap

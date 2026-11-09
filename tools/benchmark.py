@@ -26,11 +26,14 @@ def run(solver, problem, limit):
         path = f.name
     start = time.perf_counter()
     try:
-        p = subprocess.run([solver, path, "--verbose"], capture_output=True, text=True, timeout=limit)
+        # The solver enforces the limit itself (--time-limit) and still reports
+        # its node count. The subprocess timeout is only a safety net.
+        p = subprocess.run([solver, path, "--verbose", "--time-limit", str(limit)],
+                           capture_output=True, text=True, timeout=limit + 10)
         seconds = time.perf_counter() - start
-        m = re.search(r"visited (\d+) nodes", p.stdout)
+        m = re.search(r"(?:visited|after) (\d+) nodes", p.stdout)
         nodes = int(m.group(1)) if m else None
-        result = {0: "found", 2: "no schedule"}.get(p.returncode, f"exit {p.returncode}")
+        result = {0: "found", 2: "no schedule", 3: f"LIMIT ({limit:g}s)"}.get(p.returncode, f"exit {p.returncode}")
     except subprocess.TimeoutExpired:
         seconds, nodes, result = limit, None, f"TIMEOUT ({limit}s)"
     finally:
@@ -69,7 +72,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("solver")
     ap.add_argument("problem")
-    ap.add_argument("--limit", type=float, default=20, help="seconds per run")
+    ap.add_argument("--limit", type=float, default=60, help="seconds per run (passed as --time-limit)")
     a = ap.parse_args()
     problem = json.load(open(a.problem))
     total = len({s["date"] for s in problem["shifts"]})
@@ -83,7 +86,7 @@ def main():
     for k in range(1, 8):
         r = run(a.solver, break_night(problem, k), a.limit)
         rows.append((f"day {k}", r))
-        if r[2].startswith("TIMEOUT"):
+        if r[2].startswith(("TIMEOUT", "LIMIT")):
             break
     table("broken: one impossible night on day k", rows)
 
