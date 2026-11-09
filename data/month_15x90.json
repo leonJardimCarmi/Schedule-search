@@ -1,0 +1,2730 @@
+{
+ "period": {
+  "start": "2026-12-06",
+  "end": "2027-01-04"
+ },
+ "employees": [
+  {
+   "id": 100,
+   "name": "Omer Cohen",
+   "roles": [
+    "cashier"
+   ],
+   "availability": [
+    {
+     "date": "2026-12-06",
+     "time": "07:00-15:00",
+     "type": "preferred"
+    },
+    {
+     "date": "2026-12-07",
+     "type": "unavailable"
+    },
+    {
+     "date": "2026-12-08",
+     "type": "unavailable"
+    },
+    {
+     "date": "2026-12-10",
+     "time": "07:00-15:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-11",
+     "time": "07:00-15:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-14",
+     "type": "unavailable"
+    },
+    {
+     "date": "2026-12-15",
+     "type": "unavailable"
+    },
+    {
+     "date": "2026-12-16",
+     "time": "07:00-15:00",
+     "type": "preferred"
+    },
+    {
+     "date": "2026-12-17",
+     "time": "07:00-15:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-18",
+     "time": "07:00-15:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-20",
+     "time": "07:00-15:00",
+     "type": "preferred"
+    },
+    {
+     "date": "2026-12-21",
+     "type": "unavailable"
+    },
+    {
+     "date": "2026-12-22",
+     "type": "unavailable"
+    },
+    {
+     "date": "2026-12-23",
+     "time": "07:00-15:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-24",
+     "time": "07:00-15:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-25",
+     "time": "07:00-15:00",
+     "type": "preferred"
+    },
+    {
+     "date": "2026-12-26",
+     "time": "07:00-15:00",
+     "type": "preferred"
+    },
+    {
+     "date": "2026-12-27",
+     "time": "07:00-15:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-28",
+     "type": "unavailable"
+    },
+    {
+     "date": "2026-12-29",
+     "type": "unavailable"
+    },
+    {
+     "date": "2026-12-30",
+     "time": "07:00-15:00",
+     "type": "preferred"
+    },
+    {
+     "date": "2026-12-31",
+     "time": "07:00-15:00",
+     "type": "available"
+    },
+    {
+     "date": "2027-01-01",
+     "time": "07:00-15:00",
+     "type": "available"
+    },
+    {
+     "date": "2027-01-02",
+     "time": "07:00-15:00",
+     "type": "available"
+    },
+    {
+     "date": "2027-01-03",
+     "time": "07:00-15:00",
+     "type": "preferred"
+    },
+    {
+     "date": "2027-01-04",
+     "type": "unavailable"
+    }
+   ],
+   "maxShifts": 12,
+   "minShifts": 12
+  },
+  {
+   "id": 101,
+   "name": "Ron Biton",
+   "roles": [
+    "cashier"
+   ],
+   "availability": [
+    {
+     "date": "2026-12-06",
+     "type": "unavailable"
+    },
+    {
+     "date": "2026-12-07",
+     "time": "07:00-15:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-08",
+     "time": "07:00-15:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-11",
+     "time": "07:00-15:00",
+     "type": "preferred"
+    },
+    {
+     "date": "2026-12-12",
+     "time": "07:00-15:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-13",
+     "type": "unavailable"
+    },
+    {
+     "date": "2026-12-14",
+     "time": "07:00-15:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-15",
+     "time": "07:00-15:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-16",
+     "time": "07:00-15:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-17",
+     "time": "07:00-15:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-18",
+     "time": "07:00-15:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-19",
+     "time": "07:00-15:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-20",
+     "type": "unavailable"
+    },
+    {
+     "date": "2026-12-21",
+     "time": "07:00-15:00",
+     "type": "preferred"
+    },
+    {
+     "date": "2026-12-22",
+     "time": "07:00-15:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-24",
+     "time": "07:00-15:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-25",
+     "time": "07:00-15:00",
+     "type": "preferred"
+    },
+    {
+     "date": "2026-12-26",
+     "time": "07:00-15:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-27",
+     "type": "unavailable"
+    },
+    {
+     "date": "2026-12-28",
+     "time": "07:00-15:00",
+     "type": "preferred"
+    },
+    {
+     "date": "2026-12-29",
+     "time": "07:00-15:00",
+     "type": "preferred"
+    },
+    {
+     "date": "2026-12-30",
+     "time": "07:00-15:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-31",
+     "time": "07:00-15:00",
+     "type": "preferred"
+    },
+    {
+     "date": "2027-01-01",
+     "time": "07:00-15:00",
+     "type": "available"
+    },
+    {
+     "date": "2027-01-02",
+     "time": "07:00-15:00",
+     "type": "preferred"
+    },
+    {
+     "date": "2027-01-03",
+     "type": "unavailable"
+    },
+    {
+     "date": "2027-01-04",
+     "time": "07:00-15:00",
+     "type": "available"
+    }
+   ]
+  },
+  {
+   "id": 102,
+   "name": "Noa Azoulay",
+   "roles": [
+    "cashier"
+   ],
+   "availability": [
+    {
+     "date": "2026-12-06",
+     "time": "07:00-15:00",
+     "type": "preferred"
+    },
+    {
+     "date": "2026-12-09",
+     "type": "unavailable"
+    },
+    {
+     "date": "2026-12-11",
+     "time": "07:00-15:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-12",
+     "time": "07:00-15:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-13",
+     "time": "07:00-15:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-14",
+     "time": "07:00-15:00",
+     "type": "preferred"
+    },
+    {
+     "date": "2026-12-16",
+     "type": "unavailable"
+    },
+    {
+     "date": "2026-12-18",
+     "time": "07:00-15:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-19",
+     "time": "07:00-15:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-20",
+     "time": "07:00-15:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-21",
+     "time": "07:00-15:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-23",
+     "type": "unavailable"
+    },
+    {
+     "date": "2026-12-24",
+     "time": "07:00-15:00",
+     "type": "preferred"
+    },
+    {
+     "date": "2026-12-25",
+     "time": "07:00-15:00",
+     "type": "preferred"
+    },
+    {
+     "date": "2026-12-26",
+     "time": "07:00-15:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-27",
+     "time": "07:00-15:00",
+     "type": "preferred"
+    },
+    {
+     "date": "2026-12-28",
+     "time": "07:00-15:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-29",
+     "time": "07:00-15:00",
+     "type": "preferred"
+    },
+    {
+     "date": "2026-12-30",
+     "type": "unavailable"
+    },
+    {
+     "date": "2026-12-31",
+     "time": "07:00-15:00",
+     "type": "available"
+    },
+    {
+     "date": "2027-01-01",
+     "time": "07:00-15:00",
+     "type": "preferred"
+    },
+    {
+     "date": "2027-01-02",
+     "time": "07:00-15:00",
+     "type": "available"
+    },
+    {
+     "date": "2027-01-03",
+     "time": "07:00-15:00",
+     "type": "preferred"
+    },
+    {
+     "date": "2027-01-04",
+     "time": "07:00-15:00",
+     "type": "preferred"
+    }
+   ]
+  },
+  {
+   "id": 103,
+   "name": "Lior Azoulay",
+   "roles": [
+    "cashier"
+   ],
+   "availability": [
+    {
+     "date": "2026-12-06",
+     "time": "07:00-15:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-07",
+     "time": "07:00-15:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-08",
+     "time": "07:00-15:00",
+     "type": "preferred"
+    },
+    {
+     "date": "2026-12-09",
+     "type": "unavailable"
+    },
+    {
+     "date": "2026-12-11",
+     "time": "07:00-15:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-12",
+     "type": "unavailable"
+    },
+    {
+     "date": "2026-12-13",
+     "time": "07:00-15:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-14",
+     "time": "07:00-15:00",
+     "type": "preferred"
+    },
+    {
+     "date": "2026-12-15",
+     "time": "07:00-15:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-16",
+     "type": "unavailable"
+    },
+    {
+     "date": "2026-12-17",
+     "time": "07:00-15:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-18",
+     "time": "07:00-15:00",
+     "type": "preferred"
+    },
+    {
+     "date": "2026-12-19",
+     "type": "unavailable"
+    },
+    {
+     "date": "2026-12-20",
+     "time": "07:00-15:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-21",
+     "time": "07:00-15:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-22",
+     "time": "07:00-15:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-23",
+     "type": "unavailable"
+    },
+    {
+     "date": "2026-12-24",
+     "time": "07:00-15:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-25",
+     "time": "07:00-15:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-26",
+     "type": "unavailable"
+    },
+    {
+     "date": "2026-12-27",
+     "time": "07:00-15:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-28",
+     "time": "07:00-15:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-29",
+     "time": "07:00-15:00",
+     "type": "preferred"
+    },
+    {
+     "date": "2026-12-30",
+     "type": "unavailable"
+    },
+    {
+     "date": "2026-12-31",
+     "time": "07:00-15:00",
+     "type": "available"
+    },
+    {
+     "date": "2027-01-01",
+     "time": "07:00-15:00",
+     "type": "available"
+    },
+    {
+     "date": "2027-01-02",
+     "type": "unavailable"
+    },
+    {
+     "date": "2027-01-03",
+     "time": "07:00-15:00",
+     "type": "available"
+    }
+   ],
+   "maxShifts": 18
+  },
+  {
+   "id": 104,
+   "name": "Roni Biton",
+   "roles": [
+    "cashier"
+   ],
+   "availability": [
+    {
+     "date": "2026-12-06",
+     "time": "15:00-23:00",
+     "type": "preferred"
+    },
+    {
+     "date": "2026-12-08",
+     "type": "unavailable"
+    },
+    {
+     "date": "2026-12-09",
+     "time": "15:00-23:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-10",
+     "time": "15:00-23:00",
+     "type": "preferred"
+    },
+    {
+     "date": "2026-12-11",
+     "time": "15:00-23:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-13",
+     "time": "15:00-23:00",
+     "type": "preferred"
+    },
+    {
+     "date": "2026-12-14",
+     "time": "15:00-23:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-15",
+     "type": "unavailable"
+    },
+    {
+     "date": "2026-12-16",
+     "time": "15:00-23:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-17",
+     "time": "15:00-23:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-18",
+     "time": "15:00-23:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-19",
+     "time": "15:00-23:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-20",
+     "time": "15:00-23:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-21",
+     "time": "15:00-23:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-22",
+     "type": "unavailable"
+    },
+    {
+     "date": "2026-12-23",
+     "time": "15:00-23:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-24",
+     "time": "15:00-23:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-25",
+     "time": "15:00-23:00",
+     "type": "preferred"
+    },
+    {
+     "date": "2026-12-26",
+     "time": "15:00-23:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-27",
+     "time": "15:00-23:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-28",
+     "time": "15:00-23:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-29",
+     "type": "unavailable"
+    },
+    {
+     "date": "2026-12-30",
+     "time": "15:00-23:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-31",
+     "time": "15:00-23:00",
+     "type": "available"
+    },
+    {
+     "date": "2027-01-01",
+     "time": "15:00-23:00",
+     "type": "preferred"
+    },
+    {
+     "date": "2027-01-02",
+     "time": "15:00-23:00",
+     "type": "preferred"
+    },
+    {
+     "date": "2027-01-04",
+     "time": "15:00-23:00",
+     "type": "preferred"
+    }
+   ],
+   "minShifts": 12
+  },
+  {
+   "id": 105,
+   "name": "Tamar Peretz",
+   "roles": [
+    "cashier"
+   ],
+   "availability": [
+    {
+     "date": "2026-12-06",
+     "time": "15:00-23:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-08",
+     "time": "15:00-23:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-09",
+     "time": "15:00-23:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-10",
+     "time": "15:00-23:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-11",
+     "type": "unavailable"
+    },
+    {
+     "date": "2026-12-12",
+     "time": "15:00-23:00",
+     "type": "preferred"
+    },
+    {
+     "date": "2026-12-14",
+     "time": "15:00-23:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-15",
+     "time": "15:00-23:00",
+     "type": "preferred"
+    },
+    {
+     "date": "2026-12-17",
+     "time": "15:00-23:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-18",
+     "type": "unavailable"
+    },
+    {
+     "date": "2026-12-19",
+     "time": "15:00-23:00",
+     "type": "preferred"
+    },
+    {
+     "date": "2026-12-20",
+     "time": "15:00-23:00",
+     "type": "preferred"
+    },
+    {
+     "date": "2026-12-21",
+     "time": "15:00-23:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-22",
+     "time": "15:00-23:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-23",
+     "time": "15:00-23:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-24",
+     "time": "15:00-23:00",
+     "type": "preferred"
+    },
+    {
+     "date": "2026-12-25",
+     "type": "unavailable"
+    },
+    {
+     "date": "2026-12-26",
+     "time": "15:00-23:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-27",
+     "time": "15:00-23:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-28",
+     "time": "15:00-23:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-30",
+     "time": "15:00-23:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-31",
+     "time": "15:00-23:00",
+     "type": "available"
+    },
+    {
+     "date": "2027-01-01",
+     "type": "unavailable"
+    },
+    {
+     "date": "2027-01-02",
+     "time": "15:00-23:00",
+     "type": "available"
+    },
+    {
+     "date": "2027-01-04",
+     "time": "15:00-23:00",
+     "type": "available"
+    }
+   ]
+  },
+  {
+   "id": 106,
+   "name": "Noa Levi",
+   "roles": [
+    "cashier"
+   ],
+   "availability": [
+    {
+     "date": "2026-12-06",
+     "type": "unavailable"
+    },
+    {
+     "date": "2026-12-07",
+     "type": "unavailable"
+    },
+    {
+     "date": "2026-12-08",
+     "time": "15:00-23:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-09",
+     "time": "15:00-23:00",
+     "type": "preferred"
+    },
+    {
+     "date": "2026-12-10",
+     "time": "15:00-23:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-12",
+     "time": "15:00-23:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-13",
+     "type": "unavailable"
+    },
+    {
+     "date": "2026-12-14",
+     "type": "unavailable"
+    },
+    {
+     "date": "2026-12-16",
+     "time": "15:00-23:00",
+     "type": "preferred"
+    },
+    {
+     "date": "2026-12-17",
+     "time": "15:00-23:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-18",
+     "time": "15:00-23:00",
+     "type": "preferred"
+    },
+    {
+     "date": "2026-12-19",
+     "time": "15:00-23:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-20",
+     "type": "unavailable"
+    },
+    {
+     "date": "2026-12-21",
+     "type": "unavailable"
+    },
+    {
+     "date": "2026-12-23",
+     "time": "15:00-23:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-24",
+     "time": "15:00-23:00",
+     "type": "preferred"
+    },
+    {
+     "date": "2026-12-25",
+     "time": "15:00-23:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-27",
+     "type": "unavailable"
+    },
+    {
+     "date": "2026-12-28",
+     "type": "unavailable"
+    },
+    {
+     "date": "2026-12-29",
+     "time": "15:00-23:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-30",
+     "time": "15:00-23:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-31",
+     "time": "15:00-23:00",
+     "type": "available"
+    },
+    {
+     "date": "2027-01-02",
+     "time": "15:00-23:00",
+     "type": "available"
+    },
+    {
+     "date": "2027-01-03",
+     "type": "unavailable"
+    },
+    {
+     "date": "2027-01-04",
+     "type": "unavailable"
+    }
+   ]
+  },
+  {
+   "id": 107,
+   "name": "Avi Peretz",
+   "roles": [
+    "cashier"
+   ],
+   "availability": [
+    {
+     "date": "2026-12-06",
+     "time": "15:00-23:00",
+     "type": "preferred"
+    },
+    {
+     "date": "2026-12-07",
+     "time": "15:00-23:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-08",
+     "type": "unavailable"
+    },
+    {
+     "date": "2026-12-09",
+     "time": "15:00-23:00",
+     "type": "preferred"
+    },
+    {
+     "date": "2026-12-11",
+     "time": "15:00-23:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-13",
+     "time": "15:00-23:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-14",
+     "time": "15:00-23:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-15",
+     "type": "unavailable"
+    },
+    {
+     "date": "2026-12-16",
+     "time": "15:00-23:00",
+     "type": "preferred"
+    },
+    {
+     "date": "2026-12-17",
+     "time": "15:00-23:00",
+     "type": "preferred"
+    },
+    {
+     "date": "2026-12-19",
+     "time": "15:00-23:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-20",
+     "time": "15:00-23:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-21",
+     "time": "15:00-23:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-22",
+     "type": "unavailable"
+    },
+    {
+     "date": "2026-12-23",
+     "time": "15:00-23:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-24",
+     "time": "15:00-23:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-25",
+     "time": "15:00-23:00",
+     "type": "preferred"
+    },
+    {
+     "date": "2026-12-26",
+     "time": "15:00-23:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-28",
+     "time": "15:00-23:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-29",
+     "type": "unavailable"
+    },
+    {
+     "date": "2026-12-30",
+     "time": "15:00-23:00",
+     "type": "preferred"
+    },
+    {
+     "date": "2026-12-31",
+     "time": "15:00-23:00",
+     "type": "available"
+    },
+    {
+     "date": "2027-01-01",
+     "time": "15:00-23:00",
+     "type": "available"
+    },
+    {
+     "date": "2027-01-02",
+     "time": "15:00-23:00",
+     "type": "available"
+    },
+    {
+     "date": "2027-01-03",
+     "time": "15:00-23:00",
+     "type": "preferred"
+    },
+    {
+     "date": "2027-01-04",
+     "time": "15:00-23:00",
+     "type": "preferred"
+    }
+   ],
+   "minShifts": 12
+  },
+  {
+   "id": 108,
+   "name": "Yossi Ben-David",
+   "roles": [
+    "cashier"
+   ],
+   "availability": [
+    {
+     "date": "2026-12-06",
+     "time": "07:00-23:00",
+     "type": "available",
+     "double": true
+    },
+    {
+     "date": "2026-12-07",
+     "time": "15:00-23:00",
+     "type": "preferred"
+    },
+    {
+     "date": "2026-12-08",
+     "type": "unavailable"
+    },
+    {
+     "date": "2026-12-09",
+     "type": "unavailable"
+    },
+    {
+     "date": "2026-12-10",
+     "time": "07:00-23:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-11",
+     "time": "15:00-23:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-12",
+     "time": "07:00-15:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-13",
+     "time": "07:00-23:00",
+     "type": "preferred"
+    },
+    {
+     "date": "2026-12-14",
+     "time": "07:00-15:00",
+     "type": "preferred"
+    },
+    {
+     "date": "2026-12-15",
+     "type": "unavailable"
+    },
+    {
+     "date": "2026-12-16",
+     "type": "unavailable"
+    },
+    {
+     "date": "2026-12-17",
+     "time": "07:00-15:00",
+     "type": "preferred"
+    },
+    {
+     "date": "2026-12-18",
+     "time": "15:00-23:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-19",
+     "time": "07:00-15:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-20",
+     "time": "07:00-23:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-21",
+     "time": "07:00-23:00",
+     "type": "available",
+     "double": true
+    },
+    {
+     "date": "2026-12-22",
+     "type": "unavailable"
+    },
+    {
+     "date": "2026-12-23",
+     "type": "unavailable"
+    },
+    {
+     "date": "2026-12-24",
+     "time": "07:00-23:00",
+     "type": "available",
+     "double": true
+    },
+    {
+     "date": "2026-12-25",
+     "time": "15:00-23:00",
+     "type": "preferred"
+    },
+    {
+     "date": "2026-12-26",
+     "time": "07:00-23:00",
+     "type": "available",
+     "double": true
+    },
+    {
+     "date": "2026-12-27",
+     "time": "15:00-23:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-28",
+     "time": "07:00-15:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-29",
+     "type": "unavailable"
+    },
+    {
+     "date": "2026-12-30",
+     "type": "unavailable"
+    },
+    {
+     "date": "2026-12-31",
+     "time": "15:00-23:00",
+     "type": "available"
+    },
+    {
+     "date": "2027-01-02",
+     "time": "07:00-15:00",
+     "type": "available"
+    },
+    {
+     "date": "2027-01-03",
+     "time": "07:00-23:00",
+     "type": "available"
+    },
+    {
+     "date": "2027-01-04",
+     "time": "07:00-15:00",
+     "type": "available"
+    }
+   ],
+   "maxShifts": 18
+  },
+  {
+   "id": 109,
+   "name": "Lior Ben-David",
+   "roles": [
+    "cashier"
+   ],
+   "availability": [
+    {
+     "date": "2026-12-06",
+     "time": "07:00-23:00",
+     "type": "available",
+     "double": true
+    },
+    {
+     "date": "2026-12-07",
+     "type": "unavailable"
+    },
+    {
+     "date": "2026-12-08",
+     "time": "07:00-23:00",
+     "type": "available",
+     "double": true
+    },
+    {
+     "date": "2026-12-09",
+     "time": "07:00-23:00",
+     "type": "available",
+     "double": true
+    },
+    {
+     "date": "2026-12-10",
+     "time": "07:00-15:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-11",
+     "time": "15:00-23:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-12",
+     "time": "15:00-23:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-13",
+     "time": "07:00-23:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-14",
+     "type": "unavailable"
+    },
+    {
+     "date": "2026-12-15",
+     "time": "15:00-23:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-17",
+     "time": "07:00-23:00",
+     "type": "available",
+     "double": true
+    },
+    {
+     "date": "2026-12-18",
+     "time": "07:00-23:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-20",
+     "time": "07:00-23:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-21",
+     "type": "unavailable"
+    },
+    {
+     "date": "2026-12-22",
+     "time": "07:00-23:00",
+     "type": "preferred",
+     "double": true
+    },
+    {
+     "date": "2026-12-23",
+     "time": "15:00-23:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-24",
+     "time": "15:00-23:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-25",
+     "time": "15:00-23:00",
+     "type": "preferred"
+    },
+    {
+     "date": "2026-12-26",
+     "time": "07:00-23:00",
+     "type": "available",
+     "double": true
+    },
+    {
+     "date": "2026-12-27",
+     "time": "07:00-23:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-28",
+     "type": "unavailable"
+    },
+    {
+     "date": "2026-12-29",
+     "time": "15:00-23:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-30",
+     "time": "15:00-23:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-31",
+     "time": "15:00-23:00",
+     "type": "preferred"
+    },
+    {
+     "date": "2027-01-02",
+     "time": "07:00-15:00",
+     "type": "available"
+    },
+    {
+     "date": "2027-01-03",
+     "time": "07:00-15:00",
+     "type": "available"
+    },
+    {
+     "date": "2027-01-04",
+     "type": "unavailable"
+    }
+   ],
+   "minShifts": 10
+  },
+  {
+   "id": 110,
+   "name": "Ido Avraham",
+   "roles": [
+    "cashier"
+   ],
+   "availability": [
+    {
+     "date": "2026-12-06",
+     "time": "07:00-15:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-07",
+     "type": "unavailable"
+    },
+    {
+     "date": "2026-12-08",
+     "time": "07:00-23:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-09",
+     "time": "15:00-23:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-10",
+     "type": "unavailable"
+    },
+    {
+     "date": "2026-12-11",
+     "time": "15:00-23:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-12",
+     "time": "07:00-15:00",
+     "type": "preferred"
+    },
+    {
+     "date": "2026-12-14",
+     "type": "unavailable"
+    },
+    {
+     "date": "2026-12-16",
+     "time": "15:00-23:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-17",
+     "type": "unavailable"
+    },
+    {
+     "date": "2026-12-18",
+     "time": "07:00-15:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-19",
+     "time": "07:00-23:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-20",
+     "time": "07:00-23:00",
+     "type": "preferred",
+     "double": true
+    },
+    {
+     "date": "2026-12-21",
+     "type": "unavailable"
+    },
+    {
+     "date": "2026-12-23",
+     "time": "07:00-23:00",
+     "type": "preferred"
+    },
+    {
+     "date": "2026-12-24",
+     "type": "unavailable"
+    },
+    {
+     "date": "2026-12-26",
+     "time": "07:00-23:00",
+     "type": "preferred",
+     "double": true
+    },
+    {
+     "date": "2026-12-28",
+     "type": "unavailable"
+    },
+    {
+     "date": "2026-12-29",
+     "time": "07:00-23:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-30",
+     "time": "15:00-23:00",
+     "type": "preferred"
+    },
+    {
+     "date": "2026-12-31",
+     "type": "unavailable"
+    },
+    {
+     "date": "2027-01-01",
+     "time": "07:00-23:00",
+     "type": "preferred"
+    },
+    {
+     "date": "2027-01-02",
+     "time": "07:00-23:00",
+     "type": "available"
+    },
+    {
+     "date": "2027-01-03",
+     "time": "07:00-15:00",
+     "type": "available"
+    },
+    {
+     "date": "2027-01-04",
+     "type": "unavailable"
+    }
+   ]
+  },
+  {
+   "id": 111,
+   "name": "Maya Halevi",
+   "roles": [
+    "cashier",
+    "guard"
+   ],
+   "availability": [
+    {
+     "date": "2026-12-06",
+     "type": "unavailable"
+    },
+    {
+     "date": "2026-12-07",
+     "time": "23:00-07:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-08",
+     "time": "23:00-07:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-09",
+     "time": "15:00-23:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-10",
+     "time": "23:00-07:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-11",
+     "time": "23:00-07:00",
+     "type": "preferred"
+    },
+    {
+     "date": "2026-12-12",
+     "time": "23:00-07:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-13",
+     "type": "unavailable"
+    },
+    {
+     "date": "2026-12-14",
+     "time": "23:00-07:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-15",
+     "time": "23:00-07:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-16",
+     "time": "23:00-07:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-18",
+     "time": "15:00-23:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-20",
+     "type": "unavailable"
+    },
+    {
+     "date": "2026-12-21",
+     "time": "23:00-07:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-22",
+     "time": "23:00-07:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-23",
+     "time": "23:00-07:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-24",
+     "time": "15:00-23:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-25",
+     "time": "23:00-07:00",
+     "type": "preferred"
+    },
+    {
+     "date": "2026-12-26",
+     "time": "23:00-07:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-27",
+     "type": "unavailable"
+    },
+    {
+     "date": "2026-12-28",
+     "time": "15:00-23:00",
+     "type": "preferred"
+    },
+    {
+     "date": "2026-12-30",
+     "time": "15:00-23:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-31",
+     "time": "15:00-23:00",
+     "type": "available"
+    },
+    {
+     "date": "2027-01-01",
+     "time": "23:00-07:00",
+     "type": "available"
+    },
+    {
+     "date": "2027-01-02",
+     "time": "15:00-23:00",
+     "type": "available"
+    },
+    {
+     "date": "2027-01-03",
+     "type": "unavailable"
+    }
+   ]
+  },
+  {
+   "id": 112,
+   "name": "Avi Cohen",
+   "roles": [
+    "cashier",
+    "guard"
+   ],
+   "availability": [
+    {
+     "date": "2026-12-06",
+     "time": "23:00-07:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-07",
+     "time": "23:00-07:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-08",
+     "time": "23:00-07:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-09",
+     "time": "23:00-07:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-10",
+     "type": "unavailable"
+    },
+    {
+     "date": "2026-12-11",
+     "time": "15:00-23:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-12",
+     "time": "23:00-07:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-14",
+     "time": "23:00-07:00",
+     "type": "preferred"
+    },
+    {
+     "date": "2026-12-15",
+     "time": "23:00-07:00",
+     "type": "preferred"
+    },
+    {
+     "date": "2026-12-16",
+     "time": "23:00-07:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-17",
+     "type": "unavailable"
+    },
+    {
+     "date": "2026-12-18",
+     "time": "23:00-07:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-19",
+     "time": "23:00-07:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-20",
+     "time": "23:00-07:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-21",
+     "time": "15:00-23:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-22",
+     "time": "23:00-07:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-23",
+     "time": "23:00-07:00",
+     "type": "preferred"
+    },
+    {
+     "date": "2026-12-24",
+     "type": "unavailable"
+    },
+    {
+     "date": "2026-12-25",
+     "time": "23:00-07:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-26",
+     "time": "23:00-07:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-27",
+     "time": "23:00-07:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-28",
+     "time": "15:00-23:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-29",
+     "time": "23:00-07:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-30",
+     "time": "23:00-07:00",
+     "type": "preferred"
+    },
+    {
+     "date": "2026-12-31",
+     "type": "unavailable"
+    },
+    {
+     "date": "2027-01-01",
+     "time": "23:00-07:00",
+     "type": "available"
+    },
+    {
+     "date": "2027-01-02",
+     "time": "23:00-07:00",
+     "type": "available"
+    },
+    {
+     "date": "2027-01-03",
+     "time": "15:00-23:00",
+     "type": "available"
+    },
+    {
+     "date": "2027-01-04",
+     "time": "15:00-23:00",
+     "type": "available"
+    }
+   ]
+  },
+  {
+   "id": 113,
+   "name": "Shira Katz",
+   "roles": [
+    "cashier",
+    "guard"
+   ],
+   "availability": [
+    {
+     "date": "2026-12-06",
+     "time": "15:00-23:00",
+     "type": "preferred"
+    },
+    {
+     "date": "2026-12-07",
+     "time": "23:00-07:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-08",
+     "time": "15:00-23:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-09",
+     "time": "15:00-23:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-10",
+     "type": "unavailable"
+    },
+    {
+     "date": "2026-12-12",
+     "time": "15:00-23:00",
+     "type": "preferred"
+    },
+    {
+     "date": "2026-12-13",
+     "time": "15:00-23:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-14",
+     "time": "15:00-23:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-15",
+     "time": "23:00-07:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-17",
+     "type": "unavailable"
+    },
+    {
+     "date": "2026-12-18",
+     "time": "23:00-07:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-19",
+     "time": "23:00-07:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-20",
+     "time": "23:00-07:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-21",
+     "time": "23:00-07:00",
+     "type": "preferred"
+    },
+    {
+     "date": "2026-12-22",
+     "time": "15:00-23:00",
+     "type": "preferred"
+    },
+    {
+     "date": "2026-12-23",
+     "time": "23:00-07:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-24",
+     "type": "unavailable"
+    },
+    {
+     "date": "2026-12-25",
+     "time": "23:00-07:00",
+     "type": "preferred"
+    },
+    {
+     "date": "2026-12-26",
+     "time": "23:00-07:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-28",
+     "time": "23:00-07:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-29",
+     "time": "15:00-23:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-31",
+     "type": "unavailable"
+    },
+    {
+     "date": "2027-01-01",
+     "time": "15:00-23:00",
+     "type": "available"
+    },
+    {
+     "date": "2027-01-02",
+     "time": "23:00-07:00",
+     "type": "available"
+    },
+    {
+     "date": "2027-01-03",
+     "time": "23:00-07:00",
+     "type": "available"
+    },
+    {
+     "date": "2027-01-04",
+     "time": "23:00-07:00",
+     "type": "preferred"
+    }
+   ]
+  },
+  {
+   "id": 114,
+   "name": "Hila Avraham",
+   "roles": [
+    "cashier",
+    "guard"
+   ],
+   "availability": [
+    {
+     "date": "2026-12-06",
+     "time": "23:00-07:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-07",
+     "time": "23:00-07:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-08",
+     "type": "unavailable"
+    },
+    {
+     "date": "2026-12-09",
+     "time": "23:00-07:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-11",
+     "time": "23:00-07:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-12",
+     "time": "23:00-07:00",
+     "type": "preferred"
+    },
+    {
+     "date": "2026-12-13",
+     "time": "23:00-07:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-15",
+     "type": "unavailable"
+    },
+    {
+     "date": "2026-12-17",
+     "time": "23:00-07:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-18",
+     "time": "23:00-07:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-19",
+     "time": "15:00-23:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-20",
+     "time": "23:00-07:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-21",
+     "time": "23:00-07:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-22",
+     "type": "unavailable"
+    },
+    {
+     "date": "2026-12-23",
+     "time": "23:00-07:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-24",
+     "time": "23:00-07:00",
+     "type": "preferred"
+    },
+    {
+     "date": "2026-12-25",
+     "time": "23:00-07:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-26",
+     "time": "23:00-07:00",
+     "type": "preferred"
+    },
+    {
+     "date": "2026-12-27",
+     "time": "15:00-23:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-28",
+     "time": "15:00-23:00",
+     "type": "preferred"
+    },
+    {
+     "date": "2026-12-29",
+     "type": "unavailable"
+    },
+    {
+     "date": "2026-12-30",
+     "time": "23:00-07:00",
+     "type": "available"
+    },
+    {
+     "date": "2026-12-31",
+     "time": "23:00-07:00",
+     "type": "preferred"
+    },
+    {
+     "date": "2027-01-01",
+     "time": "15:00-23:00",
+     "type": "available"
+    },
+    {
+     "date": "2027-01-02",
+     "time": "23:00-07:00",
+     "type": "available"
+    },
+    {
+     "date": "2027-01-03",
+     "time": "15:00-23:00",
+     "type": "preferred"
+    },
+    {
+     "date": "2027-01-04",
+     "time": "23:00-07:00",
+     "type": "available"
+    }
+   ]
+  }
+ ],
+ "shifts": [
+  {
+   "id": "1206-M",
+   "date": "2026-12-06",
+   "time": "07:00-15:00",
+   "min": 1,
+   "wanted": 2
+  },
+  {
+   "id": "1206-E",
+   "date": "2026-12-06",
+   "time": "15:00-23:00",
+   "min": 1,
+   "wanted": 2
+  },
+  {
+   "id": "1206-N",
+   "date": "2026-12-06",
+   "time": "23:00-07:00",
+   "min": 1,
+   "wanted": 1,
+   "role": "guard"
+  },
+  {
+   "id": "1207-M",
+   "date": "2026-12-07",
+   "time": "07:00-15:00",
+   "min": 1,
+   "wanted": 2
+  },
+  {
+   "id": "1207-E",
+   "date": "2026-12-07",
+   "time": "15:00-23:00",
+   "min": 1,
+   "wanted": 2
+  },
+  {
+   "id": "1207-N",
+   "date": "2026-12-07",
+   "time": "23:00-07:00",
+   "min": 1,
+   "wanted": 1,
+   "role": "guard"
+  },
+  {
+   "id": "1208-M",
+   "date": "2026-12-08",
+   "time": "07:00-15:00",
+   "min": 1,
+   "wanted": 2
+  },
+  {
+   "id": "1208-E",
+   "date": "2026-12-08",
+   "time": "15:00-23:00",
+   "min": 1,
+   "wanted": 2
+  },
+  {
+   "id": "1208-N",
+   "date": "2026-12-08",
+   "time": "23:00-07:00",
+   "min": 1,
+   "wanted": 1,
+   "role": "guard"
+  },
+  {
+   "id": "1209-M",
+   "date": "2026-12-09",
+   "time": "07:00-15:00",
+   "min": 1,
+   "wanted": 2
+  },
+  {
+   "id": "1209-E",
+   "date": "2026-12-09",
+   "time": "15:00-23:00",
+   "min": 1,
+   "wanted": 2
+  },
+  {
+   "id": "1209-N",
+   "date": "2026-12-09",
+   "time": "23:00-07:00",
+   "min": 1,
+   "wanted": 1,
+   "role": "guard"
+  },
+  {
+   "id": "1210-M",
+   "date": "2026-12-10",
+   "time": "07:00-15:00",
+   "min": 1,
+   "wanted": 2
+  },
+  {
+   "id": "1210-E",
+   "date": "2026-12-10",
+   "time": "15:00-23:00",
+   "min": 1,
+   "wanted": 2
+  },
+  {
+   "id": "1210-N",
+   "date": "2026-12-10",
+   "time": "23:00-07:00",
+   "min": 1,
+   "wanted": 1,
+   "role": "guard"
+  },
+  {
+   "id": "1211-M",
+   "date": "2026-12-11",
+   "time": "07:00-15:00",
+   "min": 1,
+   "wanted": 2
+  },
+  {
+   "id": "1211-E",
+   "date": "2026-12-11",
+   "time": "15:00-23:00",
+   "min": 1,
+   "wanted": 2
+  },
+  {
+   "id": "1211-N",
+   "date": "2026-12-11",
+   "time": "23:00-07:00",
+   "min": 1,
+   "wanted": 1,
+   "role": "guard"
+  },
+  {
+   "id": "1212-M",
+   "date": "2026-12-12",
+   "time": "07:00-15:00",
+   "min": 1,
+   "wanted": 2
+  },
+  {
+   "id": "1212-E",
+   "date": "2026-12-12",
+   "time": "15:00-23:00",
+   "min": 1,
+   "wanted": 2
+  },
+  {
+   "id": "1212-N",
+   "date": "2026-12-12",
+   "time": "23:00-07:00",
+   "min": 1,
+   "wanted": 1,
+   "role": "guard"
+  },
+  {
+   "id": "1213-M",
+   "date": "2026-12-13",
+   "time": "07:00-15:00",
+   "min": 1,
+   "wanted": 2
+  },
+  {
+   "id": "1213-E",
+   "date": "2026-12-13",
+   "time": "15:00-23:00",
+   "min": 1,
+   "wanted": 2
+  },
+  {
+   "id": "1213-N",
+   "date": "2026-12-13",
+   "time": "23:00-07:00",
+   "min": 1,
+   "wanted": 1,
+   "role": "guard"
+  },
+  {
+   "id": "1214-M",
+   "date": "2026-12-14",
+   "time": "07:00-15:00",
+   "min": 1,
+   "wanted": 2
+  },
+  {
+   "id": "1214-E",
+   "date": "2026-12-14",
+   "time": "15:00-23:00",
+   "min": 1,
+   "wanted": 2
+  },
+  {
+   "id": "1214-N",
+   "date": "2026-12-14",
+   "time": "23:00-07:00",
+   "min": 1,
+   "wanted": 1,
+   "role": "guard"
+  },
+  {
+   "id": "1215-M",
+   "date": "2026-12-15",
+   "time": "07:00-15:00",
+   "min": 1,
+   "wanted": 2
+  },
+  {
+   "id": "1215-E",
+   "date": "2026-12-15",
+   "time": "15:00-23:00",
+   "min": 1,
+   "wanted": 2
+  },
+  {
+   "id": "1215-N",
+   "date": "2026-12-15",
+   "time": "23:00-07:00",
+   "min": 1,
+   "wanted": 1,
+   "role": "guard"
+  },
+  {
+   "id": "1216-M",
+   "date": "2026-12-16",
+   "time": "07:00-15:00",
+   "min": 1,
+   "wanted": 2
+  },
+  {
+   "id": "1216-E",
+   "date": "2026-12-16",
+   "time": "15:00-23:00",
+   "min": 1,
+   "wanted": 2
+  },
+  {
+   "id": "1216-N",
+   "date": "2026-12-16",
+   "time": "23:00-07:00",
+   "min": 1,
+   "wanted": 1,
+   "role": "guard"
+  },
+  {
+   "id": "1217-M",
+   "date": "2026-12-17",
+   "time": "07:00-15:00",
+   "min": 1,
+   "wanted": 2
+  },
+  {
+   "id": "1217-E",
+   "date": "2026-12-17",
+   "time": "15:00-23:00",
+   "min": 1,
+   "wanted": 2
+  },
+  {
+   "id": "1217-N",
+   "date": "2026-12-17",
+   "time": "23:00-07:00",
+   "min": 1,
+   "wanted": 1,
+   "role": "guard"
+  },
+  {
+   "id": "1218-M",
+   "date": "2026-12-18",
+   "time": "07:00-15:00",
+   "min": 1,
+   "wanted": 2
+  },
+  {
+   "id": "1218-E",
+   "date": "2026-12-18",
+   "time": "15:00-23:00",
+   "min": 1,
+   "wanted": 2
+  },
+  {
+   "id": "1218-N",
+   "date": "2026-12-18",
+   "time": "23:00-07:00",
+   "min": 1,
+   "wanted": 1,
+   "role": "guard"
+  },
+  {
+   "id": "1219-M",
+   "date": "2026-12-19",
+   "time": "07:00-15:00",
+   "min": 1,
+   "wanted": 2
+  },
+  {
+   "id": "1219-E",
+   "date": "2026-12-19",
+   "time": "15:00-23:00",
+   "min": 1,
+   "wanted": 2
+  },
+  {
+   "id": "1219-N",
+   "date": "2026-12-19",
+   "time": "23:00-07:00",
+   "min": 1,
+   "wanted": 1,
+   "role": "guard"
+  },
+  {
+   "id": "1220-M",
+   "date": "2026-12-20",
+   "time": "07:00-15:00",
+   "min": 1,
+   "wanted": 2
+  },
+  {
+   "id": "1220-E",
+   "date": "2026-12-20",
+   "time": "15:00-23:00",
+   "min": 1,
+   "wanted": 2
+  },
+  {
+   "id": "1220-N",
+   "date": "2026-12-20",
+   "time": "23:00-07:00",
+   "min": 1,
+   "wanted": 1,
+   "role": "guard"
+  },
+  {
+   "id": "1221-M",
+   "date": "2026-12-21",
+   "time": "07:00-15:00",
+   "min": 1,
+   "wanted": 2
+  },
+  {
+   "id": "1221-E",
+   "date": "2026-12-21",
+   "time": "15:00-23:00",
+   "min": 1,
+   "wanted": 2
+  },
+  {
+   "id": "1221-N",
+   "date": "2026-12-21",
+   "time": "23:00-07:00",
+   "min": 1,
+   "wanted": 1,
+   "role": "guard"
+  },
+  {
+   "id": "1222-M",
+   "date": "2026-12-22",
+   "time": "07:00-15:00",
+   "min": 1,
+   "wanted": 2
+  },
+  {
+   "id": "1222-E",
+   "date": "2026-12-22",
+   "time": "15:00-23:00",
+   "min": 1,
+   "wanted": 2
+  },
+  {
+   "id": "1222-N",
+   "date": "2026-12-22",
+   "time": "23:00-07:00",
+   "min": 1,
+   "wanted": 1,
+   "role": "guard"
+  },
+  {
+   "id": "1223-M",
+   "date": "2026-12-23",
+   "time": "07:00-15:00",
+   "min": 1,
+   "wanted": 2
+  },
+  {
+   "id": "1223-E",
+   "date": "2026-12-23",
+   "time": "15:00-23:00",
+   "min": 1,
+   "wanted": 2
+  },
+  {
+   "id": "1223-N",
+   "date": "2026-12-23",
+   "time": "23:00-07:00",
+   "min": 1,
+   "wanted": 1,
+   "role": "guard"
+  },
+  {
+   "id": "1224-M",
+   "date": "2026-12-24",
+   "time": "07:00-15:00",
+   "min": 1,
+   "wanted": 2
+  },
+  {
+   "id": "1224-E",
+   "date": "2026-12-24",
+   "time": "15:00-23:00",
+   "min": 1,
+   "wanted": 2
+  },
+  {
+   "id": "1224-N",
+   "date": "2026-12-24",
+   "time": "23:00-07:00",
+   "min": 1,
+   "wanted": 1,
+   "role": "guard"
+  },
+  {
+   "id": "1225-M",
+   "date": "2026-12-25",
+   "time": "07:00-15:00",
+   "min": 1,
+   "wanted": 2
+  },
+  {
+   "id": "1225-E",
+   "date": "2026-12-25",
+   "time": "15:00-23:00",
+   "min": 1,
+   "wanted": 2
+  },
+  {
+   "id": "1225-N",
+   "date": "2026-12-25",
+   "time": "23:00-07:00",
+   "min": 1,
+   "wanted": 1,
+   "role": "guard"
+  },
+  {
+   "id": "1226-M",
+   "date": "2026-12-26",
+   "time": "07:00-15:00",
+   "min": 1,
+   "wanted": 2
+  },
+  {
+   "id": "1226-E",
+   "date": "2026-12-26",
+   "time": "15:00-23:00",
+   "min": 1,
+   "wanted": 2
+  },
+  {
+   "id": "1226-N",
+   "date": "2026-12-26",
+   "time": "23:00-07:00",
+   "min": 1,
+   "wanted": 1,
+   "role": "guard"
+  },
+  {
+   "id": "1227-M",
+   "date": "2026-12-27",
+   "time": "07:00-15:00",
+   "min": 1,
+   "wanted": 2
+  },
+  {
+   "id": "1227-E",
+   "date": "2026-12-27",
+   "time": "15:00-23:00",
+   "min": 1,
+   "wanted": 2
+  },
+  {
+   "id": "1227-N",
+   "date": "2026-12-27",
+   "time": "23:00-07:00",
+   "min": 1,
+   "wanted": 1,
+   "role": "guard"
+  },
+  {
+   "id": "1228-M",
+   "date": "2026-12-28",
+   "time": "07:00-15:00",
+   "min": 1,
+   "wanted": 2
+  },
+  {
+   "id": "1228-E",
+   "date": "2026-12-28",
+   "time": "15:00-23:00",
+   "min": 1,
+   "wanted": 2
+  },
+  {
+   "id": "1228-N",
+   "date": "2026-12-28",
+   "time": "23:00-07:00",
+   "min": 1,
+   "wanted": 1,
+   "role": "guard"
+  },
+  {
+   "id": "1229-M",
+   "date": "2026-12-29",
+   "time": "07:00-15:00",
+   "min": 1,
+   "wanted": 2
+  },
+  {
+   "id": "1229-E",
+   "date": "2026-12-29",
+   "time": "15:00-23:00",
+   "min": 1,
+   "wanted": 2
+  },
+  {
+   "id": "1229-N",
+   "date": "2026-12-29",
+   "time": "23:00-07:00",
+   "min": 1,
+   "wanted": 1,
+   "role": "guard"
+  },
+  {
+   "id": "1230-M",
+   "date": "2026-12-30",
+   "time": "07:00-15:00",
+   "min": 1,
+   "wanted": 2
+  },
+  {
+   "id": "1230-E",
+   "date": "2026-12-30",
+   "time": "15:00-23:00",
+   "min": 1,
+   "wanted": 2
+  },
+  {
+   "id": "1230-N",
+   "date": "2026-12-30",
+   "time": "23:00-07:00",
+   "min": 1,
+   "wanted": 1,
+   "role": "guard"
+  },
+  {
+   "id": "1231-M",
+   "date": "2026-12-31",
+   "time": "07:00-15:00",
+   "min": 1,
+   "wanted": 2
+  },
+  {
+   "id": "1231-E",
+   "date": "2026-12-31",
+   "time": "15:00-23:00",
+   "min": 1,
+   "wanted": 2
+  },
+  {
+   "id": "1231-N",
+   "date": "2026-12-31",
+   "time": "23:00-07:00",
+   "min": 1,
+   "wanted": 1,
+   "role": "guard"
+  },
+  {
+   "id": "0101-M",
+   "date": "2027-01-01",
+   "time": "07:00-15:00",
+   "min": 1,
+   "wanted": 2
+  },
+  {
+   "id": "0101-E",
+   "date": "2027-01-01",
+   "time": "15:00-23:00",
+   "min": 1,
+   "wanted": 2
+  },
+  {
+   "id": "0101-N",
+   "date": "2027-01-01",
+   "time": "23:00-07:00",
+   "min": 1,
+   "wanted": 1,
+   "role": "guard"
+  },
+  {
+   "id": "0102-M",
+   "date": "2027-01-02",
+   "time": "07:00-15:00",
+   "min": 1,
+   "wanted": 2
+  },
+  {
+   "id": "0102-E",
+   "date": "2027-01-02",
+   "time": "15:00-23:00",
+   "min": 1,
+   "wanted": 2
+  },
+  {
+   "id": "0102-N",
+   "date": "2027-01-02",
+   "time": "23:00-07:00",
+   "min": 1,
+   "wanted": 1,
+   "role": "guard"
+  },
+  {
+   "id": "0103-M",
+   "date": "2027-01-03",
+   "time": "07:00-15:00",
+   "min": 1,
+   "wanted": 2
+  },
+  {
+   "id": "0103-E",
+   "date": "2027-01-03",
+   "time": "15:00-23:00",
+   "min": 1,
+   "wanted": 2
+  },
+  {
+   "id": "0103-N",
+   "date": "2027-01-03",
+   "time": "23:00-07:00",
+   "min": 1,
+   "wanted": 1,
+   "role": "guard"
+  },
+  {
+   "id": "0104-M",
+   "date": "2027-01-04",
+   "time": "07:00-15:00",
+   "min": 1,
+   "wanted": 2
+  },
+  {
+   "id": "0104-E",
+   "date": "2027-01-04",
+   "time": "15:00-23:00",
+   "min": 1,
+   "wanted": 2
+  },
+  {
+   "id": "0104-N",
+   "date": "2027-01-04",
+   "time": "23:00-07:00",
+   "min": 1,
+   "wanted": 1,
+   "role": "guard"
+  }
+ ],
+ "rules": {
+  "minRestHours": 10,
+  "maxConsecutiveDays": 6
+ }
+}
