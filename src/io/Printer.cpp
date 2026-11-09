@@ -31,6 +31,7 @@ void printProblem(std::ostream& out, const Problem& p) {
             out << "  roles:";
             for (const std::string& role : e.roles) out << ' ' << role;
         }
+        if (e.minShifts) out << "  min " << *e.minShifts << " shifts";
         if (e.maxShifts) out << "  max " << *e.maxShifts << " shifts";
         out << '\n';
         for (const AvailabilitySlot& s : e.availability) {
@@ -106,6 +107,11 @@ void printSchedule(std::ostream& out, const Problem& p, const State& schedule) {
             << std::right << std::setw(2) << shifts.size() << " shifts "
             << std::setw(3) << minutes / 60 << " h  ";
         for (int s : shifts) out << ' ' << p.shifts[s].id;
+
+        // minShifts is only a wish (D22), so it is reported, not enforced.
+        const auto& minShifts = p.employees[e].minShifts;
+        if (minShifts && static_cast<int>(shifts.size()) < *minShifts)
+            out << "  (below minimum " << *minShifts << ")";
         out << '\n';
     }
 }

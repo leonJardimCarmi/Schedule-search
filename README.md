@@ -4,7 +4,7 @@ A C++ engine that builds the **best possible work schedule** for a business: who
 
 The rules are not hard-coded. Each business describes its week in a JSON file: the shifts, how many people each shift needs, who is available when, and which rules apply (rest between shifts, consecutive days, double shifts…). The engine searches the space of possible schedules with **depth-first search (DFS) and backtracking**.
 
-> **Status:** the search and all hard rules work (stages 0–2 of the [plan](PLAN.md)). Today the engine returns the first legal schedule it finds. Scoring and finding the *best* schedule (stage 5) are next on the roadmap.
+> **Status:** the search, all hard rules and the CSV import work (stages 0–3 of the [plan](PLAN.md)). Today the engine returns the first legal schedule it finds. Scoring and finding the *best* schedule (stage 5) are next on the roadmap.
 
 ---
 
@@ -104,6 +104,8 @@ startShift(s)                          fill(s, next, target)
 | `double-needs-approval` | A block longer than `doubleAboveHours` is a double: allowed only if the employee marked `"double": true` in their availability, and never longer than `maxDoubleHours` |
 | `max-shifts` | Personal limit per employee (a double counts as two shifts) |
 | `max-consecutive-days` | Optional. A shift counts on the day it starts, so 5 night shifts Sun–Thu are 5 days, not 6 |
+
+`minShifts` (an employee's wish for at least N shifts) is deliberately **not** a hard rule: a "must reach at least" rule can't be checked at each assignment, and one person's wish should not turn the answer into "no schedule". It is reported in the output today (`(below minimum 3)`) and becomes a penalty in the score in stage 5.
 
 ---
 
@@ -211,7 +213,7 @@ src/                implementations, same layout
 tests/              Catch2 unit tests
 data/               example inputs
 PLAN.md             roadmap and status of each stage (Hebrew)
-DECISIONS.md        design decisions D1–D21 and the reasoning behind them (Hebrew)
+DECISIONS.md        design decisions D1–D22 and the reasoning behind them (Hebrew)
 ```
 
 ## Roadmap
@@ -221,7 +223,7 @@ DECISIONS.md        design decisions D1–D21 and the reasoning behind them (Heb
 | 0 | CMake, JSON loading, data model | ✅ |
 | 1 | DFS with backtracking, min/wanted staffing | ✅ |
 | 2 | Hard rules: overlap, rest, doubles, max shifts, consecutive days | ✅ |
-| 3 | More flexible user input: CSV availability import ✅, minimum shifts per employee | 🔶 |
+| 3 | More flexible user input: CSV availability import, minimum shifts per employee (a soft wish) | ✅ |
 | 4 | Pruning: most-constrained shift first, forward checking, node and time limits | ⬜ |
 | 5 | **Optimization**: scoring with soft rules, Branch & Bound, top-N schedules | ⬜ |
 | 6 | Reports, CSV export, explaining *why* no schedule exists | ⬜ |

@@ -16,6 +16,7 @@
     {
       "id": 102,
       "name": "Dana Levi",
+      "minShifts": 3,
       "roles": ["cashier"],
       "availability": [
         { "date": "2026-11-08", "time": "09:00-17:00", "type": "available" },

@@ -137,12 +137,13 @@ std::optional<AvailabilitySlot> readSlot(Reader& r, const json& j, const std::st
 
 std::optional<Employee> readEmployee(Reader& r, const json& j, const std::string& path) {
     if (!j.is_object()) { r.error(path, "expected an object"); return std::nullopt; }
-    r.warnUnknownKeys(j, path, {"id", "name", "maxShifts", "roles", "availability"});
+    r.warnUnknownKeys(j, path, {"id", "name", "maxShifts", "minShifts", "roles", "availability"});
 
     Employee e;
     auto id = r.requiredInt(j, path, "id");
     auto name = r.requiredString(j, path, "name");
     e.maxShifts = r.optionalInt(j, path, "maxShifts");
+    e.minShifts = r.optionalInt(j, path, "minShifts");
 
     if (auto it = j.find("roles"); it != j.end()) {
         if (!it->is_array()) r.error(Reader::join(path, "roles"), "expected a list of strings");
@@ -220,6 +221,10 @@ void validate(Reader& r, const Problem& p) {
         if (!employeeIds.insert(e.id).second)
             r.error(path, "duplicate employee id " + std::to_string(e.id));
         if (e.maxShifts && *e.maxShifts < 0) r.error(path + ".maxShifts", "must not be negative");
+        if (e.minShifts && *e.minShifts < 0) r.error(path + ".minShifts", "must not be negative");
+        if (e.minShifts && e.maxShifts && *e.minShifts > *e.maxShifts)
+            r.error(path, "minShifts (" + std::to_string(*e.minShifts) + ") is larger than maxShifts (" +
+                              std::to_string(*e.maxShifts) + ")");
         if (e.availability.empty()) r.warning(path, e.name + " has no availability and will never be assigned");
         for (const std::string& role : e.roles) allRoles.insert(role);
 

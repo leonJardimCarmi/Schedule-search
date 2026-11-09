@@ -122,3 +122,17 @@ TEST_CASE("the double flag is read from availability", "[loader][double]") {
     CHECK_FALSE(slots[1].allowsDouble);   // default
     CHECK_FALSE(slots[2].allowsDouble);   // ignored on unavailable
 }
+
+TEST_CASE("minShifts is read and checked against maxShifts", "[loader][minShifts]") {
+    const std::string employees = R"([
+        { "id": 1, "name": "A", "minShifts": 2 },
+        { "id": 2, "name": "B", "minShifts": 5, "maxShifts": 3 },
+        { "id": 3, "name": "C", "minShifts": -1 } ])";
+    LoadResult r = JsonLoader::loadString(makeJson(employees, kOneShift), "t.json");
+
+    REQUIRE(r.problem.has_value());
+    CHECK(r.problem->employees[0].minShifts == 2);
+    CHECK_FALSE(r.problem->employees[0].maxShifts.has_value());
+    CHECK(reported(r, "employees[1]", "minShifts (5) is larger than maxShifts (3)"));
+    CHECK(reported(r, "employees[2].minShifts", "must not be negative"));
+}

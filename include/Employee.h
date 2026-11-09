@@ -20,7 +20,8 @@ struct AvailabilitySlot {
 struct Employee {
     int id = 0;
     std::string name;
-    std::optional<int> maxShifts;            // empty = no personal limit
+    std::optional<int> maxShifts;            // empty = no personal limit (hard)
+    std::optional<int> minShifts;            // wish, not a rule: soft, scored in stage 5 (D22)
     std::vector<std::string> roles;          // jobs this person can do
     std::vector<AvailabilitySlot> availability;
 

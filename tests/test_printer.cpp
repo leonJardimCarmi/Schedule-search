@@ -55,3 +55,19 @@ TEST_CASE("printCandidates lists only employees who fit", "[Printer]") {
     CHECK(contains(out.str(), "S1       Alice"));
     CHECK_FALSE(contains(out.str(), "Bob"));
 }
+
+TEST_CASE("printSchedule flags employees below their minShifts", "[Printer][minShifts]") {
+    Problem p = twoPeopleOneShift();
+    p.employees[0].minShifts = 1;   // Alice wants at least 1: she gets it
+    p.employees[1].minShifts = 2;   // Bob wants at least 2: he gets none
+
+    State schedule(2, 1);
+    schedule.assign(0, 0);
+
+    std::ostringstream out;
+    printSchedule(out, p, schedule);
+    const std::string text = out.str();
+
+    CHECK_FALSE(contains(text, "Alice            1 shifts   8 h   S1  (below"));
+    CHECK(contains(text, "Bob              0 shifts   0 h    (below minimum 2)"));
+}
