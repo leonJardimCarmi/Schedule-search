@@ -28,3 +28,7 @@ struct Employee {
 };
 
 const char* toString(AvailabilityType type);
+
+// "available" / "preferred" / "unavailable" -> the enum. Empty if unknown.
+// Shared by the JSON and the CSV loaders.
+std::optional<AvailabilityType> parseAvailabilityType(const std::string& text);

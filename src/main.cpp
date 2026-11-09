@@ -2,6 +2,7 @@
 #include <optional>
 #include <string>
 
+#include "io/CsvLoader.h"
 #include "io/JsonLoader.h"
 #include "io/Printer.h"
 #include "solver/Solver.h"
@@ -14,12 +15,15 @@ constexpr int kBadInput = 1;     // wrong arguments or errors in the input file
 constexpr int kNoSchedule = 2;   // the input is fine but no schedule exists
 
 void printUsage() {
-    std::cerr << "usage: schedule_search <problem.json> [--verbose]\n"
-                 "  --verbose  also print the loaded input and who can work each shift\n";
+    std::cerr << "usage: schedule_search <problem.json> [--availability <file.csv>] [--verbose]\n"
+                 "  --availability  add availability lines from a CSV file\n"
+                 "                  (employee_id,date,time,type[,double])\n"
+                 "  --verbose       also print the loaded input and who can work each shift\n";
 }
 
 struct Options {
     std::string inputPath;
+    std::string availabilityPath;   // empty = no CSV
     bool verbose = false;
 };
 
@@ -30,6 +34,12 @@ std::optional<Options> parseArgs(int argc, char* argv[]) {
         const std::string arg = argv[i];
         if (arg == "--verbose" || arg == "-v") {
             options.verbose = true;
+        } else if (arg == "--availability") {
+            if (i + 1 >= argc) {   // the option needs a value after it
+                std::cerr << "--availability needs a file name\n";
+                return std::nullopt;
+            }
+            options.availabilityPath = argv[++i];
         } else if (!arg.empty() && arg[0] == '-') {
             std::cerr << "unknown option: " << arg << '\n';
             return std::nullopt;
@@ -54,7 +64,10 @@ int main(int argc, char* argv[]) {
     }
 
     // 1. Load. Warnings and errors go to stderr, separate from the output.
-    const LoadResult result = JsonLoader::loadFile(options->inputPath);
+    LoadResult result = JsonLoader::loadFile(options->inputPath);
+    if (result.ok() && !options->availabilityPath.empty())
+        CsvLoader::loadAvailability(options->availabilityPath, *result.problem, result.diagnostics);
+
     for (const Diagnostic& d : result.diagnostics.all())
         std::cerr << d << '\n';
     if (!result.ok()) {

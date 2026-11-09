@@ -37,6 +37,7 @@ add_library(schedule_core STATIC
     src/Problem.cpp
     src/io/Diagnostics.cpp
     src/io/JsonLoader.cpp
+    src/io/CsvLoader.cpp
     src/io/Printer.cpp
     src/solver/State.cpp
     src/solver/Availability.cpp
@@ -66,6 +67,7 @@ if(SCHEDULE_BUILD_TESTS)
         tests/test_timeperiod.cpp
         tests/test_date.cpp
         tests/test_loader.cpp
+        tests/test_csv.cpp
         tests/test_state.cpp
         tests/test_availability.cpp
         tests/test_solver.cpp

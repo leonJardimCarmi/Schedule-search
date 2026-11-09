@@ -106,13 +106,6 @@ private:
 
 // ---- Pieces of the file ------------------------------------------------------
 
-std::optional<AvailabilityType> parseAvailabilityType(const std::string& s) {
-    if (s == "available") return AvailabilityType::Available;
-    if (s == "preferred") return AvailabilityType::Preferred;
-    if (s == "unavailable") return AvailabilityType::Unavailable;
-    return std::nullopt;
-}
-
 std::optional<AvailabilitySlot> readSlot(Reader& r, const json& j, const std::string& path) {
     if (!j.is_object()) { r.error(path, "expected an object"); return std::nullopt; }
     r.warnUnknownKeys(j, path, {"date", "time", "type", "double"});

@@ -135,6 +135,20 @@ One JSON file describes the whole problem. Dates are real ISO dates, and shifts 
 - Every field in `rules` is optional and has a default.
 - Loading errors report the file, the JSON path, and the reason, and loading continues so all problems are shown at once (see `data/bad_example.json`).
 
+### Availability from a spreadsheet
+
+Availability can also come from a CSV file, which is what a manager usually exports from Excel. Employees are still defined in the JSON file; the CSV only adds availability lines to them.
+
+```csv
+employee_id,date,time,type,double
+104,2026-11-09,08:00-00:00,available,yes
+102,2026-11-10,,unavailable
+```
+
+- `time` may be empty (= the whole day). `double` is optional: `yes` approves a double shift.
+- Header rows, `#` comments, blank lines, Excel's byte-order mark and `\r\n` line endings are all handled.
+- Errors report the file and **line number** (`avail.csv:7: no employee with id 999`), and every bad line is reported in one run.
+
 ## Output
 
 ```
@@ -172,7 +186,7 @@ Requires a C++17 compiler and CMake ≥ 3.20. Dependencies are downloaded automa
 ```bash
 cmake -S . -B build
 cmake --build build
-./build/schedule_search data/example_week.json [--verbose]
+./build/schedule_search data/example_week.json [--availability data/availability_example.csv] [--verbose]
 ```
 
 **Tests** (Catch2):
@@ -192,12 +206,12 @@ ctest --test-dir build
 include/            headers
   Date.h, TimePeriod.h, Employee.h, Shift.h, Rules.h, Problem.h   the problem (read-only)
   solver/           State, Solver, Constraint, Availability, WorkBlocks
-  io/               JsonLoader, Diagnostics, Printer
+  io/               JsonLoader, CsvLoader, Diagnostics, Printer
 src/                implementations, same layout
 tests/              Catch2 unit tests
 data/               example inputs
 PLAN.md             roadmap and status of each stage (Hebrew)
-DECISIONS.md        design decisions D1–D19 and the reasoning behind them (Hebrew)
+DECISIONS.md        design decisions D1–D21 and the reasoning behind them (Hebrew)
 ```
 
 ## Roadmap
@@ -207,7 +221,7 @@ DECISIONS.md        design decisions D1–D19 and the reasoning behind them (Heb
 | 0 | CMake, JSON loading, data model | ✅ |
 | 1 | DFS with backtracking, min/wanted staffing | ✅ |
 | 2 | Hard rules: overlap, rest, doubles, max shifts, consecutive days | ✅ |
-| 3 | More flexible user rules: CSV availability import, per-employee rules ("X and Y not together") | ⬜ |
+| 3 | More flexible user input: CSV availability import ✅, minimum shifts per employee | 🔶 |
 | 4 | Pruning: most-constrained shift first, forward checking, node and time limits | ⬜ |
 | 5 | **Optimization**: scoring with soft rules, Branch & Bound, top-N schedules | ⬜ |
 | 6 | Reports, CSV export, explaining *why* no schedule exists | ⬜ |
