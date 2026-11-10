@@ -71,3 +71,21 @@ TEST_CASE("printSchedule flags employees below their minShifts", "[Printer][minS
     CHECK_FALSE(contains(text, "Alice            1 shifts   8 h   S1  (below"));
     CHECK(contains(text, "Bob              0 shifts   0 h    (below minimum 2)"));
 }
+
+TEST_CASE("printShortages explains why a shift cannot be staffed", "[Printer][D25]") {
+    Problem p = twoPeopleOneShift();                 // Alice available Sunday, Bob never
+    Shift night{"N", kSunday, TimePeriod::fromString("22:00-06:00"), 1, 1, "guard"};
+    Shift big{"B", kSunday, TimePeriod::fromString("08:00-16:00"), 2, 2, ""};
+    Shift empty{"X", kSunday + 1, TimePeriod::fromString("08:00-16:00"), 1, 1, ""};
+    p.periodEnd = kSunday + 1;
+    p.shifts = {big, night, empty};
+    Solver solver(p);
+
+    std::ostringstream out;
+    printShortages(out, p, solver);
+    const std::string text = out.str();
+
+    CHECK(contains(text, "needs 2, can get 1: only 1 available"));
+    CHECK(contains(text, "needs 1, can get 0: 1 available, but only 0 with role 'guard'"));
+    CHECK(contains(text, "needs 1, can get 0: nobody is available at this time"));
+}

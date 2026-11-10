@@ -92,7 +92,8 @@ void printSchedule(std::ostream& out, const Problem& p, const State& schedule) {
             out << (i ? ", " : "") << p.employees[staff[i]].name;
         if (staff.empty()) out << "-";
         if (!shift.role.empty()) out << "  [" << shift.role << ']';
-        if (staffed < shift.wantedStaff) out << "  (below wanted)";
+        if (staffed < shift.minStaff) out << "  (BELOW MIN " << shift.minStaff << ": see below)";
+        else if (staffed < shift.wantedStaff) out << "  (below wanted)";
         out << '\n';
     }
 
@@ -112,6 +113,30 @@ void printSchedule(std::ostream& out, const Problem& p, const State& schedule) {
         const auto& minShifts = p.employees[e].minShifts;
         if (minShifts && static_cast<int>(shifts.size()) < *minShifts)
             out << "  (below minimum " << *minShifts << ")";
+        out << '\n';
+    }
+}
+
+void printShortages(std::ostream& out, const Problem& p, const Solver& solver) {
+    if (solver.shortages().empty()) return;
+
+    out << "\nShifts that cannot be fully staffed (fill them by hand)\n";
+    for (const Shortage& gap : solver.shortages()) {
+        const Shift& shift = p.shifts[gap.shift];
+
+        // Why: count who is available at all, and who of those has the role.
+        int available = 0;
+        for (const Employee& e : p.employees)
+            if (availabilityFit(e, shift) != Fit::No) ++available;
+
+        out << "  " << std::left << std::setw(7) << shift.id << shift.date.toString() << ' '
+            << shift.time.toString() << "  needs " << gap.needed << ", can get " << gap.candidates << ": ";
+        if (available == 0)
+            out << "nobody is available at this time";
+        else if (!shift.role.empty() && gap.candidates < available)
+            out << available << " available, but only " << gap.candidates << " with role '" << shift.role << "'";
+        else
+            out << "only " << available << " available";
         out << '\n';
     }
 }

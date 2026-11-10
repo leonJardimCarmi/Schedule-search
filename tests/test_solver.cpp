@@ -59,11 +59,33 @@ TEST_CASE("only available employees are candidates", "[Solver]") {
     CHECK(result->staffOf(0) == std::vector<int>{1});
 }
 
-TEST_CASE("not enough candidates means no solution", "[Solver]") {
+TEST_CASE("too few candidates: the shift gets what it can and is reported (D25)", "[Solver][D25]") {
     Problem p = makeProblem({freeOnSunday(1), neverAvailable(2)},
                             {sundayShift("S", "08:00-16:00", 2)});
     Solver solver(p);
-    CHECK_FALSE(solver.findFirst().has_value());
+
+    REQUIRE(solver.shortages().size() == 1);       // found before any search
+    CHECK(solver.shortages()[0].shift == 0);
+    CHECK(solver.shortages()[0].candidates == 1);
+    CHECK(solver.shortages()[0].needed == 2);
+
+    auto result = solver.findFirst();
+    REQUIRE(result.has_value());                    // a schedule, not "impossible"
+    CHECK(result->staffOf(0) == std::vector<int>{0}); // the one person who can
+}
+
+TEST_CASE("a shift nobody can work does not block the others (D25)", "[Solver][D25]") {
+    Shift guardNight = sundayShift("N", "22:00-06:00", 1);
+    guardNight.role = "guard";                       // nobody has it
+    Problem p = makeProblem({freeOnSunday(1)}, {sundayShift("M", "08:00-16:00", 1), guardNight});
+    Solver solver(p);
+
+    auto result = solver.findFirst();
+    REQUIRE(result.has_value());
+    CHECK(result->assignedCount(0) == 1);            // the morning is staffed
+    CHECK(result->assignedCount(1) == 0);            // the night is the reported hole
+    REQUIRE(solver.shortages().size() == 1);
+    CHECK(solver.shortages()[0].candidates == 0);
 }
 
 TEST_CASE("a shift that needs nobody is fine", "[Solver]") {
@@ -123,11 +145,15 @@ TEST_CASE("wanted larger than the candidates is capped", "[Solver][wanted]") {
     CHECK(result->assignedCount(0) == 2);
 }
 
-TEST_CASE("min stays a hard limit even when wanted is larger", "[Solver][wanted]") {
-    Problem p = makeProblem({freeOnSunday(1), neverAvailable(2)},
-                            {sundayShift("S", "08:00-16:00", 2, 3)});
+TEST_CASE("min stays hard wherever it can be met (D11 with D25)", "[Solver][wanted]") {
+    // Each shift alone has enough candidates, so there is no shortage. But one
+    // person cannot work two overlapping shifts: no schedule, as before.
+    Problem p = makeProblem({freeOnSunday(1)},
+                            {sundayShift("A", "08:00-16:00", 1, 2), sundayShift("B", "12:00-20:00", 1, 2)});
     Solver solver(p);
+    CHECK(solver.shortages().empty());
     CHECK_FALSE(solver.findFirst().has_value());
+    CHECK(solver.status() == SearchStatus::NoSchedule);
 }
 
 TEST_CASE("a double is the last resort", "[Solver][double]") {
@@ -186,9 +212,11 @@ TEST_CASE("only employees with the shift's role are candidates", "[Solver][role]
 
 namespace {
 
-// Four shifts that anyone can work, then a last shift nobody can work.
-// The search must try every combination of the first four before it can
-// say "no schedule": a small version of the month benchmark.
+// Four early shifts, then a late shift that needs ALL five people.
+// Each shift alone has enough candidates (no shortage, D25), but whoever
+// works early has only 5 hours of rest before the late shift (10 needed).
+// The search only finds out at the last shift, after trying every
+// combination of the first four: a small version of the month benchmark.
 Problem hopelessAtTheEnd() {
     std::vector<Employee> people;
     for (int id = 1; id <= 5; ++id) people.push_back(freeOnSunday(id));
@@ -198,9 +226,7 @@ Problem hopelessAtTheEnd() {
                                  sundayShift("S1", "02:00-03:00", 1, 2),
                                  sundayShift("S2", "03:00-04:00", 1, 2),
                                  sundayShift("S3", "04:00-05:00", 1, 2)};
-    Shift impossible = sundayShift("X", "20:00-21:00", 1);
-    impossible.role = "nobody-has-this";
-    shifts.push_back(impossible);
+    shifts.push_back(sundayShift("X", "10:00-11:00", 5));
     return makeProblem(people, shifts);
 }
 

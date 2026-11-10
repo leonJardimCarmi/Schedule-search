@@ -16,3 +16,7 @@ void printCandidates(std::ostream& out, const Problem& problem, const Solver& so
 
 // The schedule: by day, then a summary per employee.
 void printSchedule(std::ostream& out, const Problem& problem, const State& schedule);
+
+// Shifts that can never reach their min (DECISIONS D25), each with the reason:
+// nobody available that day, or available people without the shift's role.
+void printShortages(std::ostream& out, const Problem& problem, const Solver& solver);

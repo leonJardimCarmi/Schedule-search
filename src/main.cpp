@@ -128,5 +128,9 @@ int main(int argc, char* argv[]) {
         return kNoSchedule;
     }
     printSchedule(std::cout, problem, *schedule);
+    printShortages(std::cout, problem, solver);
+    if (!solver.shortages().empty())
+        std::cerr << "warning: " << solver.shortages().size()
+                  << " shift(s) cannot be fully staffed, see the list at the end\n";
     return kOk;
 }

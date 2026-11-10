@@ -19,6 +19,16 @@ struct SearchLimits {
     std::optional<long long> maxNodes;
 };
 
+// A shift that can never reach its min: fewer employees are available for
+// it (and have its role) than it needs (DECISIONS D25). Found once, before
+// the search. Such a shift is staffed with as many people as possible and
+// reported, instead of making the whole answer "no schedule".
+struct Shortage {
+    int shift;        // index into Problem::shifts
+    int candidates;   // how many could work it
+    int needed;       // its minStaff
+};
+
 // How the last search ended.
 enum class SearchStatus {
     Found,          // a schedule was found
@@ -50,6 +60,9 @@ public:
     // The hard rules this solver enforces.
     const ConstraintList& constraints() const { return constraints_; }
 
+    // Shifts that cannot be staffed to their min, whatever else happens (D25).
+    const std::vector<Shortage>& shortages() const { return shortages_; }
+
 private:
     // Both return true when the search should stop.
     bool startShift(int shiftIdx);
@@ -62,6 +75,8 @@ private:
     const Problem& problem_;
     std::vector<std::vector<int>> candidates_;   // [shift] -> employee indices
     std::vector<std::vector<int>> order_;        // [shift] -> candidates in the order to try
+    std::vector<int> searchMin_;                 // [shift] -> min used by the search (D25)
+    std::vector<Shortage> shortages_;
     ConstraintList constraints_;
 
     State state_;

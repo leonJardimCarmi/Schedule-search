@@ -9,6 +9,7 @@ Solver::Solver(const Problem& problem)
     : problem_(problem),
       candidates_(problem.shifts.size()),
       order_(problem.shifts.size()),
+      searchMin_(problem.shifts.size()),
       constraints_(makeConstraints(problem)),
       state_(static_cast<int>(problem.employees.size()), static_cast<int>(problem.shifts.size())) {
     // Availability and role never change during the search, so they are
@@ -20,6 +21,19 @@ Solver::Solver(const Problem& problem)
             if (availabilityFit(employee, shift) != Fit::No && roleFits(employee, shift))
                 candidates_[s].push_back(static_cast<int>(e));
         }
+
+    // Static check (DECISIONS D25): a shift with fewer candidates than its
+    // min can never be fully staffed, no matter what the search does.
+    // Searching for it anyway would only make the search try every
+    // combination of the shifts before it, and fail every time.
+    // So it is recorded, and the search aims for as many as possible.
+    for (std::size_t s = 0; s < problem.shifts.size(); ++s) {
+        const int available = static_cast<int>(candidates_[s].size());
+        const int needed = problem.shifts[s].minStaff;
+        searchMin_[s] = std::min(needed, available);
+        if (available < needed)
+            shortages_.push_back(Shortage{static_cast<int>(s), available, needed});
+    }
 }
 
 bool Solver::allowed(int emp, int shift) const {
@@ -113,7 +127,7 @@ bool Solver::startShift(int shiftIdx) {
     // No point aiming for more people than there are candidates.
     const int largest = std::min(shift.wantedStaff, candidateCount);
 
-    for (int target = largest; target >= shift.minStaff; --target)
+    for (int target = largest; target >= searchMin_[shiftIdx]; --target)
         if (fill(shiftIdx, 0, target)) return true;
 
     // Not even minStaff could be reached: dead end, go back.

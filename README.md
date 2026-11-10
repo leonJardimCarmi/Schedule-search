@@ -173,6 +173,15 @@ Per employee
 
 Dana is available Monday morning, but she isn't assigned to it: she finished Sunday's evening shift at midnight, and 8 hours of rest is below the 10-hour minimum.
 
+**Shifts nobody can work don't block the rest.** Before searching, the engine finds shifts that have fewer available people (with the right role) than their minimum. Those are impossible no matter what, so instead of answering "no schedule" for the whole month, it staffs them as well as it can, schedules everything else, and explains each hole:
+
+```
+  1208-N 23:00-07:00  0/1  -  [guard]  (BELOW MIN 1: see below)
+...
+Shifts that cannot be fully staffed (fill them by hand)
+  1208-N 2026-12-08 23:00-07:00  needs 1, can get 0: 2 available, but only 0 with role 'guard'
+```
+
 `--verbose` also prints the loaded input, the candidates for each shift, and the number of search nodes.
 `--time-limit <seconds>` (default 60) and `--max-nodes <n>` stop a search that takes too long.
 
@@ -215,7 +224,7 @@ src/                implementations, same layout
 tests/              Catch2 unit tests
 data/               example inputs
 PLAN.md             roadmap and status of each stage (Hebrew)
-DECISIONS.md        design decisions D1–D24 and the reasoning behind them (Hebrew)
+DECISIONS.md        design decisions D1–D25 and the reasoning behind them (Hebrew)
 ```
 
 ## Roadmap

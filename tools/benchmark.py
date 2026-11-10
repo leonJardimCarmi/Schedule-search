@@ -2,10 +2,14 @@
 """Measures the solver on a problem file, the same way every time, so that
 an optimization can be compared before and after.
 
-Two experiments:
-  growing  - the problem cut to its first N days (a solvable problem growing)
-  broken   - the full problem with ONE night shift made impossible on day k
-             (a role nobody has): how long until the solver says "no schedule"
+Three experiments:
+  growing   - the problem cut to its first N days (a solvable problem growing)
+  shortage  - ONE night shift on day k that nobody can work (a role nobody
+              has). Visible before the search starts (DECISIONS D25).
+  conflict  - an extra noon shift on day k that needs EVERYONE available at
+              noon, while the morning shift (whose people are all among them)
+              needs someone too. Impossible, but no single shift shows it:
+              the search only finds out when it reaches noon on day k.
 
     python3 tools/benchmark.py build/schedule_search data/month_15x90.json
 """
@@ -52,6 +56,31 @@ def cut(problem, days):
     return p
 
 
+def minutes(t):
+    a, b = t.split("-")
+    start = int(a[:2]) * 60 + int(a[3:])
+    end = int(b[:2]) * 60 + int(b[3:])
+    return start, end + 1440 if end <= start else end
+
+
+def available_at(employee, date, time):
+    """Same idea as availabilityFit: an available slot covering the whole time."""
+    s, e = minutes(time)
+    slots = [x for x in employee["availability"] if x["date"] == date]
+    if any(x["type"] == "unavailable" for x in slots):
+        return False
+    return any("time" not in x or (minutes(x["time"])[0] <= s and e <= minutes(x["time"])[1]) for x in slots)
+
+
+def add_conflict(problem, day):
+    p = copy.deepcopy(problem)
+    date = (dt.date.fromisoformat(p["period"]["start"]) + dt.timedelta(days=day - 1)).isoformat()
+    everyone = sum(available_at(e, date, "12:00-13:00") for e in p["employees"])
+    p["shifts"].append({"id": f"NOON{day}", "date": date, "time": "12:00-13:00",
+                        "min": everyone, "wanted": everyone})
+    return p
+
+
 def break_night(problem, day):
     p = copy.deepcopy(problem)
     date = (dt.date.fromisoformat(p["period"]["start"]) + dt.timedelta(days=day - 1)).isoformat()
@@ -82,13 +111,15 @@ def main():
         rows.append((f"{n} days", run(a.solver, cut(problem, n), a.limit)))
     table("growing: first N days of the problem", rows)
 
-    rows = []
-    for k in range(1, 8):
-        r = run(a.solver, break_night(problem, k), a.limit)
-        rows.append((f"day {k}", r))
-        if r[2].startswith(("TIMEOUT", "LIMIT")):
-            break
-    table("broken: one impossible night on day k", rows)
+    for title, make in [("shortage: a night nobody can work, on day k", break_night),
+                        ("conflict: impossible, but only found when the search gets there", add_conflict)]:
+        rows = []
+        for k in range(1, 8):
+            r = run(a.solver, make(problem, k), a.limit)
+            rows.append((f"day {k}", r))
+            if r[2].startswith(("TIMEOUT", "LIMIT")):
+                break
+        table(title, rows)
 
 
 if __name__ == "__main__":
