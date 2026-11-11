@@ -5,6 +5,7 @@
 
 #include "Problem.h"
 #include "solver/Constraint.h"
+#include "solver/Score.h"
 #include "solver/State.h"
 
 // Depth-first search with backtracking over the shifts.
@@ -36,7 +37,7 @@ struct Shortage {
 
 // How the last search ended.
 enum class SearchStatus {
-    Found,          // a schedule was found
+    Found,          // a schedule was found (findBest: see complete())
     NoSchedule,     // the whole tree was searched: no schedule exists
     LimitReached    // stopped by a limit before an answer (D24)
 };
@@ -51,6 +52,17 @@ public:
     // "nothing" means "none exists" or "stopped by a limit".
     std::optional<State> findFirst();
     SearchStatus status() const;
+
+    // The legal schedule with the lowest score (stage 5, D2). Keeps
+    // searching after each schedule it finds. If a limit stops it, the best
+    // one found so far is returned (anytime, D31) and complete() is false.
+    std::optional<State> findBest(const ScoreModel& model);
+    const Score& bestScore() const { return bestScore_; }
+    long long improvements() const { return improvements_; }   // how often the best changed
+
+    // True when the last search explored everything it had to: with
+    // findBest, the schedule returned is then proven to be the best.
+    bool complete() const { return !limitHit_; }
 
     // How many different legal schedules exist (explores the whole tree).
     // If a limit stops it, the count is partial and status() says so.
@@ -71,6 +83,7 @@ public:
 private:
     // Both return true when the search should stop.
     bool nextShift();
+    bool onSchedule();
     struct Choice { int shift; int slack; };
     Choice chooseShift() const;
     int allowedCount(int shift) const { return allowedCount_[shift]; }   // cached, see below
@@ -102,7 +115,12 @@ private:
     ConstraintList constraints_;
 
     State state_;
-    bool stopAtFirst_ = true;
+    // What to do with a complete schedule (one leaf, three uses).
+    enum class Mode { First, Count, Best };
+    Mode mode_ = Mode::First;
+    const ScoreModel* model_ = nullptr;   // set only in Mode::Best
+    Score bestScore_;
+    long long improvements_ = 0;
     std::optional<State> found_;
     long long solutions_ = 0;
     long long nodes_ = 0;

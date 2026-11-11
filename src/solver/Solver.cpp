@@ -60,6 +60,8 @@ void Solver::reset() {
     std::fill(filled_.begin(), filled_.end(), 0);
     filledCount_ = 0;
     solutions_ = 0;
+    improvements_ = 0;
+    bestScore_ = Score{};
     nodes_ = 0;
     limitHit_ = false;
     startTime_ = std::chrono::steady_clock::now();
@@ -109,16 +111,49 @@ SearchStatus Solver::status() const {
 
 std::optional<State> Solver::findFirst() {
     reset();
-    stopAtFirst_ = true;
+    mode_ = Mode::First;
     nextShift();
+    return found_;
+}
+
+std::optional<State> Solver::findBest(const ScoreModel& model) {
+    reset();
+    mode_ = Mode::Best;
+    model_ = &model;
+    nextShift();
+    model_ = nullptr;
     return found_;
 }
 
 long long Solver::countAll() {
     reset();
-    stopAtFirst_ = false;
+    mode_ = Mode::Count;
     nextShift();
     return solutions_;
+}
+
+// A complete schedule was reached. Returns true to stop the search.
+bool Solver::onSchedule() {
+    ++solutions_;
+    switch (mode_) {
+    case Mode::First:
+        found_ = state_;   // copy it out before backtracking erases it
+        return true;
+    case Mode::Count:
+        return false;      // keep looking for more
+    case Mode::Best: {
+        // Basic Branch & Bound, without the "bound" yet (step 5.3): score
+        // every schedule, keep the best, and go on looking.
+        const Score score = model_->score(problem_, state_);
+        if (!found_ || score < bestScore_) {
+            found_ = state_;
+            bestScore_ = score;
+            ++improvements_;
+        }
+        return false;
+    }
+    }
+    return false;
 }
 
 // Decides in which order to try this shift's candidates (DECISIONS D16):
@@ -173,14 +208,7 @@ bool Solver::nextShift() {
     if (limitReached()) return true;   // "stop": unwinds the whole search
 
     // Every shift is decided: this is a complete schedule.
-    if (filledCount_ == static_cast<int>(problem_.shifts.size())) {
-        ++solutions_;
-        if (stopAtFirst_) {
-            found_ = state_;   // copy it out before backtracking erases it
-            return true;
-        }
-        return false;          // keep looking for more
-    }
+    if (filledCount_ == static_cast<int>(problem_.shifts.size())) return onSchedule();
 
     const Choice choice = chooseShift();
     if (choice.slack < 0) return false;   // some shift can no longer reach its min

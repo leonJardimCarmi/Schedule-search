@@ -13,7 +13,7 @@
 namespace {
 
 // Exit codes, so scripts can tell what happened without reading the text.
-constexpr int kOk = 0;           // a schedule was found
+constexpr int kOk = 0;           // a schedule was found (maybe not proven best: see D34)
 constexpr int kBadInput = 1;     // wrong arguments or errors in the input file
 constexpr int kNoSchedule = 2;   // the input is fine but no schedule exists
 constexpr int kLimitReached = 3; // stopped by --time-limit / --max-nodes (D24)
@@ -26,6 +26,7 @@ void printUsage() {
                  "                             (employee_id,date,time,type[,double])\n"
                  "  --time-limit <seconds>     stop the search after this long (default 60)\n"
                  "  --max-nodes <n>            stop the search after n nodes (default: no limit)\n"
+                 "  --first                    return the first legal schedule instead of the best one\n"
                  "  --verbose                  also print the input, the candidates and the search size\n";
 }
 
@@ -34,6 +35,7 @@ struct Options {
     std::string availabilityPath;   // empty = no CSV
     SearchLimits limits{kDefaultTimeLimit, std::nullopt};
     bool verbose = false;
+    bool firstOnly = false;   // --first: skip the optimization (D33)
 };
 
 // Arguments may come in any order: "file --verbose" or "--verbose file".
@@ -43,6 +45,8 @@ std::optional<Options> parseArgs(int argc, char* argv[]) {
         const std::string arg = argv[i];
         if (arg == "--verbose" || arg == "-v") {
             options.verbose = true;
+        } else if (arg == "--first") {
+            options.firstOnly = true;
         } else if (arg == "--availability" || arg == "--time-limit" || arg == "--max-nodes") {
             if (i + 1 >= argc) {   // these options need a value after them
                 std::cerr << arg << " needs a value\n";
@@ -118,11 +122,16 @@ int main(int argc, char* argv[]) {
         std::cout << "\n\n";
     }
     const auto searchStart = std::chrono::steady_clock::now();
-    const std::optional<State> schedule = solver.findFirst();
+    // By default, the best schedule (D2, D33). --first stops at the first legal one.
+    const std::optional<State> schedule =
+        options->firstOnly ? solver.findFirst() : solver.findBest(scoreModel);
     const std::chrono::duration<double, std::milli> searchTime = std::chrono::steady_clock::now() - searchStart;
     if (options->verbose)
         std::cout << "Search visited " << solver.nodesVisited() << " nodes in "
-                  << searchTime.count() << " ms\n\n";
+                  << searchTime.count() << " ms"
+                  << (options->firstOnly ? "" : ", the best schedule improved "
+                                               + std::to_string(solver.improvements()) + " times")
+                  << "\n\n";
 
     // 3. Report.
     if (solver.status() == SearchStatus::LimitReached) {
@@ -138,6 +147,15 @@ int main(int argc, char* argv[]) {
     printSchedule(std::cout, problem, *schedule);
     printShortages(std::cout, problem, solver);
     printScore(std::cout, problem, scoreModel, *schedule);
+
+    // Anytime (D31, D34): a usable schedule, but the search did not finish.
+    if (!options->firstOnly) {
+        if (solver.complete())
+            std::cout << "This is the best schedule: the whole search space was checked.\n";
+        else
+            std::cout << "Search stopped by the time or node limit: this is the best schedule\n"
+                         "found so far, and a better one may exist. Try a larger --time-limit.\n";
+    }
     if (!solver.shortages().empty())
         std::cerr << "warning: " << solver.shortages().size()
                   << " shift(s) cannot be fully staffed, see the list at the end\n";

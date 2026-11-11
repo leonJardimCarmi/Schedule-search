@@ -1,10 +1,13 @@
 #include <catch2/catch_test_macros.hpp>
 
 #include <memory>
+#include <optional>
 #include <string>
+#include <vector>
 
 #include "io/JsonLoader.h"
 #include "solver/Score.h"
+#include "solver/Solver.h"
 
 // The score is computed on a finished schedule, so these tests build a
 // State by hand. No search is involved (stage 5.1a does not change it).
@@ -140,4 +143,67 @@ TEST_CASE("the loader reads weights", "[Score][JsonLoader]") {
     SECTION("a non-number is an error") {
         CHECK_FALSE(JsonLoader::loadString(base + R"("weights": {"double": "high"}})", "t.json").ok());
     }
+}
+
+// ---- findBest: the search uses the score (step 5.2) ---------------------------
+
+TEST_CASE("findBest returns a better schedule than findFirst", "[Solver][Score]") {
+    // E1 comes first in the input, so the first schedule uses E1.
+    // E2 marked the day as preferred, so the best schedule uses E2.
+    Problem p{kSunday, kSunday,
+              {withSlot(1, AvailabilityType::Available), withSlot(2, AvailabilityType::Preferred)},
+              {makeShift("A", "08:00-16:00", 1, 1)}, Rules{}};
+    const ScoreModel model = makeScoreModel(p);
+    Solver solver(p);
+
+    const std::optional<State> first = solver.findFirst();
+    REQUIRE(first);
+    CHECK(first->staffOf(0) == std::vector<int>{0});
+    CHECK(model.score(p, *first).at(Level::Soft) == 1);
+
+    const std::optional<State> best = solver.findBest(model);
+    REQUIRE(best);
+    CHECK(best->staffOf(0) == std::vector<int>{1});
+    CHECK(solver.bestScore().at(Level::Soft) == 0);
+    CHECK(solver.improvements() == 2);   // E1 first, then E2 was better
+    CHECK(solver.complete());            // everything checked: proven best
+}
+
+TEST_CASE("findBest prefers a full shift over many small issues", "[Solver][Score]") {
+    // Both available only, so each assignment costs 1 (not-preferred).
+    // Two people cost 2, but one person leaves "wanted" short: 10.
+    Problem p{kSunday, kSunday,
+              {withSlot(1, AvailabilityType::Available), withSlot(2, AvailabilityType::Available)},
+              {makeShift("A", "08:00-16:00", 1, 2)}, Rules{}};
+    Solver solver(p);
+    const std::optional<State> best = solver.findBest(makeScoreModel(p));
+    REQUIRE(best);
+    CHECK(best->assignedCount(0) == 2);
+    CHECK(solver.bestScore().at(Level::Soft) == 2);
+}
+
+TEST_CASE("findBest keeps the best so far when a limit stops it (anytime)", "[Solver][Score]") {
+    Problem p{kSunday, kSunday,
+              {withSlot(1, AvailabilityType::Available), withSlot(2, AvailabilityType::Available),
+               withSlot(3, AvailabilityType::Preferred)},
+              {makeShift("A", "08:00-16:00", 1, 1), makeShift("B", "16:00-23:00", 1, 1)}, Rules{}};
+    const ScoreModel model = makeScoreModel(p);
+
+    Solver full(p);
+    REQUIRE(full.findBest(model));
+    REQUIRE(full.complete());
+    const long long allNodes = full.nodesVisited();
+
+    // The smallest node limit that still finds a schedule: it stops long
+    // before the whole tree, so the answer is "best so far", not proven.
+    Solver limited(p);
+    std::optional<State> soFar;
+    for (long long n = 1; n < allNodes && !soFar; ++n) {
+        limited.setLimits(SearchLimits{std::nullopt, n});
+        soFar = limited.findBest(model);
+    }
+    REQUIRE(soFar);
+    CHECK(limited.status() == SearchStatus::Found);
+    CHECK_FALSE(limited.complete());
+    CHECK_FALSE(limited.bestScore() < full.bestScore());   // never better than the true best
 }

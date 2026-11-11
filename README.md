@@ -189,7 +189,16 @@ Shifts that cannot be fully staffed (fill them by hand)
 `--verbose` also prints the loaded input, the candidates for each shift, and the number of search nodes.
 `--time-limit <seconds>` (default 60) and `--max-nodes <n>` stop a search that takes too long.
 
-Exit codes: `0` schedule found · `1` bad arguments or input · `2` valid input, and no schedule exists (the whole search space was checked) · `3` stopped by a limit before finding a schedule (one may still exist).
+By default the program looks for the **best** schedule: every legal schedule gets a score (lower is better), printed with one line per soft rule. The weights can be changed in the input:
+
+```json
+"weights": { "double": 8, "not-preferred": 0 }
+```
+
+Soft rules: `below-min` (Medium level: holes that can't be filled) · `below-wanted` (10) · `double` (5) · `below-min-shifts` (5) · `not-preferred` (1). Any difference at the Medium level decides before the Soft level is compared. A weight of `0` turns a rule off.
+If the time limit stops the search, the best schedule found so far is printed, with a note that a better one may exist. `--first` skips the optimization and prints the first legal schedule.
+
+Exit codes: `0` schedule found (with a note if it is the best found in time, not proven best) · `1` bad arguments or input · `2` valid input, and no schedule exists (the whole search space was checked) · `3` stopped by a limit before finding a schedule (one may still exist).
 
 ---
 
@@ -247,7 +256,7 @@ src/                implementations, same layout
 tests/              Catch2 unit tests
 data/               example inputs
 PLAN.md             roadmap and status of each stage (Hebrew)
-DECISIONS.md        design decisions D1–D27 and the reasoning behind them (Hebrew)
+DECISIONS.md        design decisions D1–D34 and the reasoning behind them (Hebrew)
 ```
 
 ## Roadmap
@@ -259,6 +268,6 @@ DECISIONS.md        design decisions D1–D27 and the reasoning behind them (Heb
 | 2 | Hard rules: overlap, rest, doubles, max shifts, consecutive days | ✅ |
 | 3 | More flexible user input: CSV availability import, minimum shifts per employee (a soft wish) | ✅ |
 | 4 | Pruning: time/node limits, static shortage check, most-constrained shift first (MRV) with dead-end detection, incremental cache | ✅ |
-| 5 | **Optimization**: scoring with soft rules, Branch & Bound, top-N schedules | ⬜ |
+| 5 | **Optimization**: pluggable soft-rule scoring ✅, best-so-far search ✅, Branch & Bound pruning, top-N schedules | 🔶 |
 | 6 | Reports, CSV export, explaining *why* no schedule exists | ⬜ |
 | 7 | Manual edits: check a hand-edited schedule against all the rules and flag violations | ⬜ |
