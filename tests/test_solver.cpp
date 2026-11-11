@@ -230,10 +230,34 @@ Problem hopelessAtTheEnd() {
     return makeProblem(people, shifts);
 }
 
+// The pigeonhole problem: 8 shifts at the same time, only 7 people.
+// Every shift alone has 7 candidates, and every partial assignment still
+// looks possible until the very last shift, so even MRV (D26) has to try
+// all the ways to place 7 people in 8 shifts before it can say "no".
+// A classic worst case for backtracking search.
+Problem pigeonhole() {
+    std::vector<Employee> people;
+    for (int id = 1; id <= 7; ++id) people.push_back(freeOnSunday(id));
+    std::vector<Shift> shifts;
+    for (int i = 0; i < 8; ++i) shifts.push_back(sundayShift("P" + std::to_string(i), "08:00-16:00", 1));
+    return makeProblem(people, shifts);
+}
+
 }  // namespace
 
-TEST_CASE("without a limit the search proves there is no schedule", "[Solver][limits]") {
+TEST_CASE("MRV finds a late conflict without trying every earlier combination (D26)", "[Solver][mrv]") {
+    // In calendar order this took thousands of nodes: every combination of
+    // S0..S3 was tried and failed at X. MRV looks at X first: it needs all 5
+    // people, so it is the tightest shift, and the conflict shows at once.
     Problem p = hopelessAtTheEnd();
+    Solver solver(p);
+    CHECK_FALSE(solver.findFirst().has_value());
+    CHECK(solver.status() == SearchStatus::NoSchedule);
+    CHECK(solver.nodesVisited() < 50);
+}
+
+TEST_CASE("without a limit the search proves there is no schedule", "[Solver][limits]") {
+    Problem p = pigeonhole();
     Solver solver(p);
     CHECK_FALSE(solver.findFirst().has_value());
     CHECK(solver.status() == SearchStatus::NoSchedule);
@@ -241,7 +265,7 @@ TEST_CASE("without a limit the search proves there is no schedule", "[Solver][li
 }
 
 TEST_CASE("a node limit stops the search and says so", "[Solver][limits]") {
-    Problem p = hopelessAtTheEnd();
+    Problem p = pigeonhole();
     Solver solver(p);
     solver.setLimits({std::nullopt, 100});
 
@@ -259,7 +283,7 @@ TEST_CASE("a limit that is not reached changes nothing", "[Solver][limits]") {
 }
 
 TEST_CASE("the next search starts with a fresh limit", "[Solver][limits]") {
-    Problem p = hopelessAtTheEnd();
+    Problem p = pigeonhole();
     Solver solver(p);
     solver.setLimits({std::nullopt, 100});
     solver.findFirst();

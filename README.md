@@ -83,12 +83,16 @@ Adding a new rule means writing one class and one line in the factory. The solve
 ## How the search works
 
 ```
-startShift(s)                          fill(s, next, target)
-  ├─ all shifts done? → schedule found   ├─ shift has `target` people? → startShift(s + 1)
-  ├─ order candidates (non-doubles first)└─ for each candidate i ≥ next:
-  └─ for target = wanted … min:               if every Constraint allows:
-        fill(s, 0, target)                       assign → fill(s, i + 1, target) → unassign
+nextShift()                            fill(s, next, target)
+  ├─ all shifts done? → schedule found   ├─ shift has `target` people? → nextShift()
+  ├─ s = hardest open shift (MRV)        └─ for each candidate i ≥ next:
+  │    dead end if it can't reach min         if every Constraint allows:
+  ├─ order candidates (non-doubles first)        assign → fill(s, i + 1, target) → unassign
+  └─ for target = wanted … min:
+        fill(s, 0, target)
 ```
+
+- **Hardest shift first (MRV).** The next shift is not the next one on the calendar but the one with the least slack right now: the fewest employees the rules still allow, compared with its minimum. A shift that can no longer be staffed is noticed at once, before any other work is done in that branch. On a month where one day is secretly impossible, this cut the search from over 23 million nodes (stopped after 60 s) to 4.
 
 - **A shift is a group, not a sequence.** {Yossi, Dana} and {Dana, Yossi} are the same staffing. Candidates are picked in increasing index order (`next`), so each group is tried exactly once: combinations, not permutations.
 - **Fullest first.** Each shift is first tried with its `wanted` number of people, then one less, down to `min`. The first schedule found is therefore the most fully staffed one along that path.
@@ -224,7 +228,7 @@ src/                implementations, same layout
 tests/              Catch2 unit tests
 data/               example inputs
 PLAN.md             roadmap and status of each stage (Hebrew)
-DECISIONS.md        design decisions D1–D25 and the reasoning behind them (Hebrew)
+DECISIONS.md        design decisions D1–D26 and the reasoning behind them (Hebrew)
 ```
 
 ## Roadmap

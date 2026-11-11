@@ -89,3 +89,17 @@ TEST_CASE("printShortages explains why a shift cannot be staffed", "[Printer][D2
     CHECK(contains(text, "needs 1, can get 0: 1 available, but only 0 with role 'guard'"));
     CHECK(contains(text, "needs 1, can get 0: nobody is available at this time"));
 }
+
+TEST_CASE("per-employee shifts are listed in calendar order even when assigned out of order", "[Printer][mrv]") {
+    Problem p = twoPeopleOneShift();
+    Shift later{"S2", kSunday, TimePeriod::fromString("18:00-22:00"), 1, 1, ""};
+    p.shifts.push_back(later);                       // index 1 = later in the day
+    State schedule(2, 2);
+    schedule.assign(0, 1);                           // MRV may fill the later shift first
+    schedule.assign(0, 0);
+
+    std::ostringstream out;
+    printSchedule(out, p, schedule);
+    CHECK(contains(out.str(), "S1 S2"));
+    CHECK_FALSE(contains(out.str(), "S2 S1"));
+}

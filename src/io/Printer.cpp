@@ -1,5 +1,8 @@
 #include "io/Printer.h"
 
+#include <algorithm>
+#include <vector>
+
 #include <iomanip>
 #include <string>
 
@@ -100,7 +103,11 @@ void printSchedule(std::ostream& out, const Problem& p, const State& schedule) {
     // 2. Per employee: how many shifts and hours each person got.
     out << "\nPer employee\n";
     for (int e = 0; e < static_cast<int>(p.employees.size()); ++e) {
-        const auto& shifts = schedule.shiftsOf(e);
+        // In the order they were assigned; with MRV (D26) that is not calendar
+        // order. Shift indices are sorted by time (the loader does that), so
+        // sorting the indices puts them back in calendar order.
+        std::vector<int> shifts = schedule.shiftsOf(e);
+        std::sort(shifts.begin(), shifts.end());
         int minutes = 0;
         for (int s : shifts) minutes += p.shifts[s].time.duration();
 

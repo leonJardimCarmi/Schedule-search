@@ -10,6 +10,7 @@ Solver::Solver(const Problem& problem)
       candidates_(problem.shifts.size()),
       order_(problem.shifts.size()),
       searchMin_(problem.shifts.size()),
+      filled_(problem.shifts.size(), 0),
       constraints_(makeConstraints(problem)),
       state_(static_cast<int>(problem.employees.size()), static_cast<int>(problem.shifts.size())) {
     // Availability and role never change during the search, so they are
@@ -45,6 +46,8 @@ bool Solver::allowed(int emp, int shift) const {
 void Solver::reset() {
     state_ = State(static_cast<int>(problem_.employees.size()), static_cast<int>(problem_.shifts.size()));
     found_.reset();
+    std::fill(filled_.begin(), filled_.end(), 0);
+    filledCount_ = 0;
     solutions_ = 0;
     nodes_ = 0;
     limitHit_ = false;
@@ -75,14 +78,14 @@ SearchStatus Solver::status() const {
 std::optional<State> Solver::findFirst() {
     reset();
     stopAtFirst_ = true;
-    startShift(0);
+    nextShift();
     return found_;
 }
 
 long long Solver::countAll() {
     reset();
     stopAtFirst_ = false;
-    startShift(0);
+    nextShift();
     return solutions_;
 }
 
@@ -105,13 +108,36 @@ void Solver::orderCandidates(int shiftIdx) {
     });
 }
 
-// Entering a new shift: decide how many people it gets.
-// Tries the largest size first (wanted), then one less, down to min.
-bool Solver::startShift(int shiftIdx) {
+// How many of this shift's candidates the hard rules allow right now.
+int Solver::allowedCount(int shift) const {
+    int count = 0;
+    for (int emp : candidates_[shift])
+        if (allowed(emp, shift)) ++count;
+    return count;
+}
+
+// MRV (DECISIONS D26): among the shifts not decided yet, pick the one with
+// the least "slack" = allowed candidates minus its min. Slack 0 means there is
+// exactly one way left to staff it, so do it now; negative slack means it can
+// no longer be staffed at all. Ties go to the earliest shift (calendar order).
+Solver::Choice Solver::chooseShift() const {
+    Choice best{-1, 0};
+    for (int s = 0; s < static_cast<int>(problem_.shifts.size()); ++s) {
+        if (filled_[s]) continue;
+        const int slack = allowedCount(s) - searchMin_[s];
+        if (best.shift == -1 || slack < best.slack) best = {s, slack};
+        if (best.slack < 0) break;   // already a dead end: no need to look further
+    }
+    return best;
+}
+
+// Choosing the next shift and how many people it gets.
+// Tries the largest size first (wanted), then one less, down to min (D10).
+bool Solver::nextShift() {
     if (limitReached()) return true;   // "stop": unwinds the whole search
 
-    // Every shift is staffed: this is a complete schedule.
-    if (shiftIdx == static_cast<int>(problem_.shifts.size())) {
+    // Every shift is decided: this is a complete schedule.
+    if (filledCount_ == static_cast<int>(problem_.shifts.size())) {
         ++solutions_;
         if (stopAtFirst_) {
             found_ = state_;   // copy it out before backtracking erases it
@@ -120,6 +146,10 @@ bool Solver::startShift(int shiftIdx) {
         return false;          // keep looking for more
     }
 
+    const Choice choice = chooseShift();
+    if (choice.slack < 0) return false;   // some shift can no longer reach its min
+
+    const int shiftIdx = choice.shift;
     const Shift& shift = problem_.shifts[shiftIdx];
     const int candidateCount = static_cast<int>(candidates_[shiftIdx].size());
     orderCandidates(shiftIdx);
@@ -127,11 +157,16 @@ bool Solver::startShift(int shiftIdx) {
     // No point aiming for more people than there are candidates.
     const int largest = std::min(shift.wantedStaff, candidateCount);
 
-    for (int target = largest; target >= searchMin_[shiftIdx]; --target)
-        if (fill(shiftIdx, 0, target)) return true;
+    filled_[shiftIdx] = 1;     // decided in this branch (undone below)
+    ++filledCount_;
+    bool stop = false;
+    for (int target = largest; target >= searchMin_[shiftIdx] && !stop; --target)
+        stop = fill(shiftIdx, 0, target);
+    filled_[shiftIdx] = 0;
+    --filledCount_;
 
-    // Not even minStaff could be reached: dead end, go back.
-    return false;
+    // stop == false: not even min could be reached here, go back.
+    return stop;
 }
 
 // Choosing exactly `target` people for one shift, as a combination.
@@ -144,7 +179,7 @@ bool Solver::fill(int shiftIdx, int nextCandidate, int target) {
     if (limitReached()) return true;
 
     const int needed = target - state_.assignedCount(shiftIdx);
-    if (needed == 0) return startShift(shiftIdx + 1);   // this shift is done
+    if (needed == 0) return nextShift();   // this shift is done: choose the next one
 
     const std::vector<int>& candidates = order_[shiftIdx];
     for (int i = nextCandidate; i < static_cast<int>(candidates.size()); ++i) {

@@ -7,7 +7,12 @@
 #include "solver/Constraint.h"
 #include "solver/State.h"
 
-// Depth-first search with backtracking over the shifts, in chronological order.
+// Depth-first search with backtracking over the shifts.
+//
+// Shift order (DECISIONS D26, "MRV"): at every step the search fills the
+// shift that is hardest right now: the fewest employees the rules still
+// allow, compared with its min. If some shift can no longer reach its min,
+// the branch is a dead end at once, without filling anything else first.
 //
 // Stage 1.4: each shift gets between `minStaff` and `wantedStaff` employees.
 // Larger staffings are tried first (DECISIONS D10); fewer than minStaff is
@@ -65,7 +70,10 @@ public:
 
 private:
     // Both return true when the search should stop.
-    bool startShift(int shiftIdx);
+    bool nextShift();
+    struct Choice { int shift; int slack; };
+    Choice chooseShift() const;
+    int allowedCount(int shift) const;       // candidates the rules allow right now
     bool fill(int shiftIdx, int nextCandidate, int target);
     void reset();
     void orderCandidates(int shiftIdx);
@@ -77,6 +85,8 @@ private:
     std::vector<std::vector<int>> order_;        // [shift] -> candidates in the order to try
     std::vector<int> searchMin_;                 // [shift] -> min used by the search (D25)
     std::vector<Shortage> shortages_;
+    std::vector<char> filled_;                   // [shift] -> already decided in this branch
+    int filledCount_ = 0;
     ConstraintList constraints_;
 
     State state_;
