@@ -208,6 +208,22 @@ Rules readRules(Reader& r, const json& root) {
     return rules;
 }
 
+// "weights": { "double": 8, "not-preferred": 0 }  (D28)
+// Only the format is checked here. Whether a name matches a soft rule is
+// known only to the score model, which reports unknown names itself.
+void readWeights(Reader& r, const json& root, Rules& rules) {
+    auto it = root.find("weights");
+    if (it == root.end()) return;                      // all defaults
+    if (!it->is_object()) { r.error("weights", "expected an object"); return; }
+    for (const auto& item : it->items()) {
+        const std::string path = "weights." + item.key();
+        if (!item.value().is_number_integer()) { r.error(path, "expected a whole number"); continue; }
+        const long long w = item.value().get<long long>();
+        if (w < 0 || w > 1000000) { r.error(path, "must be between 0 and 1000000"); continue; }
+        rules.weights[item.key()] = static_cast<int>(w);
+    }
+}
+
 // ---- Checks that need the whole file -----------------------------------------
 
 void validate(Reader& r, const Problem& p) {
@@ -286,7 +302,7 @@ LoadResult JsonLoader::loadString(const std::string& text, const std::string& so
         return result;
     }
     if (!root.is_object()) { r.error("(root)", "expected a JSON object"); return result; }
-    r.warnUnknownKeys(root, "", {"period", "employees", "shifts", "rules"});
+    r.warnUnknownKeys(root, "", {"period", "employees", "shifts", "rules", "weights"});
 
     // 2. Period. Without it nothing else can be checked, so it is fatal.
     std::optional<Date> start, end;
@@ -312,6 +328,7 @@ LoadResult JsonLoader::loadString(const std::string& text, const std::string& so
     readList("employees", readEmployee, problem.employees);
     readList("shifts", readShift, problem.shifts);
     problem.rules = readRules(r, root);
+    readWeights(r, root, problem.rules);
 
     // 4. Chronological order: the solver walks the shifts in this order.
     //    The id breaks ties so the order never depends on the input file order.

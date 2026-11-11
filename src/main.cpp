@@ -7,6 +7,7 @@
 #include "io/CsvLoader.h"
 #include "io/JsonLoader.h"
 #include "io/Printer.h"
+#include "solver/Score.h"
 #include "solver/Solver.h"
 
 namespace {
@@ -104,6 +105,9 @@ int main(int argc, char* argv[]) {
     const Problem& problem = *result.problem;
 
     // 2. Search.
+    const ScoreModel scoreModel = makeScoreModel(problem);
+    for (const std::string& name : scoreModel.unknownWeights())
+        std::cerr << "warning: weights." << name << ": no soft rule with this name, ignored\n";
     Solver solver(problem);
     solver.setLimits(options->limits);
     if (options->verbose) {
@@ -133,6 +137,7 @@ int main(int argc, char* argv[]) {
     }
     printSchedule(std::cout, problem, *schedule);
     printShortages(std::cout, problem, solver);
+    printScore(std::cout, problem, scoreModel, *schedule);
     if (!solver.shortages().empty())
         std::cerr << "warning: " << solver.shortages().size()
                   << " shift(s) cannot be fully staffed, see the list at the end\n";

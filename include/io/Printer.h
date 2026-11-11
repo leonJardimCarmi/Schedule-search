@@ -2,6 +2,7 @@
 #include <ostream>
 
 #include "Problem.h"
+#include "solver/Score.h"
 #include "solver/Solver.h"
 #include "solver/State.h"
 
@@ -20,3 +21,7 @@ void printSchedule(std::ostream& out, const Problem& problem, const State& sched
 // Shifts that can never reach their min (DECISIONS D25), each with the reason:
 // nobody available that day, or available people without the shift's role.
 void printShortages(std::ostream& out, const Problem& problem, const Solver& solver);
+
+// The schedule's score and where it comes from, one line per soft rule
+// (stage 5). Lower is better; Medium is compared before Soft (D29).
+void printScore(std::ostream& out, const Problem& problem, const ScoreModel& model, const State& schedule);

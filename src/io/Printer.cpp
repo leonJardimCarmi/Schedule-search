@@ -147,3 +147,19 @@ void printShortages(std::ostream& out, const Problem& p, const Solver& solver) {
         out << '\n';
     }
 }
+
+void printScore(std::ostream& out, const Problem& problem, const ScoreModel& model, const State& schedule) {
+    const Score score = model.score(problem, schedule);
+    out << "\nScore (lower is better): Medium " << score.at(Level::Medium)
+        << ", Soft " << score.at(Level::Soft) << "\n";
+    for (const ScoreLine& line : model.breakdown(problem, schedule)) {
+        out << "  " << std::left << std::setw(18) << line.rule << std::right
+            << std::setw(7) << toString(line.level) << "  ";
+        if (line.weight == 0) {
+            out << "off (weight 0)\n";
+            continue;
+        }
+        out << std::setw(4) << line.violations << " x " << std::setw(3) << line.weight
+            << " = " << std::setw(5) << line.penalty << "   " << line.description << "\n";
+    }
+}
