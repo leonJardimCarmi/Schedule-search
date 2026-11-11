@@ -1,3 +1,4 @@
+#include <chrono>
 #include <iostream>
 #include <optional>
 #include <stdexcept>
@@ -112,9 +113,12 @@ int main(int argc, char* argv[]) {
         for (const auto& constraint : solver.constraints()) std::cout << ' ' << constraint->name();
         std::cout << "\n\n";
     }
+    const auto searchStart = std::chrono::steady_clock::now();
     const std::optional<State> schedule = solver.findFirst();
+    const std::chrono::duration<double, std::milli> searchTime = std::chrono::steady_clock::now() - searchStart;
     if (options->verbose)
-        std::cout << "Search visited " << solver.nodesVisited() << " nodes\n\n";
+        std::cout << "Search visited " << solver.nodesVisited() << " nodes in "
+                  << searchTime.count() << " ms\n\n";
 
     // 3. Report.
     if (solver.status() == SearchStatus::LimitReached) {

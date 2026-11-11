@@ -73,7 +73,10 @@ private:
     bool nextShift();
     struct Choice { int shift; int slack; };
     Choice chooseShift() const;
-    int allowedCount(int shift) const;       // candidates the rules allow right now
+    int allowedCount(int shift) const { return allowedCount_[shift]; }   // cached, see below
+    int countAllowedSlowly(int shift) const;   // the same, recomputed from scratch
+    void refreshEmployee(int emp);             // update the cache after emp's shifts changed
+    void refreshAll();
     bool fill(int shiftIdx, int nextCandidate, int target);
     void reset();
     void orderCandidates(int shiftIdx);
@@ -87,6 +90,15 @@ private:
     std::vector<Shortage> shortages_;
     std::vector<char> filled_;                   // [shift] -> already decided in this branch
     int filledCount_ = 0;
+
+    // Cache for MRV (step 4.4). Every hard rule looks only at the shifts of
+    // the employee it is asked about (DECISIONS D27). So when an employee is
+    // assigned or unassigned, only THAT employee's "allowed?" answers can
+    // change, and only for the shifts they are a candidate for.
+    struct CandidateSlot { int shift; int pos; };            // pos in candidates_[shift]
+    std::vector<std::vector<CandidateSlot>> shiftsOfCandidate_;  // [emp] -> where they are a candidate
+    std::vector<std::vector<char>> allowedNow_;              // [shift][pos] -> rules allow it now
+    std::vector<int> allowedCount_;                          // [shift] -> how many are allowed now
     ConstraintList constraints_;
 
     State state_;

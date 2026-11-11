@@ -12,6 +12,9 @@ Three experiments:
               the search only finds out when it reaches noon on day k.
 
     python3 tools/benchmark.py build/schedule_search data/month_15x90.json
+
+Use a Release build: a Debug build is about 13 times slower and includes
+the debug-only self-checks (assert), so its times say little.
 """
 import argparse
 import copy
@@ -37,6 +40,9 @@ def run(solver, problem, limit):
         seconds = time.perf_counter() - start
         m = re.search(r"(?:visited|after) (\d+) nodes", p.stdout)
         nodes = int(m.group(1)) if m else None
+        t = re.search(r"nodes in ([\d.]+) ms", p.stdout)
+        if t:
+            seconds = float(t.group(1)) / 1000   # the search alone, not process start + JSON
         result = {0: "found", 2: "no schedule", 3: f"LIMIT ({limit:g}s)"}.get(p.returncode, f"exit {p.returncode}")
     except subprocess.TimeoutExpired:
         seconds, nodes, result = limit, None, f"TIMEOUT ({limit}s)"
@@ -92,9 +98,9 @@ def break_night(problem, day):
 
 def table(title, rows):
     print(f"\n{title}")
-    print(f"  {'':<12}{'nodes':>12}{'seconds':>10}  result")
+    print(f"  {'':<12}{'nodes':>12}{'search ms':>11}  result")
     for label, (nodes, seconds, result) in rows:
-        print(f"  {label:<12}{nodes if nodes is not None else '?':>12}{seconds:>10.2f}  {result}")
+        print(f"  {label:<12}{nodes if nodes is not None else '?':>12}{seconds * 1000:>11.1f}  {result}")
 
 
 def main():

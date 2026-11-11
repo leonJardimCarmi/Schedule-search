@@ -193,6 +193,25 @@ Exit codes: `0` schedule found · `1` bad arguments or input · `2` valid input,
 
 ---
 
+## Performance
+
+Measured with `tools/benchmark.py` on a generated month (15 employees, 90 shifts, `data/month_15x90.json`), Release build, search time only:
+
+| Case | Calendar-order DFS | Now |
+|---|---|---|
+| Solvable month | 330 nodes, 0.3 ms | 330 nodes, 3.6 ms |
+| One night nobody can work (day 3) | 10,275,056 nodes, 26 s, "no schedule" | 329 nodes, 3.6 ms, **full schedule + the hole explained** |
+| A hidden conflict on day 4 (impossible, but no single shift shows it) | over 23,900,000 nodes, stopped after 60 s | **4 nodes, 0.1 ms**, "no schedule" |
+
+What made the difference: a static check before the search (shifts that can never be staffed), **MRV** (fill the hardest shift first, and stop as soon as any open shift can no longer reach its minimum), and a cache that, after each assignment, re-checks only the employee who changed. The price is a slightly more expensive node, which the solvable month barely notices.
+
+Measure in **Release**: the same search is about 13× slower in a Debug build.
+
+```bash
+python3 tools/generate_problem.py --days 30 --employees 15 --seed 4 --work-rate 0.85 -o data/month.json
+python3 tools/benchmark.py build/schedule_search data/month.json
+```
+
 ## Build and run
 
 Requires a C++17 compiler and CMake ≥ 3.20. Dependencies are downloaded automatically.
@@ -228,7 +247,7 @@ src/                implementations, same layout
 tests/              Catch2 unit tests
 data/               example inputs
 PLAN.md             roadmap and status of each stage (Hebrew)
-DECISIONS.md        design decisions D1–D26 and the reasoning behind them (Hebrew)
+DECISIONS.md        design decisions D1–D27 and the reasoning behind them (Hebrew)
 ```
 
 ## Roadmap
@@ -239,7 +258,7 @@ DECISIONS.md        design decisions D1–D26 and the reasoning behind them (Heb
 | 1 | DFS with backtracking, min/wanted staffing | ✅ |
 | 2 | Hard rules: overlap, rest, doubles, max shifts, consecutive days | ✅ |
 | 3 | More flexible user input: CSV availability import, minimum shifts per employee (a soft wish) | ✅ |
-| 4 | Pruning: most-constrained shift first, forward checking, node and time limits | ⬜ |
+| 4 | Pruning: time/node limits, static shortage check, most-constrained shift first (MRV) with dead-end detection, incremental cache | ✅ |
 | 5 | **Optimization**: scoring with soft rules, Branch & Bound, top-N schedules | ⬜ |
 | 6 | Reports, CSV export, explaining *why* no schedule exists | ⬜ |
 | 7 | Manual edits: check a hand-edited schedule against all the rules and flag violations | ⬜ |

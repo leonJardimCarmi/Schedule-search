@@ -1,6 +1,7 @@
 #include "solver/Solver.h"
 
 #include <algorithm>
+#include <cassert>
 
 #include "solver/Availability.h"
 #include "solver/WorkBlocks.h"
@@ -22,6 +23,16 @@ Solver::Solver(const Problem& problem)
             if (availabilityFit(employee, shift) != Fit::No && roleFits(employee, shift))
                 candidates_[s].push_back(static_cast<int>(e));
         }
+
+    // Where each employee is a candidate, for refreshEmployee().
+    shiftsOfCandidate_.resize(problem.employees.size());
+    allowedNow_.resize(problem.shifts.size());
+    allowedCount_.resize(problem.shifts.size());
+    for (std::size_t s = 0; s < problem.shifts.size(); ++s) {
+        allowedNow_[s].resize(candidates_[s].size());
+        for (std::size_t pos = 0; pos < candidates_[s].size(); ++pos)
+            shiftsOfCandidate_[candidates_[s][pos]].push_back({static_cast<int>(s), static_cast<int>(pos)});
+    }
 
     // Static check (DECISIONS D25): a shift with fewer candidates than its
     // min can never be fully staffed, no matter what the search does.
@@ -52,6 +63,27 @@ void Solver::reset() {
     nodes_ = 0;
     limitHit_ = false;
     startTime_ = std::chrono::steady_clock::now();
+    refreshAll();   // nobody is assigned yet: the cache starts from scratch
+}
+
+// Recomputes the cached "allowed?" answers of ONE employee, for every shift
+// they are a candidate for, and adjusts the per-shift counts.
+// About 20 checks instead of all shifts x all candidates.
+void Solver::refreshEmployee(int emp) {
+    for (const CandidateSlot& slot : shiftsOfCandidate_[emp]) {
+        const char now = allowed(emp, slot.shift) ? 1 : 0;
+        char& before = allowedNow_[slot.shift][slot.pos];
+        allowedCount_[slot.shift] += now - before;
+        before = now;
+    }
+}
+
+void Solver::refreshAll() {
+    for (std::size_t s = 0; s < problem_.shifts.size(); ++s) {
+        std::fill(allowedNow_[s].begin(), allowedNow_[s].end(), 0);
+        allowedCount_[s] = 0;
+    }
+    for (int e = 0; e < static_cast<int>(problem_.employees.size()); ++e) refreshEmployee(e);
 }
 
 // Called once per node. Returns true when the search must stop.
@@ -108,8 +140,9 @@ void Solver::orderCandidates(int shiftIdx) {
     });
 }
 
-// How many of this shift's candidates the hard rules allow right now.
-int Solver::allowedCount(int shift) const {
+// The slow way: ask every rule about every candidate. Used only to check
+// the cache in debug builds (see chooseShift).
+int Solver::countAllowedSlowly(int shift) const {
     int count = 0;
     for (int emp : candidates_[shift])
         if (allowed(emp, shift)) ++count;
@@ -124,6 +157,9 @@ Solver::Choice Solver::chooseShift() const {
     Choice best{-1, 0};
     for (int s = 0; s < static_cast<int>(problem_.shifts.size()); ++s) {
         if (filled_[s]) continue;
+        // Debug builds double-check the cache against the slow count. If a
+        // future rule breaks D27 (looks at other employees), this fires.
+        assert(allowedCount(s) == countAllowedSlowly(s) && "MRV cache out of date (D27)");
         const int slack = allowedCount(s) - searchMin_[s];
         if (best.shift == -1 || slack < best.slack) best = {s, slack};
         if (best.slack < 0) break;   // already a dead end: no need to look further
@@ -191,8 +227,10 @@ bool Solver::fill(int shiftIdx, int nextCandidate, int target) {
         if (!allowed(emp, shiftIdx)) continue;              // a hard rule says no
 
         state_.assign(emp, shiftIdx);                       // write in pencil
+        refreshEmployee(emp);                               // only emp's answers changed
         const bool stop = fill(shiftIdx, i + 1, target);    // same shift, later candidates only
         state_.unassign(emp, shiftIdx);                     // erase
+        refreshEmployee(emp);
 
         if (stop) return true;
     }
