@@ -131,6 +131,33 @@ public:
                 missing += std::max(0, *p.employees[e].minShifts - static_cast<int>(s.shiftsOf(e).size()));
         return missing;
     }
+
+    // An employee can still get at most one more shift for each empty shift
+    // the hard rules allow them in now (and never more than maxShifts).
+    // If even that is not enough to reach minShifts, the rest is missing.
+    long long lowerBound(const Problem& p, const State& s, const SearchView& v) const override {
+        stillPossible_.assign(p.employees.size(), 0);
+        for (int i = 0; i < static_cast<int>(p.shifts.size()); ++i) {
+            if (v.decided[i]) continue;
+            for (std::size_t pos = 0; pos < v.candidates[i].size(); ++pos)
+                if (v.allowedNow[i][pos]) ++stillPossible_[v.candidates[i][pos]];
+        }
+        long long missing = 0;
+        for (int e = 0; e < static_cast<int>(p.employees.size()); ++e) {
+            const Employee& employee = p.employees[e];
+            if (!employee.minShifts) continue;
+            const int has = static_cast<int>(s.shiftsOf(e).size());
+            int more = stillPossible_[e];
+            if (employee.maxShifts) more = std::min(more, *employee.maxShifts - has);
+            missing += std::max(0, *employee.minShifts - has - more);
+        }
+        return missing;
+    }
+
+private:
+    // Scratch space, reused at every node instead of allocating a new vector.
+    // "mutable" because lowerBound() is const: it does not change the rule.
+    mutable std::vector<int> stillPossible_;
 };
 
 }  // namespace
