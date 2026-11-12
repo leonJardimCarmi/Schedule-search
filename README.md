@@ -256,7 +256,7 @@ src/                implementations, same layout
 tests/              Catch2 unit tests
 data/               example inputs
 PLAN.md             roadmap and status of each stage (Hebrew)
-DECISIONS.md        design decisions D1–D38 and the reasoning behind them (Hebrew)
+DECISIONS.md        design decisions D1–D39 and the reasoning behind them (Hebrew)
 ```
 
 ## Roadmap
@@ -268,6 +268,6 @@ DECISIONS.md        design decisions D1–D38 and the reasoning behind them (Heb
 | 2 | Hard rules: overlap, rest, doubles, max shifts, consecutive days | ✅ |
 | 3 | More flexible user input: CSV availability import, minimum shifts per employee (a soft wish) | ✅ |
 | 4 | Pruning: time/node limits, static shortage check, most-constrained shift first (MRV) with dead-end detection, incremental cache | ✅ |
-| 5 | **Optimization**: pluggable soft-rule scoring ✅, best-so-far search ✅, Branch & Bound pruning, top-N schedules | 🔶 |
+| 5 | **Optimization**: pluggable soft-rule scoring, best-so-far search (anytime), Branch & Bound with per-rule lower bounds. Top-N schedules moved to the UI stage | ✅ |
 | 6 | Reports, CSV export, explaining *why* no schedule exists | ⬜ |
 | 7 | Manual edits: check a hand-edited schedule against all the rules and flag violations | ⬜ |
