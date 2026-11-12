@@ -60,6 +60,9 @@ public:
     const Score& bestScore() const { return bestScore_; }
     long long improvements() const { return improvements_; }   // how often the best changed
     long long pruned() const { return pruned_; }               // branches cut by the bound
+    // The bound before anything is assigned: no schedule can score better.
+    // The gap between it and bestScore() is how far from proven we are.
+    const Score& startBound() const { return startBound_; }
 
     // Branch & Bound pruning (step 5.3), on by default. Turning it off gives
     // the same best score, only slower: the tests use that to check the bound.
@@ -129,6 +132,7 @@ private:
     Score bestScore_;
     long long improvements_ = 0;
     long long pruned_ = 0;
+    Score startBound_;
     bool useBound_ = true;
     bool cannotBeatBest() const;
     std::optional<State> found_;

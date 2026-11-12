@@ -364,3 +364,44 @@ TEST_CASE("the loader reads the night rules", "[Score][JsonLoader]") {
         CHECK_FALSE(JsonLoader::loadString(base + R"("rules": {"nightWindow": "23:00-01:00", "nightMinHours": 3}})", "t.json").ok());
     }
 }
+
+TEST_CASE("the fairness bound is exact when every shift is decided", "[Score][BranchAndBound]") {
+    Problem p{kSunday, kSunday + 6, {freeAllWeek(1), freeAllWeek(2)}, {}, Rules{}};
+    for (int i = 0; i < 10; ++i)
+        p.shifts.push_back(shiftOn("S" + std::to_string(i), i % 7, i < 7 ? "08:00-12:00" : "18:00-22:00"));
+    // Only fairness counts here: every other rule gets weight 0 (D28).
+    for (const char* other : {"below-min", "below-wanted", "double", "below-min-shifts",
+                              "not-preferred", "consecutive-nights"})
+        p.rules.weights[other] = 0;
+    const ScoreModel model = makeScoreModel(p);
+
+    // Everything decided: nobody can get another shift, so lo == hi.
+    const std::vector<char> decided(10, 1);
+    std::vector<std::vector<int>> candidates(10, std::vector<int>{0, 1});
+    std::vector<std::vector<char>> allowedNow(10, std::vector<char>{0, 0});
+    const std::vector<int> allowedCount(10, 0), searchMin(10, 0);
+    const SearchView view{decided, candidates, allowedNow, allowedCount, searchMin};
+
+    for (int forFirst : {5, 6, 8, 10}) {
+        CAPTURE(forFirst);
+        State s(2, 10);
+        for (int i = 0; i < 10; ++i) s.assign(i < forFirst ? 0 : 1, i);
+        const Score bound = model.lowerBound(p, s, view);
+        const Score real = model.score(p, s);
+        CHECK(bound.at(Level::Soft) == real.at(Level::Soft));
+    }
+
+    SECTION("with shifts still open the bound stays at or below the real value") {
+        // 6 decided for E1, 4 still open and allowed for both.
+        std::vector<char> someOpen(10, 1);
+        std::vector<std::vector<char>> open(10, std::vector<char>{0, 0});
+        for (int i = 6; i < 10; ++i) { someOpen[i] = 0; open[i] = {1, 1}; }
+        const std::vector<int> two(10, 2), one(10, 1);
+        const SearchView partial{someOpen, candidates, open, two, one};
+        State s(2, 10);
+        for (int i = 0; i < 6; ++i) s.assign(0, i);
+        // Best completion: all 4 open shifts to E2 -> 6 + 4 -> fairness 2.
+        // The bound may be lower, never higher.
+        CHECK(model.lowerBound(p, s, partial).at(Level::Soft) <= 2);
+    }
+}

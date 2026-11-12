@@ -124,6 +124,8 @@ std::optional<State> Solver::findBest(const ScoreModel& model) {
     reset();
     mode_ = Mode::Best;
     model_ = &model;
+    startBound_ = model.lowerBound(problem_, state_,
+                                   SearchView{filled_, candidates_, allowedNow_, allowedCount_, searchMin_});
     nextShift();
     model_ = nullptr;
     return found_;

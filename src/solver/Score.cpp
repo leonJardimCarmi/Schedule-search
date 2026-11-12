@@ -1,6 +1,7 @@
 #include "solver/Score.h"
 
 #include <algorithm>
+#include <cmath>
 #include <map>
 
 #include "solver/Availability.h"
@@ -27,6 +28,26 @@ long long missingBound(const Problem& p, const State& s, const SearchView& v, Ta
         missing += std::max(0, target(p.shifts[i]) - most);
     }
     return missing;
+}
+
+// For each employee: how many empty shifts the hard rules still allow them
+// in. Each is at most one more shift for them in this branch. Shared by the
+// bounds of below-min-shifts and fairness.
+void countStillPossible(const Problem& p, const SearchView& v, std::vector<int>& out) {
+    out.assign(p.employees.size(), 0);
+    for (int i = 0; i < static_cast<int>(p.shifts.size()); ++i) {
+        if (v.decided[i]) continue;
+        for (std::size_t pos = 0; pos < v.candidates[i].size(); ++pos)
+            if (v.allowedNow[i][pos]) ++out[v.candidates[i][pos]];
+    }
+}
+
+// The most shifts employee e can still end up with in this branch.
+int mostShifts(const Problem& p, const State& s, int e, const std::vector<int>& stillPossible) {
+    const int has = static_cast<int>(s.shiftsOf(e).size());
+    int more = stillPossible[e];
+    if (p.employees[e].maxShifts) more = std::min(more, *p.employees[e].maxShifts - has);
+    return has + std::max(0, more);
 }
 
 // Shifts left below their min. This only happens to shifts nobody can fully
@@ -136,21 +157,11 @@ public:
     // the hard rules allow them in now (and never more than maxShifts).
     // If even that is not enough to reach minShifts, the rest is missing.
     long long lowerBound(const Problem& p, const State& s, const SearchView& v) const override {
-        stillPossible_.assign(p.employees.size(), 0);
-        for (int i = 0; i < static_cast<int>(p.shifts.size()); ++i) {
-            if (v.decided[i]) continue;
-            for (std::size_t pos = 0; pos < v.candidates[i].size(); ++pos)
-                if (v.allowedNow[i][pos]) ++stillPossible_[v.candidates[i][pos]];
-        }
+        countStillPossible(p, v, stillPossible_);
         long long missing = 0;
-        for (int e = 0; e < static_cast<int>(p.employees.size()); ++e) {
-            const Employee& employee = p.employees[e];
-            if (!employee.minShifts) continue;
-            const int has = static_cast<int>(s.shiftsOf(e).size());
-            int more = stillPossible_[e];
-            if (employee.maxShifts) more = std::min(more, *employee.maxShifts - has);
-            missing += std::max(0, *employee.minShifts - has - more);
-        }
+        for (int e = 0; e < static_cast<int>(p.employees.size()); ++e)
+            if (p.employees[e].minShifts)
+                missing += std::max(0, *p.employees[e].minShifts - mostShifts(p, s, e, stillPossible_));
         return missing;
     }
 
@@ -238,8 +249,69 @@ public:
         return squares - best;
     }
 
+    // Each member will end with between lo (what they have now) and hi
+    // (mostShifts) shifts. With m = total / count, the violations are exactly
+    //     sum (x - m)^2  -  r(count - r)/count        (r = total % count)
+    // and |x - m| is at least the distance from m to [lo, hi]. We do not know
+    // the total yet, so take the m that makes those distances smallest:
+    //     violations >= min over m of sum dist(m, [lo,hi])^2  -  count/4
+    // (r(count-r)/count is never more than count/4). Near the end of a branch
+    // lo and hi meet, and the bound gets close to the real value.
+    long long lowerBound(const Problem& p, const State& s, const SearchView& v) const override {
+        if (members_.empty()) return 0;
+        countStillPossible(p, v, stillPossible_);
+        lo_.clear();
+        hi_.clear();
+        for (int e : members_) {
+            lo_.push_back(static_cast<double>(s.shiftsOf(e).size()));
+            hi_.push_back(static_cast<double>(mostShifts(p, s, e, stillPossible_)));
+        }
+        const double spread = smallestSpread();
+        const double count = static_cast<double>(members_.size());
+        const double slack = std::floor(count / 2) * std::ceil(count / 2) / count;   // max of r(count-r)/count
+        // Violations are whole numbers: round up, minus a tiny margin so a
+        // rounding error in the doubles can never push the bound too high.
+        return std::max(0LL, static_cast<long long>(std::ceil(spread - slack - 1e-6)));
+    }
+
 private:
+    // min over m of sum dist(m, [lo_i, hi_i])^2, exactly.
+    // The function is a sum of parabolas that change only at the interval
+    // ends, so between two neighbouring ends it is one parabola: find its
+    // lowest point, keep it inside that piece, and take the smallest result.
+    double smallestSpread() const {
+        std::vector<double> ends(lo_);
+        ends.insert(ends.end(), hi_.begin(), hi_.end());
+        std::sort(ends.begin(), ends.end());
+        auto value = [&](double m) {
+            double sum = 0;
+            for (std::size_t i = 0; i < lo_.size(); ++i) {
+                const double d = m < lo_[i] ? lo_[i] - m : (m > hi_[i] ? m - hi_[i] : 0.0);
+                sum += d * d;
+            }
+            return sum;
+        };
+        double best = value(ends.front());
+        for (std::size_t k = 0; k + 1 < ends.size(); ++k) {
+            const double a = ends[k], b = ends[k + 1];
+            const double mid = (a + b) / 2;
+            // Inside (a, b) the same intervals lie left/right of m: the
+            // parabola's lowest point is the mean of their near ends.
+            double sum = 0;
+            int active = 0;
+            for (std::size_t i = 0; i < lo_.size(); ++i) {
+                if (hi_[i] <= a) { sum += hi_[i]; ++active; }        // interval left of m
+                else if (lo_[i] >= b) { sum += lo_[i]; ++active; }   // interval right of m
+            }
+            const double m = active == 0 ? mid : std::clamp(sum / active, a, b);
+            best = std::min(best, value(m));
+        }
+        return best;
+    }
+
     std::vector<int> members_;
+    mutable std::vector<int> stillPossible_;    // scratch, as in BelowMinShifts
+    mutable std::vector<double> lo_, hi_;
 };
 
 }  // namespace

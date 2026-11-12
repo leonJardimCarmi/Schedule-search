@@ -132,7 +132,11 @@ int main(int argc, char* argv[]) {
                   << (options->firstOnly ? "" : ", the best schedule improved "
                                                + std::to_string(solver.improvements()) + " times, "
                                                + std::to_string(solver.pruned()) + " branches pruned")
-                  << "\n\n";
+                  << "\n";
+    if (options->verbose && !options->firstOnly)
+        std::cout << "No schedule can score better than: Medium " << solver.startBound().at(Level::Medium)
+                  << ", Soft " << solver.startBound().at(Level::Soft) << "\n";
+    if (options->verbose) std::cout << "\n";
 
     // 3. Report.
     if (solver.status() == SearchStatus::LimitReached) {
