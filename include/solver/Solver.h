@@ -106,6 +106,8 @@ private:
     std::vector<std::vector<int>> order_;        // [shift] -> candidates in the order to try
     std::vector<int> searchMin_;                 // [shift] -> min used by the search (D25)
     std::vector<Shortage> shortages_;
+    std::vector<int> rank_;                      // scratch for orderCandidates()
+    std::vector<std::vector<char>> prefers_;     // [shift][emp] -> marked the shift "preferred"
     std::vector<char> filled_;                   // [shift] -> already decided in this branch
     int filledCount_ = 0;
 

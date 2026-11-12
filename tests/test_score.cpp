@@ -149,25 +149,37 @@ TEST_CASE("the loader reads weights", "[Score][JsonLoader]") {
 // ---- findBest: the search uses the score (step 5.2) ---------------------------
 
 TEST_CASE("findBest returns a better schedule than findFirst", "[Solver][Score]") {
-    // E1 comes first in the input, so the first schedule uses E1.
-    // E2 marked the day as preferred, so the best schedule uses E2.
+    // The search tries E2 first, because E2 marked the day as preferred (D36).
+    // But E1 has minShifts 1 and this is the only shift: without it, E1 misses
+    // a shift (weight 5), which costs more than a non-preferred assignment (1).
     Problem p{kSunday, kSunday,
               {withSlot(1, AvailabilityType::Available), withSlot(2, AvailabilityType::Preferred)},
               {makeShift("A", "08:00-16:00", 1, 1)}, Rules{}};
+    p.employees[0].minShifts = 1;
     const ScoreModel model = makeScoreModel(p);
     Solver solver(p);
 
     const std::optional<State> first = solver.findFirst();
     REQUIRE(first);
-    CHECK(first->staffOf(0) == std::vector<int>{0});
-    CHECK(model.score(p, *first).at(Level::Soft) == 1);
+    CHECK(first->staffOf(0) == std::vector<int>{1});           // E2, the preferred one
+    CHECK(model.score(p, *first).at(Level::Soft) == 5);        // E1 below minShifts
 
     const std::optional<State> best = solver.findBest(model);
     REQUIRE(best);
-    CHECK(best->staffOf(0) == std::vector<int>{1});
-    CHECK(solver.bestScore().at(Level::Soft) == 0);
-    CHECK(solver.improvements() == 2);   // E1 first, then E2 was better
+    CHECK(best->staffOf(0) == std::vector<int>{0});            // E1
+    CHECK(solver.bestScore().at(Level::Soft) == 1);            // one non-preferred
+    CHECK(solver.improvements() == 2);   // E2 first, then E1 was better
     CHECK(solver.complete());            // everything checked: proven best
+}
+
+TEST_CASE("candidates who prefer the shift are tried first", "[Solver]") {
+    Problem p{kSunday, kSunday,
+              {withSlot(1, AvailabilityType::Available), withSlot(2, AvailabilityType::Preferred)},
+              {makeShift("A", "08:00-16:00", 1, 1)}, Rules{}};
+    Solver solver(p);
+    const std::optional<State> first = solver.findFirst();
+    REQUIRE(first);
+    CHECK(first->staffOf(0) == std::vector<int>{1});   // E2 before E1, despite the input order
 }
 
 TEST_CASE("findBest prefers a full shift over many small issues", "[Solver][Score]") {

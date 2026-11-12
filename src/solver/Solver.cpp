@@ -11,6 +11,7 @@ Solver::Solver(const Problem& problem)
       candidates_(problem.shifts.size()),
       order_(problem.shifts.size()),
       searchMin_(problem.shifts.size()),
+      prefers_(problem.shifts.size(), std::vector<char>(problem.employees.size(), 0)),
       filled_(problem.shifts.size(), 0),
       constraints_(makeConstraints(problem)),
       state_(static_cast<int>(problem.employees.size()), static_cast<int>(problem.shifts.size())) {
@@ -20,8 +21,10 @@ Solver::Solver(const Problem& problem)
         for (std::size_t e = 0; e < problem.employees.size(); ++e) {
             const Employee& employee = problem.employees[e];
             const Shift& shift = problem.shifts[s];
-            if (availabilityFit(employee, shift) != Fit::No && roleFits(employee, shift))
+            const Fit fit = availabilityFit(employee, shift);
+            if (fit != Fit::No && roleFits(employee, shift))
                 candidates_[s].push_back(static_cast<int>(e));
+            prefers_[s][e] = fit == Fit::Preferred;
         }
 
     // Where each employee is a candidate, for refreshEmployee().
@@ -163,10 +166,13 @@ bool Solver::onSchedule() {
     return false;
 }
 
-// Decides in which order to try this shift's candidates (DECISIONS D16):
-// people for whom this shift would NOT be a double come first, so a double
-// is used only when there is no other way. stable_partition keeps the
-// original order inside each group, so the search stays predictable.
+// Decides in which order to try this shift's candidates (DECISIONS D16, D36):
+//   1. people for whom this shift would NOT be a double, so a double is used
+//      only when there is no other way;
+//   2. inside each group, people who marked the shift "preferred".
+// A good first schedule gives the bound (step 5.3) a strong target early.
+// stable_sort keeps the input order among equals, so the search stays
+// predictable.
 //
 // It is computed when entering the shift, from the current state. Adding one
 // employee to this shift does not change whether it is a double for another,
@@ -175,11 +181,16 @@ void Solver::orderCandidates(int shiftIdx) {
     const int doubleAbove = problem_.rules.doubleAboveHours * 60;
     const int gap = problem_.rules.blockGapMinutes;
 
+    // Rank: 0 = no double + preferred, 1 = no double, 2 = double + preferred, 3 = double.
+    // Computed once per candidate: blockWith() is too costly to call inside the sort.
+    rank_.resize(problem_.employees.size());
+    for (int emp : candidates_[shiftIdx]) {
+        const bool isDouble = blockWith(problem_, state_, emp, shiftIdx, gap).minutes() > doubleAbove;
+        rank_[emp] = (isDouble ? 2 : 0) + (prefers_[shiftIdx][emp] ? 0 : 1);
+    }
     std::vector<int>& order = order_[shiftIdx];
     order = candidates_[shiftIdx];
-    std::stable_partition(order.begin(), order.end(), [&](int emp) {
-        return blockWith(problem_, state_, emp, shiftIdx, gap).minutes() <= doubleAbove;
-    });
+    std::stable_sort(order.begin(), order.end(), [&](int a, int b) { return rank_[a] < rank_[b]; });
 }
 
 // The slow way: ask every rule about every candidate. Used only to check
