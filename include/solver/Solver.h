@@ -59,6 +59,11 @@ public:
     std::optional<State> findBest(const ScoreModel& model);
     const Score& bestScore() const { return bestScore_; }
     long long improvements() const { return improvements_; }   // how often the best changed
+    long long pruned() const { return pruned_; }               // branches cut by the bound
+
+    // Branch & Bound pruning (step 5.3), on by default. Turning it off gives
+    // the same best score, only slower: the tests use that to check the bound.
+    void setUseBound(bool on) { useBound_ = on; }
 
     // True when the last search explored everything it had to: with
     // findBest, the schedule returned is then proven to be the best.
@@ -121,6 +126,9 @@ private:
     const ScoreModel* model_ = nullptr;   // set only in Mode::Best
     Score bestScore_;
     long long improvements_ = 0;
+    long long pruned_ = 0;
+    bool useBound_ = true;
+    bool cannotBeatBest() const;
     std::optional<State> found_;
     long long solutions_ = 0;
     long long nodes_ = 0;

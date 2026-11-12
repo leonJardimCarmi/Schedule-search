@@ -16,6 +16,19 @@ const char* toString(Level level) {
 
 namespace {
 
+// Missing people below `target(shift)`, for both staffing rules.
+// Decided shift: final, exact. Empty shift: it will get at most
+// allowedCount people, so at least target - allowedCount are missing.
+template <typename Target>
+long long missingBound(const Problem& p, const State& s, const SearchView& v, Target target) {
+    long long missing = 0;
+    for (int i = 0; i < static_cast<int>(p.shifts.size()); ++i) {
+        const int most = v.decided[i] ? s.assignedCount(i) : v.allowedCount[i];
+        missing += std::max(0, target(p.shifts[i]) - most);
+    }
+    return missing;
+}
+
 // Shifts left below their min. This only happens to shifts nobody can fully
 // staff (D25), so these are the holes the manager has to fill by hand.
 class BelowMin : public SoftRule {
@@ -29,6 +42,9 @@ public:
             missing += std::max(0, p.shifts[i].minStaff - s.assignedCount(i));
         return missing;
     }
+    long long lowerBound(const Problem& p, const State& s, const SearchView& v) const override {
+        return missingBound(p, s, v, [](const Shift& sh) { return sh.minStaff; });
+    }
 };
 
 class BelowWanted : public SoftRule {
@@ -41,20 +57,51 @@ public:
             missing += std::max(0, p.shifts[i].wantedStaff - s.assignedCount(i));
         return missing;
     }
+    long long lowerBound(const Problem& p, const State& s, const SearchView& v) const override {
+        return missingBound(p, s, v, [](const Shift& sh) { return sh.wantedStaff; });
+    }
 };
 
 // D5: "preferred" availability should be used when possible.
 class NotPreferred : public SoftRule {
 public:
+    // Availability never changes, so "preferred?" is computed once here
+    // instead of at every node of the search.
+    explicit NotPreferred(const Problem& p) : preferred_(p.shifts.size()) {
+        for (std::size_t i = 0; i < p.shifts.size(); ++i)
+            for (const Employee& e : p.employees)
+                preferred_[i].push_back(availabilityFit(e, p.shifts[i]) == Fit::Preferred);
+    }
     const char* name() const override { return "not-preferred"; }
     const char* description() const override { return "assignment the employee did not mark as preferred"; }
     long long violations(const Problem& p, const State& s) const override {
         long long count = 0;
         for (int i = 0; i < static_cast<int>(p.shifts.size()); ++i)
             for (int e : s.staffOf(i))
-                if (availabilityFit(p.employees[e], p.shifts[i]) != Fit::Preferred) ++count;
+                if (!preferred_[i][e]) ++count;
         return count;
     }
+    // Decided shift: its non-preferred people, exact. Empty shift: it will
+    // get at least searchMin people; if fewer of the allowed ones prefer it,
+    // the rest cannot be "preferred".
+    long long lowerBound(const Problem& p, const State& s, const SearchView& v) const override {
+        long long count = 0;
+        for (int i = 0; i < static_cast<int>(p.shifts.size()); ++i) {
+            if (v.decided[i]) {
+                for (int e : s.staffOf(i))
+                    if (!preferred_[i][e]) ++count;
+                continue;
+            }
+            int preferredAllowed = 0;
+            for (std::size_t pos = 0; pos < v.candidates[i].size(); ++pos)
+                if (v.allowedNow[i][pos] && preferred_[i][v.candidates[i][pos]]) ++preferredAllowed;
+            count += std::max(0, v.searchMin[i] - preferredAllowed);
+        }
+        return count;
+    }
+
+private:
+    std::vector<std::vector<char>> preferred_;   // [shift][employee]
 };
 
 // D16: a double is allowed with approval, but is a last resort.
@@ -103,6 +150,17 @@ Score ScoreModel::score(const Problem& problem, const State& schedule) const {
     return result;
 }
 
+Score ScoreModel::lowerBound(const Problem& problem, const State& partial, const SearchView& view) const {
+    // Each rule's bound is a minimum for that rule alone, so their weighted
+    // sum is a minimum for the whole score.
+    Score result;
+    for (const Entry& entry : entries_) {
+        if (entry.weight == 0) continue;
+        result.total[static_cast<int>(entry.rule->level())] += entry.weight * entry.rule->lowerBound(problem, partial, view);
+    }
+    return result;
+}
+
 std::vector<ScoreLine> ScoreModel::breakdown(const Problem& problem, const State& schedule) const {
     std::vector<ScoreLine> lines;
     for (const Entry& entry : entries_) {
@@ -131,7 +189,7 @@ ScoreModel makeScoreModel(const Problem& problem) {
     add(std::make_unique<BelowWanted>(), 10);
     add(std::make_unique<DoubleShifts>(), 5);
     add(std::make_unique<BelowMinShifts>(), 5);
-    add(std::make_unique<NotPreferred>(), 1);
+    add(std::make_unique<NotPreferred>(problem), 1);
     // New soft rules are added here (D32).
 
     for (const auto& [name, weight] : custom) {

@@ -130,7 +130,8 @@ int main(int argc, char* argv[]) {
         std::cout << "Search visited " << solver.nodesVisited() << " nodes in "
                   << searchTime.count() << " ms"
                   << (options->firstOnly ? "" : ", the best schedule improved "
-                                               + std::to_string(solver.improvements()) + " times")
+                                               + std::to_string(solver.improvements()) + " times, "
+                                               + std::to_string(solver.pruned()) + " branches pruned")
                   << "\n\n";
 
     // 3. Report.

@@ -61,6 +61,7 @@ void Solver::reset() {
     filledCount_ = 0;
     solutions_ = 0;
     improvements_ = 0;
+    pruned_ = 0;
     bestScore_ = Score{};
     nodes_ = 0;
     limitHit_ = false;
@@ -130,6 +131,12 @@ long long Solver::countAll() {
     mode_ = Mode::Count;
     nextShift();
     return solutions_;
+}
+
+bool Solver::cannotBeatBest() const {
+    if (mode_ != Mode::Best || !useBound_ || !found_) return false;
+    const SearchView view{filled_, candidates_, allowedNow_, allowedCount_, searchMin_};
+    return !(model_->lowerBound(problem_, state_, view) < bestScore_);
 }
 
 // A complete schedule was reached. Returns true to stop the search.
@@ -209,6 +216,13 @@ bool Solver::nextShift() {
 
     // Every shift is decided: this is a complete schedule.
     if (filledCount_ == static_cast<int>(problem_.shifts.size())) return onSchedule();
+
+    // Branch & Bound (step 5.3): if even the best possible completion of
+    // this branch is not better than the best schedule found, skip it.
+    if (cannotBeatBest()) {
+        ++pruned_;
+        return false;
+    }
 
     const Choice choice = chooseShift();
     if (choice.slack < 0) return false;   // some shift can no longer reach its min

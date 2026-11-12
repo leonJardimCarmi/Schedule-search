@@ -29,6 +29,21 @@ struct Score {
     bool operator==(const Score& other) const { return total == other.total; }
 };
 
+// What the search knows in the middle of a branch, for lowerBound().
+// Shifts are filled one at a time, so a shift is either decided (its staff
+// is final in this branch) or still empty.
+struct SearchView {
+    const std::vector<char>& decided;                  // [shift] -> staff is final
+    const std::vector<std::vector<int>>& candidates;   // [shift] -> employees who fit
+    const std::vector<std::vector<char>>& allowedNow;  // [shift][pos] -> hard rules allow it now
+    const std::vector<int>& allowedCount;              // [shift] -> how many are allowed now
+    const std::vector<int>& searchMin;                 // [shift] -> at least this many will be assigned
+};
+// The hard rules only get stricter as people are assigned: someone who is
+// not allowed in a shift now will not be allowed later in this branch.
+// So an empty shift ends with at most allowedCount people. That is the
+// fact most bounds are built on.
+
 // One kind of "this could be better".
 class SoftRule {
 public:
@@ -40,6 +55,13 @@ public:
     // How many units of violation the complete schedule has. Each rule
     // decides how to count: people missing, doubles, a fairness measure...
     virtual long long violations(const Problem& problem, const State& schedule) const = 0;
+
+    // Optional (step 5.3): at least how many violations ANY completion of
+    // this partial schedule will have. It must never be too high, or the
+    // search may cut off the best schedule. 0 is always correct, so a rule
+    // that cannot say anything useful does not need to override this.
+    virtual long long lowerBound(const Problem& /*problem*/, const State& /*partial*/,
+                                 const SearchView& /*view*/) const { return 0; }
 };
 
 // One line of the explanation of a score.
@@ -58,6 +80,9 @@ public:
 
     Score score(const Problem& problem, const State& schedule) const;
     std::vector<ScoreLine> breakdown(const Problem& problem, const State& schedule) const;
+
+    // The best score any completion of a partial schedule could still get.
+    Score lowerBound(const Problem& problem, const State& partial, const SearchView& view) const;
 
     // Names in the input's "weights" that match no rule (probably typos).
     const std::vector<std::string>& unknownWeights() const { return unknownWeights_; }

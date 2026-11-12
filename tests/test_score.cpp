@@ -2,6 +2,7 @@
 
 #include <memory>
 #include <optional>
+#include <random>
 #include <string>
 #include <vector>
 
@@ -206,4 +207,65 @@ TEST_CASE("findBest keeps the best so far when a limit stops it (anytime)", "[So
     CHECK(limited.status() == SearchStatus::Found);
     CHECK_FALSE(limited.complete());
     CHECK_FALSE(limited.bestScore() < full.bestScore());   // never better than the true best
+}
+
+// ---- Branch & Bound (step 5.3) ------------------------------------------------
+
+namespace {
+
+// A small random problem: 3 days, 2-3 shifts a day, 4 employees with mixed
+// availability. Small enough for a full search without the bound to finish. std::mt19937 gives the same numbers on every compiler; the
+// std:: distributions do not, so plain modulo is used instead.
+Problem randomProblem(unsigned seed) {
+    std::mt19937 rng(seed);
+    auto pick = [&](int n) { return static_cast<int>(rng() % static_cast<unsigned>(n)); };
+    const char* times[] = {"06:00-14:00", "14:00-22:00", "22:00-06:00"};
+
+    Problem p{kSunday, kSunday + 2, {}, {}, Rules{}};
+    for (int day = 0; day < 3; ++day)
+        for (int t = 0; t < 2 + pick(2); ++t) {
+            const int min = pick(2);   // 0 or 1
+            p.shifts.push_back(Shift{"D" + std::to_string(day) + "-" + std::to_string(t), kSunday + day,
+                                     TimePeriod::fromString(times[t]), min, min + pick(2), ""});
+        }
+    for (int id = 1; id <= 4; ++id) {
+        Employee e;
+        e.id = id;
+        e.name = "E" + std::to_string(id);
+        if (pick(2)) e.minShifts = 1 + pick(3);
+        for (int day = 0; day < 3; ++day) {
+            const int kind = pick(4);   // 0 off, 1 available, 2 preferred, 3 available + double ok
+            if (kind == 0) continue;
+            e.availability.push_back({kSunday + day, std::nullopt,
+                                      kind == 2 ? AvailabilityType::Preferred : AvailabilityType::Available,
+                                      kind == 3});
+        }
+        p.employees.push_back(e);
+    }
+    return p;
+}
+
+}  // namespace
+
+TEST_CASE("the bound never loses the best schedule", "[Solver][Score][BranchAndBound]") {
+    // The bound is only allowed to skip branches that cannot win. So with and
+    // without it, the best score must be exactly the same, every time.
+    for (unsigned seed = 1; seed <= 60; ++seed) {
+        CAPTURE(seed);
+        const Problem p = randomProblem(seed);
+        const ScoreModel model = makeScoreModel(p);
+
+        Solver plain(p);
+        plain.setUseBound(false);
+        const std::optional<State> slow = plain.findBest(model);
+
+        Solver pruning(p);
+        const std::optional<State> fast = pruning.findBest(model);
+
+        REQUIRE(slow.has_value() == fast.has_value());
+        if (!slow) continue;
+        CHECK(pruning.bestScore() == plain.bestScore());
+        CHECK(model.score(p, *fast) == pruning.bestScore());
+        CHECK(pruning.nodesVisited() <= plain.nodesVisited());
+    }
 }
