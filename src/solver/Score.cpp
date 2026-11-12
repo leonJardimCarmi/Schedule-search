@@ -160,6 +160,88 @@ private:
     mutable std::vector<int> stillPossible_;
 };
 
+// D17: a penalty for each night shift that follows a night shift the day
+// before (by start day, D13). Three nights in a row = 2.
+class ConsecutiveNights : public SoftRule {
+public:
+    explicit ConsecutiveNights(const Problem& p) : night_(p.shifts.size()) {
+        for (std::size_t i = 0; i < p.shifts.size(); ++i)
+            night_[i] = isNight(p.shifts[i], p.rules);
+    }
+    const char* name() const override { return "consecutive-nights"; }
+    const char* description() const override { return "night shift right after a night shift"; }
+    long long violations(const Problem& p, const State& s) const override {
+        long long pairs = 0;
+        for (int e = 0; e < static_cast<int>(p.employees.size()); ++e) {
+            std::vector<int> nightDays;
+            for (int i : s.shiftsOf(e))
+                if (night_[i]) nightDays.push_back(p.shifts[i].date.daysSinceEpoch());
+            std::sort(nightDays.begin(), nightDays.end());
+            for (std::size_t k = 1; k < nightDays.size(); ++k)
+                if (nightDays[k] == nightDays[k - 1] + 1) ++pairs;
+        }
+        return pairs;
+    }
+    // Assigning more shifts can only add pairs, never remove one. So the
+    // pairs already in a partial schedule are a correct lower bound.
+    long long lowerBound(const Problem& p, const State& s, const SearchView&) const override {
+        return violations(p, s);
+    }
+
+private:
+    // Minutes of the shift inside the night window, counting the window that
+    // starts the evening before (for early-morning shifts) and the one that
+    // starts on the shift's own day. Absolute minutes, so midnight is no edge.
+    static bool isNight(const Shift& shift, const Rules& rules) {
+        const int start = shift.absoluteStart(), end = shift.absoluteEnd();
+        const int day = shift.date.daysSinceEpoch() * TimePeriod::MINUTES_PER_DAY;
+        int inside = 0;
+        for (int d = -1; d <= 0; ++d) {
+            const int wStart = day + d * TimePeriod::MINUTES_PER_DAY + rules.nightWindow.getStart();
+            const int wEnd = day + d * TimePeriod::MINUTES_PER_DAY + rules.nightWindow.getEnd();
+            inside += std::max(0, std::min(end, wEnd) - std::max(start, wStart));
+        }
+        return inside >= rules.nightMinHours * 60;
+    }
+    std::vector<char> night_;
+};
+
+// Fairness: shifts should be spread evenly. Violations = sum of squares of
+// each employee's shift count, minus the smallest possible sum for the same
+// total. 0 means "as even as possible"; one big gap costs more than several
+// small ones (counts 5,5 -> 0; 6,4 -> 2; 8,2 -> 18).
+// Only employees who can work at least one shift take part: someone who
+// is never available cannot be given more, so counting them is just noise.
+class Fairness : public SoftRule {
+public:
+    explicit Fairness(const Problem& p) {
+        for (std::size_t e = 0; e < p.employees.size(); ++e)
+            for (const Shift& shift : p.shifts)
+                if (availabilityFit(p.employees[e], shift) != Fit::No && roleFits(p.employees[e], shift)) {
+                    members_.push_back(static_cast<int>(e));
+                    break;
+                }
+    }
+    const char* name() const override { return "fairness"; }
+    const char* description() const override { return "unevenness of shifts per employee (squares)"; }
+    long long violations(const Problem&, const State& s) const override {
+        if (members_.empty()) return 0;
+        long long total = 0, squares = 0;
+        for (int e : members_) {
+            const long long n = static_cast<long long>(s.shiftsOf(e).size());
+            total += n;
+            squares += n * n;
+        }
+        const long long count = static_cast<long long>(members_.size());
+        const long long q = total / count, r = total % count;   // the most even split
+        const long long best = (count - r) * q * q + r * (q + 1) * (q + 1);
+        return squares - best;
+    }
+
+private:
+    std::vector<int> members_;
+};
+
 }  // namespace
 
 // ---- The model -------------------------------------------------------------
@@ -217,6 +299,8 @@ ScoreModel makeScoreModel(const Problem& problem) {
     add(std::make_unique<DoubleShifts>(), 5);
     add(std::make_unique<BelowMinShifts>(), 5);
     add(std::make_unique<NotPreferred>(problem), 1);
+    add(std::make_unique<ConsecutiveNights>(problem), 3);
+    add(std::make_unique<Fairness>(problem), 1);
     // New soft rules are added here (D32).
 
     for (const auto& [name, weight] : custom) {

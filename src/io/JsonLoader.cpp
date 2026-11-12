@@ -199,12 +199,16 @@ Rules readRules(Reader& r, const json& root) {
     if (!it->is_object()) { r.error("rules", "expected an object"); return rules; }
 
     r.warnUnknownKeys(*it, "rules", {"minRestHours", "blockGapMinutes", "doubleAboveHours",
-                                     "maxDoubleHours", "maxConsecutiveDays"});
+                                     "maxDoubleHours", "maxConsecutiveDays",
+                                     "nightWindow", "nightMinHours"});
     if (auto v = r.optionalInt(*it, "rules", "minRestHours")) rules.minRestHours = *v;
     if (auto v = r.optionalInt(*it, "rules", "blockGapMinutes")) rules.blockGapMinutes = *v;
     if (auto v = r.optionalInt(*it, "rules", "doubleAboveHours")) rules.doubleAboveHours = *v;
     if (auto v = r.optionalInt(*it, "rules", "maxDoubleHours")) rules.maxDoubleHours = *v;
     rules.maxConsecutiveDays = r.optionalInt(*it, "rules", "maxConsecutiveDays");
+    if (auto s = r.optionalString(*it, "rules", "nightWindow"))
+        if (auto w = r.parse<TimePeriod>(*s, "rules.nightWindow", TimePeriod::fromString)) rules.nightWindow = *w;
+    if (auto v = r.optionalInt(*it, "rules", "nightMinHours")) rules.nightMinHours = *v;
     return rules;
 }
 
@@ -271,6 +275,8 @@ void validate(Reader& r, const Problem& p) {
     if (rules.maxDoubleHours < rules.doubleAboveHours)
         r.error("rules.maxDoubleHours", "must not be smaller than doubleAboveHours");
     if (rules.maxConsecutiveDays && *rules.maxConsecutiveDays < 1) r.error("rules.maxConsecutiveDays", "must be at least 1");
+    if (rules.nightMinHours < 1 || rules.nightMinHours * 60 > rules.nightWindow.duration())
+        r.error("rules.nightMinHours", "must be at least 1 and fit inside nightWindow");
 }
 
 }  // namespace

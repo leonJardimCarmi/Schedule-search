@@ -281,3 +281,86 @@ TEST_CASE("the bound never loses the best schedule", "[Solver][Score][BranchAndB
         CHECK(pruning.nodesVisited() <= plain.nodesVisited());
     }
 }
+
+// ---- consecutive-nights and fairness (step 5.1b) ------------------------------
+
+namespace {
+
+Employee freeAllWeek(int id) {
+    Employee e;
+    e.id = id;
+    e.name = "E" + std::to_string(id);
+    for (int d = 0; d < 7; ++d) e.availability.push_back({kSunday + d, std::nullopt, AvailabilityType::Available});
+    return e;
+}
+
+Shift shiftOn(const std::string& id, int day, const std::string& time) {
+    return Shift{id, kSunday + day, TimePeriod::fromString(time), 0, 1, ""};
+}
+
+}  // namespace
+
+TEST_CASE("consecutive-nights counts each night right after a night", "[Score]") {
+    Problem p{kSunday, kSunday + 6, {freeAllWeek(1)},
+              {shiftOn("N0", 0, "22:00-06:00"),     // 0  night
+               shiftOn("N1", 1, "22:00-06:00"),     // 1  night
+               shiftOn("N2", 2, "22:00-06:00"),     // 2  night
+               shiftOn("E3", 3, "16:00-23:00"),     // 3  only 1 h in 22-06: not a night
+               shiftOn("L4", 4, "20:00-02:00"),     // 4  4 h in 22-06: a night
+               shiftOn("M5", 5, "02:00-10:00")},    // 5  4 h in 22-06 (the window of the evening before)
+              Rules{}};
+    State s(1, 6);
+    for (int i = 0; i < 6; ++i) s.assign(0, i);
+    const ScoreModel model = makeScoreModel(p);
+    // Nights on days 0,1,2,4,5: pairs (0,1) (1,2) (4,5) = 3. Day 3 breaks the run.
+    CHECK(violationsOf(model, p, s, "consecutive-nights") == 3);
+
+    SECTION("nightMinHours decides what is a night") {
+        p.rules.nightMinHours = 5;   // now only the full 22-06 shifts are nights
+        const ScoreModel strict = makeScoreModel(p);
+        CHECK(violationsOf(strict, p, s, "consecutive-nights") == 2);   // (0,1) (1,2)
+    }
+}
+
+TEST_CASE("fairness is 0 for the most even split and grows with the square", "[Score]") {
+    // 10 shifts at different times of one week, two employees free all week.
+    Problem p{kSunday, kSunday + 6, {freeAllWeek(1), freeAllWeek(2)}, {}, Rules{}};
+    for (int i = 0; i < 10; ++i)
+        p.shifts.push_back(shiftOn("S" + std::to_string(i), i % 7, i < 7 ? "08:00-12:00" : "18:00-22:00"));
+    const ScoreModel model = makeScoreModel(p);
+
+    auto split = [&](int forFirst) {
+        State s(2, 10);
+        for (int i = 0; i < 10; ++i) s.assign(i < forFirst ? 0 : 1, i);
+        return violationsOf(model, p, s, "fairness");
+    };
+    CHECK(split(5) == 0);    // 5 + 5
+    CHECK(split(6) == 2);    // 6 + 4: 36 + 16 - 50
+    CHECK(split(8) == 18);   // 8 + 2: 64 + 4 - 50
+    CHECK(split(10) == 50);  // 10 + 0
+}
+
+TEST_CASE("fairness ignores employees who can work no shift", "[Score]") {
+    Employee never;
+    never.id = 9;
+    never.name = "Never";
+    Problem p{kSunday, kSunday, {freeAllWeek(1), never}, {shiftOn("A", 0, "08:00-16:00")}, Rules{}};
+    State s(2, 1);
+    s.assign(0, 0);
+    CHECK(violationsOf(makeScoreModel(p), p, s, "fairness") == 0);   // E1 alone is "even"
+}
+
+TEST_CASE("the loader reads the night rules", "[Score][JsonLoader]") {
+    const std::string base = R"({
+        "period": {"start": "2026-11-08", "end": "2026-11-08"},
+        "employees": [], "shifts": [],)";
+    SECTION("custom values") {
+        LoadResult r = JsonLoader::loadString(base + R"("rules": {"nightWindow": "23:00-07:00", "nightMinHours": 3}})", "t.json");
+        REQUIRE(r.ok());
+        CHECK(r.problem->rules.nightWindow.toString() == "23:00-07:00");
+        CHECK(r.problem->rules.nightMinHours == 3);
+    }
+    SECTION("nightMinHours must fit inside the window") {
+        CHECK_FALSE(JsonLoader::loadString(base + R"("rules": {"nightWindow": "23:00-01:00", "nightMinHours": 3}})", "t.json").ok());
+    }
+}
