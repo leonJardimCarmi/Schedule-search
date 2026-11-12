@@ -24,8 +24,15 @@ public:
 
     const std::vector<int>& staffOf(int shift) const { return staffOf_[shift]; }
     const std::vector<int>& shiftsOf(int emp) const { return shiftsOf_[emp]; }
+    int shiftCount() const { return static_cast<int>(staffOf_.size()); }
 
 private:
     std::vector<std::vector<int>> staffOf_;    // [shift]    -> employee indices
     std::vector<std::vector<int>> shiftsOf_;   // [employee] -> shift indices
 };
+
+// How many assignments differ between two schedules of the same problem
+// (step 5.4, D39). Replacing one person in one shift counts as 1: per shift,
+// the people only in `a` and the people only in `b` are counted separately,
+// and the larger total is the answer.
+int differentAssignments(const State& a, const State& b);

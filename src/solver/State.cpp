@@ -25,3 +25,14 @@ bool State::isAssigned(int emp, int shift) const {
     const std::vector<int>& staff = staffOf_[shift];
     return std::find(staff.begin(), staff.end(), emp) != staff.end();
 }
+
+int differentAssignments(const State& a, const State& b) {
+    int onlyInA = 0, onlyInB = 0;
+    for (int s = 0; s < a.shiftCount(); ++s) {
+        const std::vector<int>& x = a.staffOf(s);
+        const std::vector<int>& y = b.staffOf(s);
+        for (int e : x) if (std::find(y.begin(), y.end(), e) == y.end()) ++onlyInA;
+        for (int e : y) if (std::find(x.begin(), x.end(), e) == x.end()) ++onlyInB;
+    }
+    return std::max(onlyInA, onlyInB);
+}

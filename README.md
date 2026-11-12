@@ -198,6 +198,8 @@ By default the program looks for the **best** schedule: every legal schedule get
 Soft rules: `below-min` (Medium level: holes that can't be filled) · `below-wanted` (10) · `double` (5) · `below-min-shifts` (5) · `not-preferred` (1) · `consecutive-nights` (3; a night is a shift with at least `nightMinHours` inside `nightWindow`, both in `rules`) · `fairness` (1; how uneven the number of shifts per employee is, in squares). Any difference at the Medium level decides before the Soft level is compared. A weight of `0` turns a rule off.
 If the time limit stops the search, the best schedule found so far is printed, with a note that a better one may exist. `--first` skips the optimization and prints the first legal schedule.
 
+The program also lists the next best schedules (`--top <n>`, default 5), each differing from the others in at least `--min-diff <k>` assignments (default 3), with a short summary of who leaves and who joins which shift. Keeping a longer list means less pruning, so with a time limit the best schedule found may be a little worse; `--top 1` gives the fastest search for a single schedule.
+
 Exit codes: `0` schedule found (with a note if it is the best found in time, not proven best) · `1` bad arguments or input · `2` valid input, and no schedule exists (the whole search space was checked) · `3` stopped by a limit before finding a schedule (one may still exist).
 
 ---
@@ -268,6 +270,6 @@ DECISIONS.md        design decisions D1–D39 and the reasoning behind them (Heb
 | 2 | Hard rules: overlap, rest, doubles, max shifts, consecutive days | ✅ |
 | 3 | More flexible user input: CSV availability import, minimum shifts per employee (a soft wish) | ✅ |
 | 4 | Pruning: time/node limits, static shortage check, most-constrained shift first (MRV) with dead-end detection, incremental cache | ✅ |
-| 5 | **Optimization**: pluggable soft-rule scoring, best-so-far search (anytime), Branch & Bound with per-rule lower bounds. Top-N schedules moved to the UI stage | ✅ |
+| 5 | **Optimization**: pluggable soft-rule scoring, best-so-far search (anytime), Branch & Bound with per-rule lower bounds, top-N distinct schedules | ✅ |
 | 6 | Reports, CSV export, explaining *why* no schedule exists | ⬜ |
 | 7 | Manual edits: check a hand-edited schedule against all the rules and flag violations | ⬜ |

@@ -27,6 +27,8 @@ void printUsage() {
                  "  --time-limit <seconds>     stop the search after this long (default 60)\n"
                  "  --max-nodes <n>            stop the search after n nodes (default: no limit)\n"
                  "  --first                    return the first legal schedule instead of the best one\n"
+                 "  --top <n>                  also list the next best schedules, n in total (default 5)\n"
+                 "  --min-diff <k>             schedules in that list differ in at least k assignments (default 3)\n"
                  "  --verbose                  also print the input, the candidates and the search size\n";
 }
 
@@ -36,6 +38,8 @@ struct Options {
     SearchLimits limits{kDefaultTimeLimit, std::nullopt};
     bool verbose = false;
     bool firstOnly = false;   // --first: skip the optimization (D33)
+    int top = 5;              // D39: how many good schedules to keep
+    int minDifferent = 3;     // D39: how different they must be
 };
 
 // Arguments may come in any order: "file --verbose" or "--verbose file".
@@ -47,7 +51,8 @@ std::optional<Options> parseArgs(int argc, char* argv[]) {
             options.verbose = true;
         } else if (arg == "--first") {
             options.firstOnly = true;
-        } else if (arg == "--availability" || arg == "--time-limit" || arg == "--max-nodes") {
+        } else if (arg == "--availability" || arg == "--time-limit" || arg == "--max-nodes" ||
+                   arg == "--top" || arg == "--min-diff") {
             if (i + 1 >= argc) {   // these options need a value after them
                 std::cerr << arg << " needs a value\n";
                 return std::nullopt;
@@ -63,6 +68,10 @@ std::optional<Options> parseArgs(int argc, char* argv[]) {
                     const double seconds = std::stod(value, &used);
                     if (used != value.size() || seconds <= 0) throw std::invalid_argument("");
                     options.limits.seconds = seconds;
+                } else if (arg == "--top" || arg == "--min-diff") {
+                    const int n = std::stoi(value, &used);
+                    if (used != value.size() || n <= 0) throw std::invalid_argument("");
+                    (arg == "--top" ? options.top : options.minDifferent) = n;
                 } else {
                     const long long nodes = std::stoll(value, &used);
                     if (used != value.size() || nodes <= 0) throw std::invalid_argument("");
@@ -114,6 +123,7 @@ int main(int argc, char* argv[]) {
         std::cerr << "warning: weights." << name << ": no soft rule with this name, ignored\n";
     Solver solver(problem);
     solver.setLimits(options->limits);
+    solver.setTop(options->top, options->minDifferent);
     if (options->verbose) {
         printProblem(std::cout, problem);
         printCandidates(std::cout, problem, solver);
@@ -161,6 +171,9 @@ int main(int argc, char* argv[]) {
             std::cout << "Search stopped by the time or node limit: this is the best schedule\n"
                          "found so far, and a better one may exist. Try a larger --time-limit.\n";
     }
+
+    if (!options->firstOnly) printAlternatives(std::cout, problem, solver.top(), options->minDifferent);
+
     if (!solver.shortages().empty())
         std::cerr << "warning: " << solver.shortages().size()
                   << " shift(s) cannot be fully staffed, see the list at the end\n";

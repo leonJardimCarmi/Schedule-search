@@ -1,4 +1,5 @@
 #pragma once
+#include <algorithm>
 #include <chrono>
 #include <optional>
 #include <vector>
@@ -35,6 +36,12 @@ struct Shortage {
     int needed;       // its minStaff
 };
 
+// One schedule in the list of good schedules (step 5.4).
+struct RankedSchedule {
+    State schedule;
+    Score score;
+};
+
 // How the last search ended.
 enum class SearchStatus {
     Found,          // a schedule was found (findBest: see complete())
@@ -57,6 +64,14 @@ public:
     // searching after each schedule it finds. If a limit stops it, the best
     // one found so far is returned (anytime, D31) and complete() is false.
     std::optional<State> findBest(const ScoreModel& model);
+
+    // Keep the n best schedules instead of only one (D39). Two schedules in
+    // the list differ in at least `minDifferent` assignments; a new schedule
+    // that is too close to one in the list replaces it only if it is better.
+    // Default: n = 1 (just the best).
+    void setTop(int n, int minDifferent) { topN_ = std::max(1, n); minDifferent_ = std::max(1, minDifferent); }
+    // After findBest: best first. top()[0] is the schedule findBest returned.
+    const std::vector<RankedSchedule>& top() const { return top_; }
     const Score& bestScore() const { return bestScore_; }
     long long improvements() const { return improvements_; }   // how often the best changed
     long long pruned() const { return pruned_; }               // branches cut by the bound
@@ -135,6 +150,10 @@ private:
     Score startBound_;
     bool useBound_ = true;
     bool cannotBeatBest() const;
+    void offer(const Score& score);
+    int topN_ = 1;
+    int minDifferent_ = 1;
+    std::vector<RankedSchedule> top_;      // best first, at most topN_
     std::optional<State> found_;
     long long solutions_ = 0;
     long long nodes_ = 0;

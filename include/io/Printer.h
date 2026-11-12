@@ -25,3 +25,8 @@ void printShortages(std::ostream& out, const Problem& problem, const Solver& sol
 // The schedule's score and where it comes from, one line per soft rule
 // (stage 5). Lower is better; Medium is compared before Soft (D29).
 void printScore(std::ostream& out, const Problem& problem, const ScoreModel& model, const State& schedule);
+
+// The other good schedules (step 5.4): one summary each, with its score and
+// how it differs from the best (who leaves and who joins which shift).
+void printAlternatives(std::ostream& out, const Problem& problem, const std::vector<RankedSchedule>& top,
+                       int minDifferent);

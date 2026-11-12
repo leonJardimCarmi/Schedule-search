@@ -163,3 +163,53 @@ void printScore(std::ostream& out, const Problem& problem, const ScoreModel& mod
             << " = " << std::setw(5) << line.penalty << "   " << line.description << "\n";
     }
 }
+
+namespace {
+
+std::string scoreText(const Score& s) {
+    return "Medium " + std::to_string(s.at(Level::Medium)) + ", Soft " + std::to_string(s.at(Level::Soft));
+}
+
+// Names in `from` that are not in `other`, comma separated.
+std::string missingFrom(const Problem& p, const std::vector<int>& from, const std::vector<int>& other) {
+    std::string names;
+    for (int e : from)
+        if (std::find(other.begin(), other.end(), e) == other.end())
+            names += (names.empty() ? "" : ", ") + p.employees[e].name;
+    return names;
+}
+
+}  // namespace
+
+void printAlternatives(std::ostream& out, const Problem& problem, const std::vector<RankedSchedule>& top,
+                       int minDifferent) {
+    if (top.size() < 2) return;
+    constexpr int kMaxShiftLines = 6;   // a month can differ in many shifts: show the first few
+    const State& best = top.front().schedule;
+    const long long bestSoft = top.front().score.at(Level::Soft);
+
+    out << "\nOther good schedules (each differs from the others in at least " << minDifferent
+        << " assignments):\n";
+    for (std::size_t k = 1; k < top.size(); ++k) {
+        const State& alt = top[k].schedule;
+        out << "  #" << k + 1 << "  " << scoreText(top[k].score);
+        if (top[k].score.at(Level::Medium) == top.front().score.at(Level::Medium))
+            out << "  (+" << top[k].score.at(Level::Soft) - bestSoft << ")";
+        out << ", " << differentAssignments(best, alt) << " assignments differ from #1\n";
+
+        int shown = 0, more = 0;
+        for (int s = 0; s < alt.shiftCount(); ++s) {
+            const std::string out_ = missingFrom(problem, best.staffOf(s), alt.staffOf(s));
+            const std::string in = missingFrom(problem, alt.staffOf(s), best.staffOf(s));
+            if (out_.empty() && in.empty()) continue;
+            if (shown == kMaxShiftLines) { ++more; continue; }
+            ++shown;
+            const Shift& shift = problem.shifts[s];
+            out << "      " << std::left << std::setw(8) << shift.id << std::right << shift.date.toString();
+            if (!out_.empty()) out << "  out: " << out_;
+            if (!in.empty()) out << "  in: " << in;
+            out << "\n";
+        }
+        if (more > 0) out << "      ... and " << more << " more shifts\n";
+    }
+}

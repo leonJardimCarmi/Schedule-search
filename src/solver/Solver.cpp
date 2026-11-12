@@ -66,6 +66,7 @@ void Solver::reset() {
     improvements_ = 0;
     pruned_ = 0;
     bestScore_ = Score{};
+    top_.clear();
     nodes_ = 0;
     limitHit_ = false;
     startTime_ = std::chrono::steady_clock::now();
@@ -138,10 +139,44 @@ long long Solver::countAll() {
     return solutions_;
 }
 
+// With a list of n schedules (step 5.4), a branch is useless only if it
+// cannot beat the LAST one in the list: anything better could still get in.
+// So until the list is full, nothing is pruned. With n = 1 this is "cannot
+// beat the best", as before.
 bool Solver::cannotBeatBest() const {
-    if (mode_ != Mode::Best || !useBound_ || !found_) return false;
+    if (mode_ != Mode::Best || !useBound_) return false;
+    if (static_cast<int>(top_.size()) < topN_) return false;
     const SearchView view{filled_, candidates_, allowedNow_, allowedCount_, searchMin_};
-    return !(model_->lowerBound(problem_, state_, view) < bestScore_);
+    return !(model_->lowerBound(problem_, state_, view) < top_.back().score);
+}
+
+// A complete schedule with this score was reached: does it get into the list?
+void Solver::offer(const Score& score) {
+    // Not better than the last one of a full list: no.
+    if (static_cast<int>(top_.size()) == topN_ && !(score < top_.back().score)) return;
+
+    // Too close to a schedule in the list (D39) that is at least as good: no.
+    // Too close only to worse ones: it takes their place.
+    for (const RankedSchedule& r : top_)
+        if (!(score < r.score) && differentAssignments(r.schedule, state_) < minDifferent_) return;
+    top_.erase(std::remove_if(top_.begin(), top_.end(), [&](const RankedSchedule& r) {
+                   return differentAssignments(r.schedule, state_) < minDifferent_;
+               }),
+               top_.end());
+
+    // Insert in order. upper_bound puts it after equal scores: among equals,
+    // the one found first stays first, so the result does not jump around.
+    auto at = std::upper_bound(top_.begin(), top_.end(), score,
+                               [](const Score& s, const RankedSchedule& r) { return s < r.score; });
+    const bool newBest = at == top_.begin();
+    top_.insert(at, RankedSchedule{state_, score});
+    if (static_cast<int>(top_.size()) > topN_) top_.pop_back();
+
+    if (newBest) {
+        found_ = state_;
+        bestScore_ = score;
+        ++improvements_;
+    }
 }
 
 // A complete schedule was reached. Returns true to stop the search.
@@ -153,17 +188,12 @@ bool Solver::onSchedule() {
         return true;
     case Mode::Count:
         return false;      // keep looking for more
-    case Mode::Best: {
-        // Basic Branch & Bound, without the "bound" yet (step 5.3): score
-        // every schedule, keep the best, and go on looking.
-        const Score score = model_->score(problem_, state_);
-        if (!found_ || score < bestScore_) {
-            found_ = state_;
-            bestScore_ = score;
-            ++improvements_;
-        }
+    case Mode::Best:
+        // Score every schedule, keep the best ones, and go on looking.
+        // Branches that cannot get into the list are cut before they get
+        // here (cannotBeatBest).
+        offer(model_->score(problem_, state_));
         return false;
-    }
     }
     return false;
 }

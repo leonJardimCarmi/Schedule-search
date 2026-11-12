@@ -405,3 +405,60 @@ TEST_CASE("the fairness bound is exact when every shift is decided", "[Score][Br
         CHECK(model.lowerBound(p, s, partial).at(Level::Soft) <= 2);
     }
 }
+
+// ---- the list of good schedules (step 5.4, D39) -------------------------------
+
+TEST_CASE("differentAssignments counts one replacement as 1", "[State]") {
+    State a(3, 2), b(3, 2);
+    a.assign(0, 0); a.assign(1, 1);
+    b.assign(0, 0); b.assign(1, 1);
+    CHECK(differentAssignments(a, b) == 0);
+
+    b.unassign(1, 1);
+    b.assign(2, 1);                        // shift 1: E1 replaced by E2
+    CHECK(differentAssignments(a, b) == 1);
+
+    b.assign(1, 0);                        // and one more person in shift 0
+    CHECK(differentAssignments(a, b) == 2);
+    CHECK(differentAssignments(b, a) == 2);   // the same both ways
+}
+
+TEST_CASE("the list of good schedules keeps its promises", "[Solver][Score][BranchAndBound]") {
+    for (unsigned seed = 1; seed <= 40; ++seed) {
+        CAPTURE(seed);
+        const Problem p = randomProblem(seed);
+        const ScoreModel model = makeScoreModel(p);
+
+        Solver one(p);   // n = 1: just the best
+        const std::optional<State> best = one.findBest(model);
+        if (!best) continue;
+
+        SECTION("without the 'different enough' rule: the exact n best, bound or not") {
+            Solver pruning(p), plain(p);
+            pruning.setTop(5, 1);
+            plain.setTop(5, 1);
+            plain.setUseBound(false);
+            REQUIRE(pruning.findBest(model));
+            REQUIRE(plain.findBest(model));
+            REQUIRE(pruning.top().size() == plain.top().size());
+            for (std::size_t k = 0; k < pruning.top().size(); ++k)
+                CHECK(pruning.top()[k].score == plain.top()[k].score);
+            CHECK(pruning.top().front().score == one.bestScore());
+        }
+        SECTION("with min-diff 3: sorted, far enough apart, and the best is still the best") {
+            Solver solver(p);
+            solver.setTop(5, 3);
+            REQUIRE(solver.findBest(model));
+            const auto& top = solver.top();
+            REQUIRE(!top.empty());
+            CHECK(top.size() <= 5);
+            CHECK(top.front().score == one.bestScore());
+            for (std::size_t i = 0; i < top.size(); ++i) {
+                CHECK(model.score(p, top[i].schedule) == top[i].score);
+                if (i > 0) CHECK_FALSE(top[i].score < top[i - 1].score);
+                for (std::size_t j = i + 1; j < top.size(); ++j)
+                    CHECK(differentAssignments(top[i].schedule, top[j].schedule) >= 3);
+            }
+        }
+    }
+}
