@@ -382,3 +382,16 @@ ScoreModel makeScoreModel(const Problem& problem) {
     }
     return model;
 }
+
+std::optional<WeightSetting> parseWeightSetting(const std::string& text) {
+    const std::size_t eq = text.find('=');
+    if (eq == std::string::npos || eq == 0 || eq + 1 == text.size()) return std::nullopt;
+    const std::string name = text.substr(0, eq);
+    const std::string number = text.substr(eq + 1);
+    // Digits only: stoi alone would also accept "8x", " 8" or "-3".
+    if (number.size() > 7 || !std::all_of(number.begin(), number.end(), [](char c) { return c >= '0' && c <= '9'; }))
+        return std::nullopt;
+    const int value = std::stoi(number);
+    if (value > kMaxWeight) return std::nullopt;
+    return WeightSetting{name, value};
+}

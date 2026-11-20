@@ -462,3 +462,26 @@ TEST_CASE("the list of good schedules keeps its promises", "[Solver][Score][Bran
         }
     }
 }
+
+// ---- --weight name=value (step 6.2, D43) --------------------------------------
+
+TEST_CASE("parseWeightSetting reads name=value", "[Score][D43]") {
+    SECTION("valid") {
+        const auto w = parseWeightSetting("fairness=0");
+        REQUIRE(w);
+        CHECK(w->name == "fairness");
+        CHECK(w->value == 0);
+        CHECK(parseWeightSetting("below-wanted=25")->value == 25);
+        CHECK(parseWeightSetting("double=1000000")->value == kMaxWeight);
+    }
+    SECTION("rejected") {
+        for (const char* bad : {"fairness", "=3", "fairness=", "fairness=-1", "fairness=3x",
+                                "fairness= 3", "fairness=1000001", "fairness=99999999999"}) {
+            CAPTURE(bad);
+            CHECK_FALSE(parseWeightSetting(bad));
+        }
+    }
+    SECTION("only the first '=' splits") {
+        CHECK_FALSE(parseWeightSetting("a=b=3"));   // "b=3" is not a number
+    }
+}

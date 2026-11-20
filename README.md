@@ -195,6 +195,8 @@ By default the program looks for the **best** schedule: every legal schedule get
 "weights": { "double": 8, "not-preferred": 0 }
 ```
 
+Weights can also be changed for one run, without editing the file: `--weight fairness=0 --weight double=8` (overrides `"weights"` in the file).
+
 Soft rules: `below-min` (Medium level: holes that can't be filled) · `below-wanted` (10) · `double` (5) · `below-min-shifts` (5) · `not-preferred` (1) · `consecutive-nights` (3; a night is a shift with at least `nightMinHours` inside `nightWindow`, both in `rules`) · `fairness` (1; how uneven the number of shifts per employee is, in squares). Any difference at the Medium level decides before the Soft level is compared. A weight of `0` turns a rule off.
 If the time limit stops the search, the best schedule found so far is printed, with a note that a better one may exist. `--first` skips the optimization and prints the first legal schedule.
 

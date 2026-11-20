@@ -10,6 +10,8 @@
 
 #include <nlohmann/json.hpp>
 
+#include "solver/Score.h"
+
 using nlohmann::json;
 
 namespace {
@@ -223,7 +225,10 @@ void readWeights(Reader& r, const json& root, Rules& rules) {
         const std::string path = "weights." + item.key();
         if (!item.value().is_number_integer()) { r.error(path, "expected a whole number"); continue; }
         const long long w = item.value().get<long long>();
-        if (w < 0 || w > 1000000) { r.error(path, "must be between 0 and 1000000"); continue; }
+        if (w < 0 || w > kMaxWeight) {
+            r.error(path, "must be between 0 and " + std::to_string(kMaxWeight));
+            continue;
+        }
         rules.weights[item.key()] = static_cast<int>(w);
     }
 }

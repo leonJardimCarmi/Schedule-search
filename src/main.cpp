@@ -3,6 +3,7 @@
 #include <optional>
 #include <stdexcept>
 #include <string>
+#include <vector>
 
 #include "io/CsvLoader.h"
 #include "io/JsonLoader.h"
@@ -29,6 +30,8 @@ void printUsage() {
                  "  --first                    return the first legal schedule instead of the best one\n"
                  "  --top <n>                  also list the next best schedules, n in total (default 5)\n"
                  "  --min-diff <k>             schedules in that list differ in at least k assignments (default 3)\n"
+                 "  --weight <name>=<value>    change the weight of a soft rule, e.g. --weight fairness=0\n"
+                 "                             (may be repeated; overrides \"weights\" in the file)\n"
                  "  --verbose                  also print the input, the candidates and the search size\n";
 }
 
@@ -40,6 +43,7 @@ struct Options {
     bool firstOnly = false;   // --first: skip the optimization (D33)
     int top = 5;              // D39: how many good schedules to keep
     int minDifferent = 3;     // D39: how different they must be
+    std::vector<WeightSetting> weights;   // D43: --weight, in the order given
 };
 
 // Arguments may come in any order: "file --verbose" or "--verbose file".
@@ -52,7 +56,7 @@ std::optional<Options> parseArgs(int argc, char* argv[]) {
         } else if (arg == "--first") {
             options.firstOnly = true;
         } else if (arg == "--availability" || arg == "--time-limit" || arg == "--max-nodes" ||
-                   arg == "--top" || arg == "--min-diff") {
+                   arg == "--top" || arg == "--min-diff" || arg == "--weight") {
             if (i + 1 >= argc) {   // these options need a value after them
                 std::cerr << arg << " needs a value\n";
                 return std::nullopt;
@@ -60,6 +64,16 @@ std::optional<Options> parseArgs(int argc, char* argv[]) {
             const std::string value = argv[++i];
             if (arg == "--availability") {
                 options.availabilityPath = value;
+                continue;
+            }
+            if (arg == "--weight") {
+                const std::optional<WeightSetting> w = parseWeightSetting(value);
+                if (!w) {
+                    std::cerr << "--weight needs <name>=<value> with a whole number from 0 to " << kMaxWeight
+                              << ", got '" << value << "'\n";
+                    return std::nullopt;
+                }
+                options.weights.push_back(*w);
                 continue;
             }
             try {
@@ -115,6 +129,9 @@ int main(int argc, char* argv[]) {
         std::cerr << "input has errors, stopping.\n";
         return kBadInput;
     }
+    // --weight wins over "weights" in the file; a later --weight wins over
+    // an earlier one for the same rule (D43).
+    for (const WeightSetting& w : options->weights) result.problem->rules.weights[w.name] = w.value;
     const Problem& problem = *result.problem;
 
     // 2. Search.

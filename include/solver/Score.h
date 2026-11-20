@@ -1,6 +1,7 @@
 #pragma once
 #include <array>
 #include <memory>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -101,3 +102,16 @@ private:
 // All soft rules with their default weights, overridden by the input's
 // "weights" (D28). A weight of 0 turns a rule off.
 ScoreModel makeScoreModel(const Problem& problem);
+
+// The largest weight accepted, from the input file or the command line.
+constexpr int kMaxWeight = 1000000;
+
+// One weight from the command line (D43): "name=value", for example
+// "fairness=0" or "double=8". Returns nothing if the text is not in that
+// form, or the value is not a whole number from 0 to kMaxWeight. Whether
+// the name is a real rule is checked later, by makeScoreModel.
+struct WeightSetting {
+    std::string name;
+    int value;
+};
+std::optional<WeightSetting> parseWeightSetting(const std::string& text);
