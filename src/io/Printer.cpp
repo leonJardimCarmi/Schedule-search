@@ -76,83 +76,82 @@ void printCandidates(std::ostream& out, const Problem& p, const Solver& solver) 
     }
 }
 
-void printSchedule(std::ostream& out, const Problem& p, const State& schedule) {
+namespace {
+
+// Employee names, comma separated.
+std::string names(const Problem& p, const std::vector<int>& employees) {
+    std::string result;
+    for (int e : employees) result += (result.empty() ? "" : ", ") + p.employees[e].name;
+    return result;
+}
+
+std::string scoreText(const Score& s) {
+    return "Medium " + std::to_string(s.at(Level::Medium)) + ", Soft " + std::to_string(s.at(Level::Soft));
+}
+
+}  // namespace
+
+// From here on, everything shown comes from the Report (D41): these
+// functions only choose words and columns, they do not compute.
+
+void printSchedule(std::ostream& out, const Problem& p, const Report& report) {
     out << "Schedule " << p.periodStart.toString() << " .. " << p.periodEnd.toString() << '\n';
 
-    // 1. By day. Shifts are already in chronological order, so a new day
-    //    header is printed whenever the date changes.
-    for (int s = 0; s < static_cast<int>(p.shifts.size()); ++s) {
-        const Shift& shift = p.shifts[s];
-        if (s == 0 || shift.date != p.shifts[s - 1].date)
+    // 1. By day. Shifts are in chronological order, so a new day header is
+    //    printed whenever the date changes.
+    for (std::size_t k = 0; k < report.shifts.size(); ++k) {
+        const ShiftReport& row = report.shifts[k];
+        const Shift& shift = p.shifts[row.shift];
+        if (k == 0 || shift.date != p.shifts[report.shifts[k - 1].shift].date)
             out << '\n' << weekdayName(shift.date) << ' ' << shift.date.toString() << '\n';
 
-        const int staffed = schedule.assignedCount(s);
         out << "  " << std::left << std::setw(7) << shift.id << shift.time.toString() << "  "
-            << staffed << '/' << shift.wantedStaff << "  ";
-
-        const auto& staff = schedule.staffOf(s);
-        for (std::size_t i = 0; i < staff.size(); ++i)
-            out << (i ? ", " : "") << p.employees[staff[i]].name;
-        if (staff.empty()) out << "-";
+            << row.staff.size() << '/' << shift.wantedStaff << "  ";
+        out << (row.staff.empty() ? "-" : names(p, row.staff));
         if (!shift.role.empty()) out << "  [" << shift.role << ']';
-        if (staffed < shift.minStaff) out << "  (BELOW MIN " << shift.minStaff << ": see below)";
-        else if (staffed < shift.wantedStaff) out << "  (below wanted)";
+        if (row.status == ShiftReport::Status::BelowMin) out << "  (BELOW MIN " << shift.minStaff << ": see below)";
+        else if (row.status == ShiftReport::Status::BelowWanted) out << "  (below wanted)";
         out << '\n';
     }
 
     // 2. Per employee: how many shifts and hours each person got.
     out << "\nPer employee\n";
-    for (int e = 0; e < static_cast<int>(p.employees.size()); ++e) {
-        // In the order they were assigned; with MRV (D26) that is not calendar
-        // order. Shift indices are sorted by time (the loader does that), so
-        // sorting the indices puts them back in calendar order.
-        std::vector<int> shifts = schedule.shiftsOf(e);
-        std::sort(shifts.begin(), shifts.end());
-        int minutes = 0;
-        for (int s : shifts) minutes += p.shifts[s].time.duration();
-
-        out << "  " << std::left << std::setw(16) << p.employees[e].name
-            << std::right << std::setw(2) << shifts.size() << " shifts "
-            << std::setw(3) << minutes / 60 << " h  ";
-        for (int s : shifts) out << ' ' << p.shifts[s].id;
-
-        // minShifts is only a wish (D22), so it is reported, not enforced.
-        const auto& minShifts = p.employees[e].minShifts;
-        if (minShifts && static_cast<int>(shifts.size()) < *minShifts)
-            out << "  (below minimum " << *minShifts << ")";
+    for (const EmployeeReport& row : report.employees) {
+        out << "  " << std::left << std::setw(16) << p.employees[row.employee].name
+            << std::right << std::setw(2) << row.shifts.size() << " shifts "
+            << std::setw(3) << row.minutes / 60 << " h  ";
+        for (int s : row.shifts) out << ' ' << p.shifts[s].id;
+        if (row.belowMinShifts) out << "  (below minimum " << *row.belowMinShifts << ")";
         out << '\n';
     }
 }
 
-void printShortages(std::ostream& out, const Problem& p, const Solver& solver) {
-    if (solver.shortages().empty()) return;
+void printShortages(std::ostream& out, const Problem& p, const Report& report) {
+    if (report.shortages.empty()) return;
 
     out << "\nShifts that cannot be fully staffed (fill them by hand)\n";
-    for (const Shortage& gap : solver.shortages()) {
+    for (const ShortageReport& gap : report.shortages) {
         const Shift& shift = p.shifts[gap.shift];
-
-        // Why: count who is available at all, and who of those has the role.
-        int available = 0;
-        for (const Employee& e : p.employees)
-            if (availabilityFit(e, shift) != Fit::No) ++available;
-
         out << "  " << std::left << std::setw(7) << shift.id << shift.date.toString() << ' '
             << shift.time.toString() << "  needs " << gap.needed << ", can get " << gap.candidates << ": ";
-        if (available == 0)
+        switch (gap.reason) {
+        case ShortageReport::Reason::NobodyAvailable:
             out << "nobody is available at this time";
-        else if (!shift.role.empty() && gap.candidates < available)
-            out << available << " available, but only " << gap.candidates << " with role '" << shift.role << "'";
-        else
-            out << "only " << available << " available";
+            break;
+        case ShortageReport::Reason::MissingRole:
+            out << gap.available << " available, but only " << gap.candidates << " with role '" << shift.role << "'";
+            break;
+        case ShortageReport::Reason::TooFewAvailable:
+            out << "only " << gap.available << " available";
+            break;
+        }
         out << '\n';
     }
 }
 
-void printScore(std::ostream& out, const Problem& problem, const ScoreModel& model, const State& schedule) {
-    const Score score = model.score(problem, schedule);
-    out << "\nScore (lower is better): Medium " << score.at(Level::Medium)
-        << ", Soft " << score.at(Level::Soft) << "\n";
-    for (const ScoreLine& line : model.breakdown(problem, schedule)) {
+void printScore(std::ostream& out, const Report& report) {
+    out << "\nScore (lower is better): " << scoreText(report.score) << "\n";
+    for (const ScoreLine& line : report.scoreLines) {
         out << "  " << std::left << std::setw(18) << line.rule << std::right
             << std::setw(7) << toString(line.level) << "  ";
         if (line.weight == 0) {
@@ -164,52 +163,28 @@ void printScore(std::ostream& out, const Problem& problem, const ScoreModel& mod
     }
 }
 
-namespace {
-
-std::string scoreText(const Score& s) {
-    return "Medium " + std::to_string(s.at(Level::Medium)) + ", Soft " + std::to_string(s.at(Level::Soft));
-}
-
-// Names in `from` that are not in `other`, comma separated.
-std::string missingFrom(const Problem& p, const std::vector<int>& from, const std::vector<int>& other) {
-    std::string names;
-    for (int e : from)
-        if (std::find(other.begin(), other.end(), e) == other.end())
-            names += (names.empty() ? "" : ", ") + p.employees[e].name;
-    return names;
-}
-
-}  // namespace
-
-void printAlternatives(std::ostream& out, const Problem& problem, const std::vector<RankedSchedule>& top,
-                       int minDifferent) {
-    if (top.size() < 2) return;
-    constexpr int kMaxShiftLines = 6;   // a month can differ in many shifts: show the first few
-    const State& best = top.front().schedule;
-    const long long bestSoft = top.front().score.at(Level::Soft);
+void printAlternatives(std::ostream& out, const Problem& p, const Report& report, int minDifferent) {
+    if (report.alternatives.empty()) return;
+    constexpr std::size_t kMaxShiftLines = 6;   // a month can differ in many shifts: show the first few
 
     out << "\nOther good schedules (each differs from the others in at least " << minDifferent
         << " assignments):\n";
-    for (std::size_t k = 1; k < top.size(); ++k) {
-        const State& alt = top[k].schedule;
-        out << "  #" << k + 1 << "  " << scoreText(top[k].score);
-        if (top[k].score.at(Level::Medium) == top.front().score.at(Level::Medium))
-            out << "  (+" << top[k].score.at(Level::Soft) - bestSoft << ")";
-        out << ", " << differentAssignments(best, alt) << " assignments differ from #1\n";
+    for (std::size_t k = 0; k < report.alternatives.size(); ++k) {
+        const AlternativeReport& alt = report.alternatives[k];
+        out << "  #" << k + 2 << "  " << scoreText(alt.score);
+        if (alt.score.at(Level::Medium) == report.score.at(Level::Medium))
+            out << "  (+" << alt.score.at(Level::Soft) - report.score.at(Level::Soft) << ")";
+        out << ", " << alt.differences << " assignments differ from #1\n";
 
-        int shown = 0, more = 0;
-        for (int s = 0; s < alt.shiftCount(); ++s) {
-            const std::string out_ = missingFrom(problem, best.staffOf(s), alt.staffOf(s));
-            const std::string in = missingFrom(problem, alt.staffOf(s), best.staffOf(s));
-            if (out_.empty() && in.empty()) continue;
-            if (shown == kMaxShiftLines) { ++more; continue; }
-            ++shown;
-            const Shift& shift = problem.shifts[s];
+        for (std::size_t c = 0; c < alt.changes.size() && c < kMaxShiftLines; ++c) {
+            const ShiftChange& change = alt.changes[c];
+            const Shift& shift = p.shifts[change.shift];
             out << "      " << std::left << std::setw(8) << shift.id << std::right << shift.date.toString();
-            if (!out_.empty()) out << "  out: " << out_;
-            if (!in.empty()) out << "  in: " << in;
+            if (!change.out.empty()) out << "  out: " << names(p, change.out);
+            if (!change.in.empty()) out << "  in: " << names(p, change.in);
             out << "\n";
         }
-        if (more > 0) out << "      ... and " << more << " more shifts\n";
+        if (alt.changes.size() > kMaxShiftLines)
+            out << "      ... and " << alt.changes.size() - kMaxShiftLines << " more shifts\n";
     }
 }

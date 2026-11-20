@@ -159,9 +159,11 @@ int main(int argc, char* argv[]) {
         std::cout << "No schedule satisfies the input.\n";
         return kNoSchedule;
     }
-    printSchedule(std::cout, problem, *schedule);
-    printShortages(std::cout, problem, solver);
-    printScore(std::cout, problem, scoreModel, *schedule);
+    // 4. Report: computed once (D41), then shown.
+    const Report report = buildReport(problem, *schedule, solver.shortages(), scoreModel, solver.top());
+    printSchedule(std::cout, problem, report);
+    printShortages(std::cout, problem, report);
+    printScore(std::cout, report);
 
     // Anytime (D31, D34): a usable schedule, but the search did not finish.
     if (!options->firstOnly) {
@@ -172,7 +174,7 @@ int main(int argc, char* argv[]) {
                          "found so far, and a better one may exist. Try a larger --time-limit.\n";
     }
 
-    if (!options->firstOnly) printAlternatives(std::cout, problem, solver.top(), options->minDifferent);
+    if (!options->firstOnly) printAlternatives(std::cout, problem, report, options->minDifferent);
 
     if (!solver.shortages().empty())
         std::cerr << "warning: " << solver.shortages().size()

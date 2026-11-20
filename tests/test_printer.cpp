@@ -22,6 +22,11 @@ Problem twoPeopleOneShift() {
     return Problem{kSunday, kSunday, {a, b}, {s}, Rules{}};
 }
 
+// The printer shows a Report (D41); build one the way main does.
+Report reportOf(const Problem& p, const State& schedule, const std::vector<Shortage>& shortages = {}) {
+    return buildReport(p, schedule, shortages, makeScoreModel(p), {});
+}
+
 bool contains(const std::string& text, const std::string& part) {
     return text.find(part) != std::string::npos;
 }
@@ -36,7 +41,7 @@ TEST_CASE("printSchedule shows each shift with its staff", "[Printer]") {
     schedule.assign(0, 0);   // Alice -> S1
 
     std::ostringstream out;
-    printSchedule(out, p, schedule);
+    printSchedule(out, p, reportOf(p, schedule));
     const std::string text = out.str();
 
     CHECK(contains(text, "Sun 2026-11-08"));
@@ -65,7 +70,7 @@ TEST_CASE("printSchedule flags employees below their minShifts", "[Printer][minS
     schedule.assign(0, 0);
 
     std::ostringstream out;
-    printSchedule(out, p, schedule);
+    printSchedule(out, p, reportOf(p, schedule));
     const std::string text = out.str();
 
     CHECK_FALSE(contains(text, "Alice            1 shifts   8 h   S1  (below"));
@@ -80,9 +85,10 @@ TEST_CASE("printShortages explains why a shift cannot be staffed", "[Printer][D2
     p.periodEnd = kSunday + 1;
     p.shifts = {big, night, empty};
     Solver solver(p);
+    State nobody(2, 3);
 
     std::ostringstream out;
-    printShortages(out, p, solver);
+    printShortages(out, p, reportOf(p, nobody, solver.shortages()));
     const std::string text = out.str();
 
     CHECK(contains(text, "needs 2, can get 1: only 1 available"));
@@ -99,7 +105,7 @@ TEST_CASE("per-employee shifts are listed in calendar order even when assigned o
     schedule.assign(0, 0);
 
     std::ostringstream out;
-    printSchedule(out, p, schedule);
+    printSchedule(out, p, reportOf(p, schedule));
     CHECK(contains(out.str(), "S1 S2"));
     CHECK_FALSE(contains(out.str(), "S2 S1"));
 }
