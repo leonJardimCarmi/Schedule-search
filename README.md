@@ -258,7 +258,7 @@ src/                implementations, same layout
 tests/              Catch2 unit tests
 data/               example inputs
 PLAN.md             roadmap and status of each stage (Hebrew)
-DECISIONS.md        design decisions D1–D39 and the reasoning behind them (Hebrew)
+DECISIONS.md        design decisions D1–D43 and the reasoning behind them (Hebrew)
 ```
 
 ## Roadmap
