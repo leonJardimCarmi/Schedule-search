@@ -1,0 +1,41 @@
+# Builds the project and runs the tests on Windows, Linux and macOS on every
+# push and pull request (DECISIONS D46). Results: the "Actions" tab on GitHub,
+# and a check mark or a cross next to each commit.
+name: build
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false          # one failing system does not cancel the others
+      matrix:
+        os: [windows-latest, ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # Release, like the measurements in PLAN. The same CMakeLists.txt as in
+      # Visual Studio; FetchContent downloads nlohmann/json and Catch2.
+      - name: Configure
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+
+      # --config is needed on Windows, where one build folder holds several
+      # configurations; elsewhere it is ignored.
+      - name: Build
+        run: cmake --build build --config Release --parallel
+
+      - name: Unit tests
+        run: ctest --test-dir build -C Release --output-on-failure
+
+      # The program itself, end to end, on the example week. Windows puts the
+      # program in build/Release/, the others in build/.
+      - name: Run the example week
+        shell: bash
+        run: |
+          exe=build/schedule_search
+          if [ -f build/Release/schedule_search.exe ]; then exe=build/Release/schedule_search.exe; fi
+          "$exe" data/example_week.json --time-limit 10

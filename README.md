@@ -262,7 +262,7 @@ src/                implementations, same layout
 tests/              Catch2 unit tests
 data/               example inputs
 PLAN.md             roadmap and status of each stage (Hebrew)
-DECISIONS.md        design decisions D1–D45 and the reasoning behind them (Hebrew)
+DECISIONS.md        design decisions D1–D46 and the reasoning behind them (Hebrew)
 ```
 
 ## Roadmap
@@ -277,3 +277,7 @@ DECISIONS.md        design decisions D1–D45 and the reasoning behind them (Heb
 | 5 | **Optimization**: pluggable soft-rule scoring, best-so-far search (anytime), Branch & Bound with per-rule lower bounds, top-N distinct schedules | ✅ |
 | 6 | Reports, CSV export, explaining *why* no schedule exists | ⬜ |
 | 7 | Manual edits: check a hand-edited schedule against all the rules and flag violations | ⬜ |
+
+## Continuous integration
+
+Every push is built and tested on Windows, Linux and macOS by GitHub Actions (`.github/workflows/build.yml`): a Release build with CMake, all unit tests with `ctest`, and one run of the program on the example week. The results are in the repository's **Actions** tab.
