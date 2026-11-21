@@ -1,5 +1,7 @@
 #pragma once
 #include <memory>
+#include <optional>
+#include <string>
 #include <vector>
 
 #include "Problem.h"
@@ -15,11 +17,30 @@ public:
     virtual ~Constraint() = default;
 
     // May employee `emp` be added to shift `shift`, given what is already
-    // assigned in `state`? Called just before State::assign().
-    virtual bool allows(const Problem& problem, const State& state, int emp, int shift) const = 0;
+    // assigned in `state`? Called just before State::assign(), millions of
+    // times in a search, so it never builds any text.
+    bool allows(const Problem& problem, const State& state, int emp, int shift) const {
+        return check(problem, state, emp, shift, nullptr);
+    }
+
+    // The same question, for a person (--explain, step 6.4, D47): nothing if
+    // the rule allows it, otherwise the reason in words, e.g.
+    // "only 8h of rest between SUN-E and MON-M, needs 10h".
+    std::optional<std::string> whyNot(const Problem& problem, const State& state, int emp, int shift) const {
+        std::string why;
+        if (check(problem, state, emp, shift, &why)) return std::nullopt;
+        return why;
+    }
 
     // Short name for messages, e.g. "no-overlap".
     virtual const char* name() const = 0;
+
+protected:
+    // The rule itself, written once for both questions above (D47).
+    // Returns true if allowed. When it returns false and `why` is not null,
+    // it writes the reason there; the search passes null, so no text is
+    // built where speed matters.
+    virtual bool check(const Problem& problem, const State& state, int emp, int shift, std::string* why) const = 0;
 };
 
 // ---- The rules ---------------------------------------------------------------
@@ -28,8 +49,10 @@ public:
 // physics, not a policy, so it is not in the "rules" section of the file.
 class NoOverlapConstraint : public Constraint {
 public:
-    bool allows(const Problem& problem, const State& state, int emp, int shift) const override;
     const char* name() const override { return "no-overlap"; }
+
+protected:
+    bool check(const Problem& problem, const State& state, int emp, int shift, std::string* why) const override;
 };
 
 // At least `minRestHours` between any two work blocks of the same employee
@@ -40,8 +63,10 @@ class MinRestConstraint : public Constraint {
 public:
     MinRestConstraint(int minRestHours, int blockGapMinutes)
         : minRestMinutes_(minRestHours * 60), blockGapMinutes_(blockGapMinutes) {}
-    bool allows(const Problem& problem, const State& state, int emp, int shift) const override;
     const char* name() const override { return "min-rest"; }
+
+protected:
+    bool check(const Problem& problem, const State& state, int emp, int shift, std::string* why) const override;
 
 private:
     int minRestMinutes_;
@@ -58,8 +83,10 @@ public:
         : doubleAboveMinutes_(doubleAboveHours * 60),
           maxDoubleMinutes_(maxDoubleHours * 60),
           blockGapMinutes_(blockGapMinutes) {}
-    bool allows(const Problem& problem, const State& state, int emp, int shift) const override;
     const char* name() const override { return "double-needs-approval"; }
+
+protected:
+    bool check(const Problem& problem, const State& state, int emp, int shift, std::string* why) const override;
 
 private:
     int doubleAboveMinutes_;
@@ -71,8 +98,10 @@ private:
 // Employees without it have no personal limit. A double counts as two shifts.
 class MaxShiftsConstraint : public Constraint {
 public:
-    bool allows(const Problem& problem, const State& state, int emp, int shift) const override;
     const char* name() const override { return "max-shifts"; }
+
+protected:
+    bool check(const Problem& problem, const State& state, int emp, int shift, std::string* why) const override;
 };
 
 // No more than `maxDays` calendar days in a row with any work.
@@ -82,8 +111,10 @@ public:
 class MaxConsecutiveDaysConstraint : public Constraint {
 public:
     explicit MaxConsecutiveDaysConstraint(int maxDays) : maxDays_(maxDays) {}
-    bool allows(const Problem& problem, const State& state, int emp, int shift) const override;
     const char* name() const override { return "max-consecutive-days"; }
+
+protected:
+    bool check(const Problem& problem, const State& state, int emp, int shift, std::string* why) const override;
 
 private:
     int maxDays_;

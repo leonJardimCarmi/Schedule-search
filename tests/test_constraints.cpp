@@ -1,5 +1,8 @@
 #include <catch2/catch_test_macros.hpp>
 
+#include <algorithm>
+#include <optional>
+#include <random>
 #include <string>
 #include <vector>
 
@@ -304,5 +307,90 @@ TEST_CASE("max-consecutive-days", "[Constraint][consecutive]") {
         CHECK(rule.allows(p, state, 0, 1));          // Mon: Sun-Mon = 2, still fine
         state.assign(0, 1);
         CHECK_FALSE(rule.allows(p, state, 0, 2));    // Tue now makes Sun-Mon-Tue = 3
+    }
+}
+
+// ---- reasons (step 6.4, D47) ---------------------------------------------------
+
+TEST_CASE("each rule says why it blocks", "[Constraint][D47]") {
+    Problem p{kSunday, kMonday, {freeOn(1, {kSunday, kMonday})},
+              {makeShift("A", kSunday, "08:00-16:00"),     // 0
+               makeShift("B", kSunday, "12:00-20:00"),     // 1  overlaps A
+               makeShift("E", kSunday, "16:00-23:00"),     // 2  right after A
+               makeShift("M", kMonday, "06:00-14:00")},    // 3  7h after E
+              Rules{}};
+    State state(1, 4);
+    state.assign(0, 0);   // A
+
+    SECTION("no-overlap") {
+        NoOverlapConstraint rule;
+        CHECK(rule.whyNot(p, state, 0, 1) == std::optional<std::string>("overlaps A (2026-11-08 08:00-16:00)"));
+        CHECK_FALSE(rule.whyNot(p, state, 0, 2));    // touching is not overlapping
+    }
+    SECTION("min-rest") {
+        MinRestConstraint rule(10, 0);
+        state.assign(0, 2);   // A + E: one block 08:00-23:00
+        CHECK(rule.whyNot(p, state, 0, 3) == std::optional<std::string>("only 7h of rest between E and M, needs 10h"));
+    }
+    SECTION("double-needs-approval") {
+        DoubleShiftConstraint rule(10, 16, 0);
+        CHECK(rule.whyNot(p, state, 0, 2) ==
+              std::optional<std::string>("A + E would be 15h in a row (a double), and no \"double\": true covers it in the availability"));
+        DoubleShiftConstraint shortLimit(10, 12, 0);
+        CHECK(shortLimit.whyNot(p, state, 0, 2) ==
+              std::optional<std::string>("A + E would be 15h in a row, more than maxDoubleHours (12h)"));
+    }
+    SECTION("max-shifts") {
+        p.employees[0].maxShifts = 1;
+        MaxShiftsConstraint rule;
+        CHECK(rule.whyNot(p, state, 0, 3) == std::optional<std::string>("already has 1 shifts, maxShifts is 1"));
+    }
+    SECTION("max-consecutive-days") {
+        MaxConsecutiveDaysConstraint rule(1);
+        CHECK(rule.whyNot(p, state, 0, 3) ==
+              std::optional<std::string>("would make 2 days in a row (2026-11-08 .. 2026-11-09), the limit is 1"));
+    }
+}
+
+TEST_CASE("allows and whyNot never disagree", "[Constraint][D47]") {
+    // Random employees, shifts and partial schedules: for every rule, every
+    // employee and every shift, whyNot gives a reason exactly when allows says
+    // no. Both run the same check(), so this guards that promise.
+    std::mt19937 rng(7);
+    auto pick = [&](int n) { return static_cast<int>(rng() % static_cast<unsigned>(n)); };
+    const char* times[] = {"06:00-14:00", "14:00-22:00", "22:00-06:00", "10:00-18:00", "18:00-02:00"};
+
+    for (int round = 0; round < 100; ++round) {
+        CAPTURE(round);
+        Problem p{kSunday, kSunday + 6, {}, {}, Rules{}};
+        p.rules.maxConsecutiveDays = 1 + pick(4);
+        p.rules.maxDoubleHours = 12 + pick(6);
+        for (int d = 0; d < 7; ++d)
+            for (int t = 0; t < 3; ++t)
+                p.shifts.push_back(Shift{"S" + std::to_string(d) + std::to_string(t), kSunday + d,
+                                         TimePeriod::fromString(times[pick(5)]), 0, 1, ""});
+        for (int e = 0; e < 3; ++e) {
+            Employee emp = freeOn(e + 1, {});
+            for (int d = 0; d < 7; ++d)
+                emp.availability.push_back({kSunday + d, std::nullopt, AvailabilityType::Available, pick(2) == 0});
+            if (pick(2)) emp.maxShifts = 1 + pick(6);
+            p.employees.push_back(emp);
+        }
+        // Order the shifts by time, as the loader does (blocks rely on it).
+        std::sort(p.shifts.begin(), p.shifts.end(),
+                  [](const Shift& a, const Shift& b) { return a.absoluteStart() < b.absoluteStart(); });
+
+        State state(3, static_cast<int>(p.shifts.size()));
+        for (int k = 0; k < 6; ++k) {
+            const int e = pick(3), s = pick(static_cast<int>(p.shifts.size()));
+            if (!state.isAssigned(e, s)) state.assign(e, s);
+        }
+        for (const auto& rule : makeConstraints(p))
+            for (int e = 0; e < 3; ++e)
+                for (int s = 0; s < static_cast<int>(p.shifts.size()); ++s) {
+                    const auto why = rule->whyNot(p, state, e, s);
+                    CHECK(why.has_value() == !rule->allows(p, state, e, s));
+                    if (why) CHECK_FALSE(why->empty());
+                }
     }
 }
