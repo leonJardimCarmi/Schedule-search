@@ -32,6 +32,10 @@ void printWeeks(std::ostream& out, const Problem& problem, const Report& report,
                 bool colors = false);
 void printPeriodSummary(std::ostream& out, const Problem& problem, const Report& report);
 
+// The answer to --explain (step 6.4): availability, role and every hard
+// rule, each with its reason, then a one-line answer.
+void printExplanation(std::ostream& out, const Problem& problem, const State& schedule, const Explanation& e);
+
 // Short names for narrow table cells: the first name, and when two people
 // share it, also the first letter of the last name ("Noa A.", "Noa L.").
 // If even that is shared, the full name.

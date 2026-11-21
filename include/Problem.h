@@ -1,5 +1,6 @@
 #pragma once
 #include <optional>
+#include <string>
 #include <vector>
 
 #include "Date.h"
@@ -17,4 +18,9 @@ struct Problem {
 
     // Index into `employees` for an employee id, if it exists.
     std::optional<std::size_t> findEmployee(int id) const;
+
+    // For the command line (--explain): an employee by id ("102") or by full
+    // name, ignoring upper and lower case ("dana levi"); a shift by its id.
+    std::optional<std::size_t> findEmployee(const std::string& idOrName) const;
+    std::optional<std::size_t> findShift(const std::string& id) const;
 };

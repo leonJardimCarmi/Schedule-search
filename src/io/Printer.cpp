@@ -354,3 +354,62 @@ void printPeriodSummary(std::ostream& out, const Problem& p, const Report& repor
         if (line.rule == "fairness" && line.weight != 0)
             out << "  Fairness: " << line.violations << "  (0 = shifts spread as evenly as possible)\n";
 }
+
+// ---- --explain (step 6.4, D43, D47) -------------------------------------------
+
+void printExplanation(std::ostream& out, const Problem& p, const State& schedule, const Explanation& e) {
+    const Employee& employee = p.employees[e.employee];
+    const Shift& shift = p.shifts[e.shift];
+    auto shiftText = [&](const Shift& s) {
+        return s.id + " (" + weekdayName(s.date) + " " + s.date.toString() + " " + s.time.toString() + ")";
+    };
+    auto line = [&](const std::string& what, bool ok, const std::string& detail) {
+        out << "  " << std::left << std::setw(22) << what << std::setw(9) << (ok ? "ok" : "BLOCKED") << detail << '\n';
+    };
+
+    out << "Can " << employee.name << " (#" << employee.id << ") work " << shiftText(shift) << "?\n";
+    std::vector<int> theirs = schedule.shiftsOf(e.employee);
+    std::sort(theirs.begin(), theirs.end());
+    out << "  In this schedule " << employee.name << " works:";
+    if (theirs.empty()) out << " nothing";
+    for (int s : theirs) out << ' ' << p.shifts[s].id;
+    out << "\n  " << shift.id << " has " << e.staff.size() << '/' << shift.wantedStaff << ": "
+        << (e.staff.empty() ? "nobody" : names(p, e.staff)) << "\n";
+    if (e.alreadyWorks)
+        out << "  " << employee.name << " already works " << shift.id
+            << " here; the rules below are checked as if they did not.\n";
+    out << '\n';
+
+    // Availability: the employee's slots on that day, so the answer can be checked by eye.
+    std::string slots;
+    for (const AvailabilitySlot& slot : employee.availability)
+        if (slot.date == shift.date)
+            slots += (slots.empty() ? "" : ", ") + std::string(toString(slot.type)) + ' ' +
+                     (slot.time ? slot.time->toString() : "all day") + (slot.allowsDouble ? " (double ok)" : "");
+    const std::string fit = e.availability == Fit::Preferred ? "preferred" : e.availability == Fit::Yes ? "available" : "";
+    line("availability", e.availability != Fit::No,
+         (fit.empty() ? std::string("not available for the whole shift") : fit) +
+             (slots.empty() ? "; nothing given for " + shift.date.toString() : "; that day: " + slots));
+
+    std::string roles;
+    for (const std::string& r : employee.roles) roles += (roles.empty() ? "" : ", ") + r;
+    line("role", e.roleOk, shift.role.empty() ? "no role needed"
+                           : "needs '" + shift.role + "', has: " + (roles.empty() ? "none" : roles));
+
+    for (const RuleCheck& check : e.rules) line(check.rule, !check.whyNot, check.whyNot ? *check.whyNot : "");
+
+    out << '\n';
+    if (e.canWork()) {
+        out << "Answer: yes, nothing forbids it.";
+        if (!e.alreadyWorks && static_cast<int>(e.staff.size()) >= shift.wantedStaff)
+            out << " (But " << shift.id << " is already full: " << e.staff.size() << '/' << shift.wantedStaff << ".)";
+        out << '\n';
+    } else {
+        std::string blockers;
+        if (e.availability == Fit::No) blockers += "availability";
+        if (!e.roleOk) blockers += std::string(blockers.empty() ? "" : ", ") + "role";
+        for (const RuleCheck& check : e.rules)
+            if (check.whyNot) blockers += (blockers.empty() ? "" : ", ") + check.rule;
+        out << "Answer: no. Blocked by: " << blockers << '\n';
+    }
+}

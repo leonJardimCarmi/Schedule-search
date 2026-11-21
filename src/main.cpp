@@ -3,6 +3,7 @@
 #include <optional>
 #include <stdexcept>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "io/CsvLoader.h"
@@ -36,6 +37,8 @@ void printUsage() {
                  "  --view grid|list           a table per week (default), or the list by day\n"
                  "  --week <n>                 show only week n of the table\n"
                  "  --color auto|always|never  colors in the table (default auto: only on a terminal)\n"
+                 "  --explain <employee> <shift>  could this employee also work this shift in the schedule found,\n"
+                 "                             and if not, why (employee by id or full name, shift by id)\n"
                  "  --verbose                  also print the input, the candidates and the search size\n";
 }
 
@@ -51,6 +54,7 @@ struct Options {
     bool listView = false;                // D42: --view list (grid is the default)
     std::optional<int> week;              // D42: --week n, grid only
     enum class ColorMode { Auto, Always, Never } color = ColorMode::Auto;   // D45
+    std::optional<std::pair<std::string, std::string>> explain;            // D43: employee, shift
 };
 
 // Arguments may come in any order: "file --verbose" or "--verbose file".
@@ -60,6 +64,13 @@ std::optional<Options> parseArgs(int argc, char* argv[]) {
         const std::string arg = argv[i];
         if (arg == "--verbose" || arg == "-v") {
             options.verbose = true;
+        } else if (arg == "--explain") {
+            if (i + 2 >= argc) {   // two values: who and which shift
+                std::cerr << "--explain needs an employee and a shift\n";
+                return std::nullopt;
+            }
+            options.explain = std::make_pair(std::string(argv[i + 1]), std::string(argv[i + 2]));
+            i += 2;
         } else if (arg == "--first") {
             options.firstOnly = true;
         } else if (arg == "--availability" || arg == "--time-limit" || arg == "--max-nodes" ||
@@ -219,6 +230,20 @@ int main(int argc, char* argv[]) {
         std::cout << "No schedule satisfies the input.\n";
         return kNoSchedule;
     }
+    // --explain (D43, D47): the answer about one employee and one shift in
+    // the schedule found, instead of the whole schedule.
+    if (options->explain) {
+        const auto emp = problem.findEmployee(options->explain->first);
+        const auto shift = problem.findShift(options->explain->second);
+        if (!emp) std::cerr << "--explain: no employee '" << options->explain->first << "' (use the id or the full name)\n";
+        if (!shift) std::cerr << "--explain: no shift '" << options->explain->second << "'\n";
+        if (!emp || !shift) return kBadInput;
+        printExplanation(std::cout, problem, *schedule,
+                         explainAssignment(problem, *schedule, solver.constraints(), static_cast<int>(*emp),
+                                           static_cast<int>(*shift)));
+        return kOk;
+    }
+
     // 4. Report: computed once (D41), then shown.
     const Report report = buildReport(problem, *schedule, solver.shortages(), scoreModel, solver.top());
     if (options->week && *options->week > static_cast<int>(report.weeks.size())) {

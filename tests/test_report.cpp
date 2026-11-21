@@ -171,3 +171,57 @@ TEST_CASE("the report marks preferred assignments and doubles", "[Report][D42]")
     CHECK(r.shifts[0].inDouble == std::vector<char>{1, 0});
     CHECK(r.shifts[1].inDouble == std::vector<char>{1});
 }
+
+// ---- --explain (step 6.4, D47) -------------------------------------------------
+
+TEST_CASE("explainAssignment checks availability, role and every rule", "[Report][D47]") {
+    Problem p{kSunday, kSunday + 1, {availableOn(1, {0, 1}), availableOn(2, {0})},
+              {shiftOn("E", 0, "16:00-23:00", 1, 1),             // 0
+               shiftOn("M", 1, "06:00-14:00", 1, 1),             // 1  only 7h after E
+               shiftOn("G", 1, "06:00-14:00", 1, 1, "guard")},   // 2  needs a role
+              Rules{}};
+    State s(2, 3);
+    s.assign(0, 0);   // E1 works E
+    const ConstraintList rules = makeConstraints(p);
+
+    SECTION("blocked by a hard rule, with its reason") {
+        const Explanation e = explainAssignment(p, s, rules, 0, 1);
+        CHECK_FALSE(e.canWork());
+        CHECK(e.availability == Fit::Yes);
+        CHECK(e.roleOk);
+        bool sawMinRest = false;
+        for (const RuleCheck& c : e.rules) {
+            if (c.rule == "min-rest") {
+                sawMinRest = true;
+                CHECK(c.whyNot == std::optional<std::string>("only 7h of rest between E and M, needs 10h"));
+            } else {
+                CHECK_FALSE(c.whyNot);
+            }
+        }
+        CHECK(sawMinRest);
+    }
+    SECTION("not available, and no role") {
+        const Explanation e = explainAssignment(p, s, rules, 1, 2);   // E2 is free only on Sunday
+        CHECK(e.availability == Fit::No);
+        CHECK_FALSE(e.roleOk);
+        CHECK_FALSE(e.canWork());
+    }
+    SECTION("someone who already works the shift is checked as if they did not") {
+        const Explanation e = explainAssignment(p, s, rules, 0, 0);
+        CHECK(e.alreadyWorks);
+        CHECK(e.canWork());   // without the shift itself, nothing overlaps it
+        CHECK(e.staff == std::vector<int>{0});
+    }
+}
+
+TEST_CASE("the command line finds employees by id or name and shifts by id", "[Problem][D47]") {
+    Problem p{kSunday, kSunday, {availableOn(101, {0}), availableOn(102, {0})}, {shiftOn("SUN-M", 0, "08:00-16:00", 1, 1)},
+              Rules{}};
+    p.employees[1].name = "Dana Levi";
+    CHECK(p.findEmployee(std::string("101")) == std::optional<std::size_t>(0));
+    CHECK(p.findEmployee(std::string("dana LEVI")) == std::optional<std::size_t>(1));
+    CHECK_FALSE(p.findEmployee(std::string("Dana")));       // the full name, not a part of it
+    CHECK_FALSE(p.findEmployee(std::string("999")));
+    CHECK(p.findShift("SUN-M") == std::optional<std::size_t>(0));
+    CHECK_FALSE(p.findShift("sun-m"));                      // shift ids are exact
+}

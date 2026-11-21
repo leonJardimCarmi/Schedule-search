@@ -5,6 +5,8 @@
 #include <vector>
 
 #include "Problem.h"
+#include "solver/Availability.h"
+#include "solver/Constraint.h"
 #include "solver/Score.h"
 #include "solver/Solver.h"
 #include "solver/State.h"
@@ -93,6 +95,26 @@ struct Report {
     std::vector<int> kindOf;        // [shift] -> index into kinds
     std::vector<WeekReport> weeks;  // week 1 is the week the period starts in
 };
+
+// --explain (step 6.4, D43, D47): could `employee` also work `shift`, in the
+// schedule that was found? Each check answers on its own, so the user sees
+// every reason at once, not only the first.
+struct RuleCheck {
+    std::string rule;                    // e.g. "min-rest"
+    std::optional<std::string> whyNot;   // empty = allowed
+};
+struct Explanation {
+    int employee;
+    int shift;
+    bool alreadyWorks;              // they work it in the schedule; the rules are checked without it
+    Fit availability;               // No / Yes / Preferred
+    bool roleOk;
+    std::vector<RuleCheck> rules;   // every hard rule, in the solver's order
+    std::vector<int> staff;         // who works the shift in the schedule
+    bool canWork() const;           // available, has the role, and every rule allows it
+};
+Explanation explainAssignment(const Problem& problem, const State& schedule, const ConstraintList& rules,
+                              int employee, int shift);
 
 // Builds the report of `schedule`. `top` is the solver's list of good
 // schedules (top[0] is `schedule` itself); pass an empty list for none.

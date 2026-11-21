@@ -188,6 +188,13 @@ Shifts that cannot be fully staffed (fill them by hand)
 
 By default the schedule is shown as one table per week (shift kinds down, Sunday to Saturday across), followed by a summary of the whole period. `--week <n>` shows one week; `--view list` shows the older list by day. In the table: `*` the employee preferred the shift, `D` part of a double, `! -1` one person below wanted, `!! -1` below min. On a terminal these are also colored (green, yellow, red); `--color always|never` overrides that, and so does the `NO_COLOR` environment variable.
 
+To ask why someone is not in a shift: `--explain <employee> <shift>` (employee by id or full name, shift by id). It checks availability, the role and every hard rule against the schedule found, and shows each reason, e.g.
+
+```
+schedule_search data/example_week.json --explain "Dana Levi" MON-M
+  min-rest              BLOCKED  only 8h of rest between SUN-E and MON-M, needs 10h
+```
+
 `--verbose` also prints the loaded input, the candidates for each shift, and the number of search nodes.
 `--time-limit <seconds>` (default 60) and `--max-nodes <n>` stop a search that takes too long.
 

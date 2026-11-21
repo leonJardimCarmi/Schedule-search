@@ -148,3 +148,27 @@ Report buildReport(const Problem& problem, const State& schedule, const std::vec
     buildWeeks(problem, report);
     return report;
 }
+
+bool Explanation::canWork() const {
+    if (availability == Fit::No || !roleOk) return false;
+    return std::all_of(rules.begin(), rules.end(), [](const RuleCheck& c) { return !c.whyNot; });
+}
+
+Explanation explainAssignment(const Problem& problem, const State& schedule, const ConstraintList& rules,
+                              int employee, int shift) {
+    Explanation result{employee, shift, schedule.isAssigned(employee, shift),
+                       availabilityFit(problem.employees[employee], problem.shifts[shift]),
+                       roleFits(problem.employees[employee], problem.shifts[shift]), {}, schedule.staffOf(shift)};
+
+    // If they already work it, ask "could they, if they did not?": the same
+    // schedule without that one assignment. State::unassign only undoes the
+    // last assignment (backtracking), so the copy is built anew.
+    State without(static_cast<int>(problem.employees.size()), static_cast<int>(problem.shifts.size()));
+    for (int s = 0; s < static_cast<int>(problem.shifts.size()); ++s)
+        for (int e : schedule.staffOf(s))
+            if (!(e == employee && s == shift)) without.assign(e, s);
+
+    for (const auto& rule : rules)
+        result.rules.push_back(RuleCheck{rule->name(), rule->whyNot(problem, without, employee, shift)});
+    return result;
+}
