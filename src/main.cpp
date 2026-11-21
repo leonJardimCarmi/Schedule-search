@@ -32,6 +32,8 @@ void printUsage() {
                  "  --min-diff <k>             schedules in that list differ in at least k assignments (default 3)\n"
                  "  --weight <name>=<value>    change the weight of a soft rule, e.g. --weight fairness=0\n"
                  "                             (may be repeated; overrides \"weights\" in the file)\n"
+                 "  --view grid|list           a table per week (default), or the list by day\n"
+                 "  --week <n>                 show only week n of the table\n"
                  "  --verbose                  also print the input, the candidates and the search size\n";
 }
 
@@ -44,6 +46,8 @@ struct Options {
     int top = 5;              // D39: how many good schedules to keep
     int minDifferent = 3;     // D39: how different they must be
     std::vector<WeightSetting> weights;   // D43: --weight, in the order given
+    bool listView = false;                // D42: --view list (grid is the default)
+    std::optional<int> week;              // D42: --week n, grid only
 };
 
 // Arguments may come in any order: "file --verbose" or "--verbose file".
@@ -56,7 +60,8 @@ std::optional<Options> parseArgs(int argc, char* argv[]) {
         } else if (arg == "--first") {
             options.firstOnly = true;
         } else if (arg == "--availability" || arg == "--time-limit" || arg == "--max-nodes" ||
-                   arg == "--top" || arg == "--min-diff" || arg == "--weight") {
+                   arg == "--top" || arg == "--min-diff" || arg == "--weight" || arg == "--view" ||
+                   arg == "--week") {
             if (i + 1 >= argc) {   // these options need a value after them
                 std::cerr << arg << " needs a value\n";
                 return std::nullopt;
@@ -64,6 +69,14 @@ std::optional<Options> parseArgs(int argc, char* argv[]) {
             const std::string value = argv[++i];
             if (arg == "--availability") {
                 options.availabilityPath = value;
+                continue;
+            }
+            if (arg == "--view") {
+                if (value != "grid" && value != "list") {
+                    std::cerr << "--view must be grid or list, got '" << value << "'\n";
+                    return std::nullopt;
+                }
+                options.listView = value == "list";
                 continue;
             }
             if (arg == "--weight") {
@@ -82,10 +95,11 @@ std::optional<Options> parseArgs(int argc, char* argv[]) {
                     const double seconds = std::stod(value, &used);
                     if (used != value.size() || seconds <= 0) throw std::invalid_argument("");
                     options.limits.seconds = seconds;
-                } else if (arg == "--top" || arg == "--min-diff") {
+                } else if (arg == "--top" || arg == "--min-diff" || arg == "--week") {
                     const int n = std::stoi(value, &used);
                     if (used != value.size() || n <= 0) throw std::invalid_argument("");
-                    (arg == "--top" ? options.top : options.minDifferent) = n;
+                    if (arg == "--week") options.week = n;
+                    else (arg == "--top" ? options.top : options.minDifferent) = n;
                 } else {
                     const long long nodes = std::stoll(value, &used);
                     if (used != value.size() || nodes <= 0) throw std::invalid_argument("");
@@ -106,6 +120,10 @@ std::optional<Options> parseArgs(int argc, char* argv[]) {
         }
     }
     if (options.inputPath.empty()) return std::nullopt;
+    if (options.week && options.listView) {
+        std::cerr << "--week works with the table (--view grid) only\n";
+        return std::nullopt;
+    }
     return options;
 }
 
@@ -178,7 +196,16 @@ int main(int argc, char* argv[]) {
     }
     // 4. Report: computed once (D41), then shown.
     const Report report = buildReport(problem, *schedule, solver.shortages(), scoreModel, solver.top());
-    printSchedule(std::cout, problem, report);
+    if (options->week && *options->week > static_cast<int>(report.weeks.size())) {
+        std::cerr << "--week " << *options->week << ": the period has only " << report.weeks.size() << " weeks\n";
+        return kBadInput;
+    }
+    if (options->listView) {
+        printSchedule(std::cout, problem, report);
+    } else {
+        printWeeks(std::cout, problem, report, options->week);
+        printPeriodSummary(std::cout, problem, report);
+    }
     printShortages(std::cout, problem, report);
     printScore(std::cout, report);
 

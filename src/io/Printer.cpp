@@ -4,6 +4,7 @@
 #include <vector>
 
 #include <iomanip>
+#include <sstream>
 #include <string>
 
 #include "solver/Availability.h"
@@ -187,4 +188,139 @@ void printAlternatives(std::ostream& out, const Problem& p, const Report& report
         if (alt.changes.size() > kMaxShiftLines)
             out << "      ... and " << alt.changes.size() - kMaxShiftLines << " more shifts\n";
     }
+}
+
+// ---- The weekly table (--view grid, step 6.3, D42) ----------------------------
+
+std::vector<std::string> shortNames(const Problem& p) {
+    auto firstWord = [](const std::string& name) { return name.substr(0, name.find(' ')); };
+    auto withInitial = [&](const std::string& name) {
+        const std::size_t space = name.rfind(' ');
+        if (space == std::string::npos || space + 1 >= name.size()) return name;
+        return firstWord(name) + ' ' + name[space + 1] + '.';
+    };
+    auto countOf = [&](auto shorten, const std::string& value) {
+        return std::count_if(p.employees.begin(), p.employees.end(),
+                             [&](const Employee& e) { return shorten(e.name) == value; });
+    };
+
+    std::vector<std::string> result;
+    for (const Employee& e : p.employees) {
+        std::string name = firstWord(e.name);
+        if (countOf(firstWord, name) > 1) name = withInitial(e.name);
+        if (countOf(withInitial, name) > 1) name = e.name;
+        result.push_back(name);
+    }
+    return result;
+}
+
+namespace {
+
+std::string kindLabel(const ShiftKind& kind) {
+    return kind.time.toString() + (kind.role.empty() ? "" : " [" + kind.role + "]");
+}
+
+// "2026-12-06" -> "06/12"
+std::string dayMonth(const Date& d) {
+    const std::string iso = d.toString();
+    return iso.substr(8, 2) + "/" + iso.substr(5, 2);
+}
+
+// The lines inside one cell: a person per line, with their marks, then the
+// people still missing. Usually one shift per cell; more are listed in turn.
+std::vector<std::string> cellLines(const Problem& p, const Report& report, const std::vector<int>& shifts,
+                                   const std::vector<std::string>& names) {
+    std::vector<std::string> lines;
+    for (int s : shifts) {
+        const ShiftReport& row = report.shifts[s];
+        for (std::size_t i = 0; i < row.staff.size(); ++i)
+            lines.push_back(names[row.staff[i]] + (row.preferred[i] ? "*" : "") + (row.inDouble[i] ? " D" : ""));
+        const int missing = p.shifts[s].wantedStaff - static_cast<int>(row.staff.size());
+        if (row.status == ShiftReport::Status::BelowMin) lines.push_back("!! -" + std::to_string(missing));
+        else if (row.status == ShiftReport::Status::BelowWanted) lines.push_back("! -" + std::to_string(missing));
+        else if (row.staff.empty()) lines.push_back("-");
+    }
+    return lines;
+}
+
+void printOneWeek(std::ostream& out, const Problem& p, const Report& report, std::size_t w,
+                  const std::vector<std::string>& names) {
+    const WeekReport& week = report.weeks[w];
+    static const char* days[] = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
+
+    // The cells first, to know how wide the columns must be.
+    std::vector<std::array<std::vector<std::string>, 7>> cells(report.kinds.size());
+    std::size_t width = 9;   // "Sun 06/12"
+    for (std::size_t k = 0; k < report.kinds.size(); ++k)
+        for (int d = 0; d < 7; ++d) {
+            cells[k][d] = cellLines(p, report, week.cells[k][d], names);
+            for (const std::string& line : cells[k][d]) width = std::max(width, line.size());
+        }
+    width += 2;
+    std::size_t labelWidth = 0;
+    for (const ShiftKind& kind : report.kinds) labelWidth = std::max(labelWidth, kindLabel(kind).size());
+    labelWidth += 2;
+
+    out << "\nWeek " << w + 1 << "  " << week.sunday.toString() << " .. " << (week.sunday + 6).toString() << '\n';
+    // Each row is built in a string first, so the padding after the last
+    // column can be cut off (no trailing spaces when the text is copied).
+    auto emit = [&](const std::string& row) { out << row.substr(0, row.find_last_not_of(' ') + 1) << '\n'; };
+    std::ostringstream header;
+    header << std::string(labelWidth, ' ');
+    for (int d = 0; d < 7; ++d)
+        header << std::left << std::setw(static_cast<int>(width)) << (std::string(days[d]) + ' ' + dayMonth(week.sunday + d));
+    emit(header.str());
+    const std::string rule(labelWidth + 7 * width, '-');
+    out << rule << '\n';
+
+    for (std::size_t k = 0; k < report.kinds.size(); ++k) {
+        std::size_t height = 1;
+        for (int d = 0; d < 7; ++d) height = std::max(height, cells[k][d].size());
+        for (std::size_t line = 0; line < height; ++line) {
+            std::ostringstream row;
+            row << std::left << std::setw(static_cast<int>(labelWidth)) << (line == 0 ? kindLabel(report.kinds[k]) : "");
+            for (int d = 0; d < 7; ++d)
+                row << std::setw(static_cast<int>(width)) << (line < cells[k][d].size() ? cells[k][d][line] : "");
+            emit(row.str());
+        }
+        out << rule << '\n';
+    }
+
+    out << "Week " << w + 1 << ": " << week.shifts << " shifts, " << week.full << " full";
+    if (week.belowWanted) out << ", " << week.belowWanted << " below wanted";
+    if (week.belowMin) out << ", " << week.belowMin << " below min";
+    out << '\n';
+    if (week.shifts == 0) return;
+    out << "Shifts this week:";
+    int onLine = 0;
+    for (std::size_t e = 0; e < p.employees.size(); ++e) {
+        if (onLine == 8) { out << "\n                 "; onLine = 0; }
+        out << ' ' << names[e] << ' ' << week.shiftsPerEmployee[e] << (e + 1 < p.employees.size() ? "," : "");
+        ++onLine;
+    }
+    out << '\n';
+}
+
+}  // namespace
+
+void printWeeks(std::ostream& out, const Problem& p, const Report& report, std::optional<int> onlyWeek) {
+    out << "Schedule " << p.periodStart.toString() << " .. " << p.periodEnd.toString()
+        << "  (" << report.weeks.size() << (report.weeks.size() == 1 ? " week" : " weeks") << ")\n";
+    out << "  * preferred   D part of a double   ! below wanted   !! below min (see the list below)\n";
+    const std::vector<std::string> names = shortNames(p);
+    for (std::size_t w = 0; w < report.weeks.size(); ++w)
+        if (!onlyWeek || static_cast<int>(w) + 1 == *onlyWeek) printOneWeek(out, p, report, w, names);
+}
+
+void printPeriodSummary(std::ostream& out, const Problem& p, const Report& report) {
+    out << "\nWhole period, per employee\n";
+    for (const EmployeeReport& row : report.employees) {
+        out << "  " << std::left << std::setw(18) << p.employees[row.employee].name
+            << std::right << std::setw(3) << row.shifts.size() << " shifts " << std::setw(4) << row.minutes / 60 << " h";
+        if (row.belowMinShifts) out << "  (below minimum " << *row.belowMinShifts << ")";
+        out << '\n';
+    }
+    for (const ScoreLine& line : report.scoreLines)
+        if (line.rule == "fairness" && line.weight != 0)
+            out << "  Fairness: " << line.violations << "  (0 = shifts spread as evenly as possible)\n";
 }

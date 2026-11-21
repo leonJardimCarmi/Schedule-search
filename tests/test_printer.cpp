@@ -109,3 +109,33 @@ TEST_CASE("per-employee shifts are listed in calendar order even when assigned o
     CHECK(contains(out.str(), "S1 S2"));
     CHECK_FALSE(contains(out.str(), "S2 S1"));
 }
+
+// ---- the weekly table (step 6.3, D42) -----------------------------------------
+
+TEST_CASE("shortNames adds an initial only when first names repeat", "[Printer][D42]") {
+    Problem p{kSunday, kSunday, {}, {}, Rules{}};
+    for (const char* name : {"Noa Azoulay", "Noa Levi", "Omer Cohen", "Avi Cohen", "Avi Carmi", "Madonna"}) {
+        Employee e;
+        e.name = name;
+        p.employees.push_back(e);
+    }
+    CHECK(shortNames(p) == std::vector<std::string>{"Noa A.", "Noa L.", "Omer", "Avi Cohen", "Avi Carmi", "Madonna"});
+}
+
+TEST_CASE("printWeeks shows a table with marks and missing people", "[Printer][D42]") {
+    Problem p = twoPeopleOneShift();       // S1 on Sunday: wants 2, Alice can work it
+    State schedule(2, 1);
+    schedule.assign(0, 0);
+
+    std::ostringstream out;
+    printWeeks(out, p, reportOf(p, schedule), std::nullopt);
+    const std::string text = out.str();
+
+    CHECK(contains(text, "Week 1  2026-11-08 .. 2026-11-14"));
+    CHECK(contains(text, "Sun 08/11"));
+    CHECK(contains(text, "Sat 14/11"));
+    CHECK(contains(text, "08:00-16:00  Alice"));
+    CHECK(contains(text, "! -1"));            // one person below wanted
+    CHECK(contains(text, "Week 1: 1 shifts, 0 full, 1 below wanted"));
+    CHECK_FALSE(contains(text, " \n"));       // no trailing spaces
+}

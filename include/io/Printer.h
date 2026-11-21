@@ -1,5 +1,8 @@
 #pragma once
+#include <optional>
 #include <ostream>
+#include <string>
+#include <vector>
 
 #include "Problem.h"
 #include "report/ReportModel.h"
@@ -18,8 +21,19 @@ void printCandidates(std::ostream& out, const Problem& problem, const Solver& so
 
 // The result, from the report model (D41). These only display.
 
-// The schedule: by day, then a summary per employee.
+// The schedule: by day, then a summary per employee (--view list).
 void printSchedule(std::ostream& out, const Problem& problem, const Report& report);
+
+// The schedule as one table per week (--view grid, the default; D42):
+// shift kinds down, Sunday..Saturday across. `onlyWeek` (1-based) prints
+// one week. Then a summary of the whole period per employee.
+void printWeeks(std::ostream& out, const Problem& problem, const Report& report, std::optional<int> onlyWeek);
+void printPeriodSummary(std::ostream& out, const Problem& problem, const Report& report);
+
+// Short names for narrow table cells: the first name, and when two people
+// share it, also the first letter of the last name ("Noa A.", "Noa L.").
+// If even that is shared, the full name.
+std::vector<std::string> shortNames(const Problem& problem);
 
 // Shifts that can never reach their min (DECISIONS D25), each with the reason.
 void printShortages(std::ostream& out, const Problem& problem, const Report& report);

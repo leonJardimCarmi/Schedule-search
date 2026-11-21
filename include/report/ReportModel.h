@@ -1,5 +1,7 @@
 #pragma once
+#include <array>
 #include <optional>
+#include <string>
 #include <vector>
 
 #include "Problem.h"
@@ -20,6 +22,28 @@ struct ShiftReport {
     int shift;                 // index into Problem::shifts
     std::vector<int> staff;    // employee indices, in the order they were assigned
     Status status;
+    // One flag per person in `staff`, same order (step 6.3, D42):
+    std::vector<char> preferred;   // they marked this shift "preferred"
+    std::vector<char> inDouble;    // this shift is part of a double for them (D16)
+};
+
+// A kind of shift = a row of the weekly table (step 6.3): the same hours and
+// the same role, e.g. "07:00-15:00" or "23:00-07:00 [guard]".
+struct ShiftKind {
+    TimePeriod time;
+    std::string role;   // empty = any role
+};
+
+// One full week, Sunday to Saturday (D42). Days outside the period stay empty.
+struct WeekReport {
+    Date sunday;
+    // [kind][weekday] -> shift indices (almost always 0 or 1 shift per cell)
+    std::vector<std::array<std::vector<int>, 7>> cells;
+    int shifts = 0;        // shifts in this week
+    int full = 0;          // ... staffed up to wanted
+    int belowWanted = 0;   // ... at or above min, below wanted
+    int belowMin = 0;      // ... below min (only the holes of D25)
+    std::vector<int> shiftsPerEmployee;   // [employee] -> shifts this week
 };
 
 // One employee over the whole period.
@@ -63,6 +87,11 @@ struct Report {
     Score score;
     std::vector<ScoreLine> scoreLines;         // one per soft rule
     std::vector<AlternativeReport> alternatives;   // the other schedules of the top list, best first
+
+    // The weekly view (step 6.3, D42).
+    std::vector<ShiftKind> kinds;   // sorted by start time, then end time, then role
+    std::vector<int> kindOf;        // [shift] -> index into kinds
+    std::vector<WeekReport> weeks;  // week 1 is the week the period starts in
 };
 
 // Builds the report of `schedule`. `top` is the solver's list of good

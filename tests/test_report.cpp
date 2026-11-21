@@ -114,3 +114,60 @@ TEST_CASE("the report says who leaves and who joins in each alternative", "[Repo
     CHECK(alt.changes[0].out == std::vector<int>{0});
     CHECK(alt.changes[0].in == std::vector<int>{2});
 }
+
+// ---- the weekly view (step 6.3, D42) ------------------------------------------
+
+TEST_CASE("the report groups shifts into kinds by hours and role", "[Report][D42]") {
+    Problem p{kSunday, kSunday + 1, {availableOn(1, {0, 1})},
+              {shiftOn("N0", 0, "22:00-06:00", 0, 1, "guard"),   // 0
+               shiftOn("M0", 0, "08:00-16:00", 0, 1),            // 1
+               shiftOn("M1", 1, "08:00-16:00", 0, 1),            // 2  same kind as M0
+               shiftOn("X1", 1, "08:00-16:00", 0, 1, "chef")},   // 3  same hours, other role
+              Rules{}};
+    const Report r = buildReport(p, State(1, 4), {}, makeScoreModel(p), {});
+
+    REQUIRE(r.kinds.size() == 3);                      // sorted by start time, then role
+    CHECK(r.kinds[0].time.toString() == "08:00-16:00");
+    CHECK(r.kinds[0].role.empty());
+    CHECK(r.kinds[1].role == "chef");
+    CHECK(r.kinds[2].role == "guard");
+    CHECK(r.kindOf == std::vector<int>{2, 0, 0, 1});
+}
+
+TEST_CASE("the report puts each shift in its week and weekday", "[Report][D42]") {
+    // 2026-11-11 is a Wednesday: the period starts mid-week and ends in the next week.
+    const Date wednesday = kSunday + 3;
+    Problem p{wednesday, kSunday + 8, {availableOn(1, {3, 8})},
+              {shiftOn("W", 3, "08:00-16:00", 1, 1),     // week 1, Wed
+               shiftOn("M", 8, "08:00-16:00", 1, 2)},    // week 2, Mon
+              Rules{}};
+    State s(1, 2);
+    s.assign(0, 0);
+    s.assign(0, 1);
+    const Report r = buildReport(p, s, {}, makeScoreModel(p), {});
+
+    REQUIRE(r.weeks.size() == 2);
+    CHECK(r.weeks[0].sunday == kSunday);             // the Sunday before the start
+    CHECK(r.weeks[0].cells[0][3] == std::vector<int>{0});
+    CHECK(r.weeks[1].cells[0][1] == std::vector<int>{1});
+    CHECK(r.weeks[0].cells[0][0].empty());           // Sunday is outside the period
+    CHECK(r.weeks[0].full == 1);
+    CHECK(r.weeks[1].belowWanted == 1);
+    CHECK(r.weeks[1].shiftsPerEmployee == std::vector<int>{1});
+}
+
+TEST_CASE("the report marks preferred assignments and doubles", "[Report][D42]") {
+    Employee e = availableOn(1, {0}, AvailabilityType::Preferred);
+    e.availability[0].allowsDouble = true;
+    Problem p{kSunday, kSunday, {e, availableOn(2, {0})},
+              {shiftOn("A", 0, "06:00-14:00", 1, 2), shiftOn("B", 0, "14:00-20:00", 1, 1)}, Rules{}};
+    State s(2, 2);
+    s.assign(0, 0);   // E1 works A and B: 14 hours in a row, a double
+    s.assign(0, 1);
+    s.assign(1, 0);   // E2 works only A
+    const Report r = buildReport(p, s, {}, makeScoreModel(p), {});
+
+    CHECK(r.shifts[0].preferred == std::vector<char>{1, 0});
+    CHECK(r.shifts[0].inDouble == std::vector<char>{1, 0});
+    CHECK(r.shifts[1].inDouble == std::vector<char>{1});
+}
