@@ -10,6 +10,7 @@
 #include "io/JsonLoader.h"
 #include "io/Printer.h"
 #include "io/Terminal.h"
+#include "io/TracePrinter.h"
 #include "solver/Score.h"
 #include "solver/Solver.h"
 
@@ -22,6 +23,7 @@ constexpr int kNoSchedule = 2;   // the input is fine but no schedule exists
 constexpr int kLimitReached = 3; // stopped by --time-limit / --max-nodes (D24)
 
 constexpr double kDefaultTimeLimit = 60;   // seconds (D23)
+constexpr int kDefaultTraceLines = 200;    // D48
 
 void printUsage() {
     std::cerr << "usage: schedule_search <problem.json> [options]\n"
@@ -39,6 +41,8 @@ void printUsage() {
                  "  --color auto|always|never  colors in the table (default auto: only on a terminal)\n"
                  "  --explain <employee> <shift>  could this employee also work this shift in the schedule found,\n"
                  "                             and if not, why (employee by id or full name, shift by id)\n"
+                 "  --trace                    print the search step by step, first 200 lines (for small inputs)\n"
+                 "  --trace-lines <n>          the same, first n lines\n"
                  "  --verbose                  also print the input, the candidates and the search size\n";
 }
 
@@ -55,6 +59,7 @@ struct Options {
     std::optional<int> week;              // D42: --week n, grid only
     enum class ColorMode { Auto, Always, Never } color = ColorMode::Auto;   // D45
     std::optional<std::pair<std::string, std::string>> explain;            // D43: employee, shift
+    std::optional<int> traceLines;   // D48: --trace / --trace-lines n; empty = no trace
 };
 
 // Arguments may come in any order: "file --verbose" or "--verbose file".
@@ -71,11 +76,13 @@ std::optional<Options> parseArgs(int argc, char* argv[]) {
             }
             options.explain = std::make_pair(std::string(argv[i + 1]), std::string(argv[i + 2]));
             i += 2;
+        } else if (arg == "--trace") {
+            if (!options.traceLines) options.traceLines = kDefaultTraceLines;   // keeps an earlier --trace-lines
         } else if (arg == "--first") {
             options.firstOnly = true;
         } else if (arg == "--availability" || arg == "--time-limit" || arg == "--max-nodes" ||
                    arg == "--top" || arg == "--min-diff" || arg == "--weight" || arg == "--view" ||
-                   arg == "--week" || arg == "--color") {
+                   arg == "--week" || arg == "--color" || arg == "--trace-lines") {
             if (i + 1 >= argc) {   // these options need a value after them
                 std::cerr << arg << " needs a value\n";
                 return std::nullopt;
@@ -119,10 +126,11 @@ std::optional<Options> parseArgs(int argc, char* argv[]) {
                     const double seconds = std::stod(value, &used);
                     if (used != value.size() || seconds <= 0) throw std::invalid_argument("");
                     options.limits.seconds = seconds;
-                } else if (arg == "--top" || arg == "--min-diff" || arg == "--week") {
+                } else if (arg == "--top" || arg == "--min-diff" || arg == "--week" || arg == "--trace-lines") {
                     const int n = std::stoi(value, &used);
                     if (used != value.size() || n <= 0) throw std::invalid_argument("");
                     if (arg == "--week") options.week = n;
+                    else if (arg == "--trace-lines") options.traceLines = n;
                     else (arg == "--top" ? options.top : options.minDifferent) = n;
                 } else {
                     const long long nodes = std::stoll(value, &used);
@@ -202,11 +210,19 @@ int main(int argc, char* argv[]) {
         for (const auto& constraint : solver.constraints()) std::cout << ' ' << constraint->name();
         std::cout << "\n\n";
     }
+    // --trace (D48): the search tells the printer every step. It goes to
+    // stdout before the result, and stops printing after its line limit.
+    std::optional<TracePrinter> trace;
+    if (options->traceLines) {
+        trace.emplace(std::cout, problem, solver.constraints(), *options->traceLines);
+        solver.setObserver(&*trace);
+    }
     const auto searchStart = std::chrono::steady_clock::now();
     // By default, the best schedule (D2, D33). --first stops at the first legal one.
     const std::optional<State> schedule =
         options->firstOnly ? solver.findFirst() : solver.findBest(scoreModel);
     const std::chrono::duration<double, std::milli> searchTime = std::chrono::steady_clock::now() - searchStart;
+    if (trace) trace->finish();
     if (options->verbose)
         std::cout << "Search visited " << solver.nodesVisited() << " nodes in "
                   << searchTime.count() << " ms"

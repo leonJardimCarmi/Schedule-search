@@ -195,6 +195,17 @@ schedule_search data/example_week.json --explain "Dana Levi" MON-M
   min-rest              BLOCKED  only 8h of rest between SUN-E and MON-M, needs 10h
 ```
 
+To watch the search itself: `--trace` prints it step by step (first 200 lines; `--trace-lines <n>` for more), one level of indentation per shift already decided. Each line is one step: the shift MRV chose and why (allowed, min, slack, and who is blocked by which rule), the number of people tried, who is assigned (`+`) and erased again on backtracking (`-`), dead ends, branches cut by the bound, and each complete schedule with its score. Meant for small inputs:
+
+```
+schedule_search data/example_week.json --first --trace
+MON-M: 1 allowed, min 1, slack 0 (the least of 6 open); blocked: Dana (min-rest)
+  MON-M: try 2 people
+  + Yossi
+  - Yossi
+  MON-M: try 1 person
+```
+
 `--verbose` also prints the loaded input, the candidates for each shift, and the number of search nodes.
 `--time-limit <seconds>` (default 60) and `--max-nodes <n>` stop a search that takes too long.
 
@@ -282,7 +293,7 @@ DECISIONS.md        design decisions D1–D47 and the reasoning behind them (Heb
 | 3 | More flexible user input: CSV availability import, minimum shifts per employee (a soft wish) | ✅ |
 | 4 | Pruning: time/node limits, static shortage check, most-constrained shift first (MRV) with dead-end detection, incremental cache | ✅ |
 | 5 | **Optimization**: pluggable soft-rule scoring, best-so-far search (anytime), Branch & Bound with per-rule lower bounds, top-N distinct schedules | ✅ |
-| 6 | Reports, CSV export, explaining *why* no schedule exists | ⬜ |
+| 6 | Output and tools to explore the engine: a table per week with colors, `--explain` (why someone can't work a shift), `--trace` (the search step by step), `--weight` (CSV/HTML export postponed) | ✅ |
 | 7 | Manual edits: check a hand-edited schedule against all the rules and flag violations | ⬜ |
 
 ## Continuous integration

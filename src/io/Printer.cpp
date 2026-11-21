@@ -86,11 +86,11 @@ std::string names(const Problem& p, const std::vector<int>& employees) {
     return result;
 }
 
+}  // namespace
+
 std::string scoreText(const Score& s) {
     return "Medium " + std::to_string(s.at(Level::Medium)) + ", Soft " + std::to_string(s.at(Level::Soft));
 }
-
-}  // namespace
 
 // From here on, everything shown comes from the Report (D41): these
 // functions only choose words and columns, they do not compute.

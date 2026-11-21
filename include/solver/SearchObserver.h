@@ -35,7 +35,7 @@ public:
     // MRV chose the next shift to fill.
     virtual void shiftChosen(const State& /*state*/, int /*depth*/, const ShiftChoice& /*choice*/) {}
     // The shift with the least slack cannot reach its min any more: go back.
-    virtual void deadEnd(int /*depth*/, const ShiftChoice& /*choice*/) {}
+    virtual void deadEnd(const State& /*state*/, int /*depth*/, const ShiftChoice& /*choice*/) {}
     // The search now tries to staff the shift with exactly `target` people (D10).
     virtual void sizeTried(int /*depth*/, int /*shift*/, int /*target*/) {}
     virtual void assigned(int /*depth*/, int /*emp*/, int /*shift*/) {}

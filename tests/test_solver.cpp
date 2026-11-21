@@ -308,7 +308,7 @@ public:
                        std::to_string(c.min) + " slack " + std::to_string(c.slack) + " open " +
                        std::to_string(c.open));
     }
-    void deadEnd(int depth, const ShiftChoice& c) override {
+    void deadEnd(const State&, int depth, const ShiftChoice& c) override {
         add(depth, "dead end " + std::to_string(c.shift) + " slack " + std::to_string(c.slack));
     }
     void sizeTried(int depth, int shift, int target) override {

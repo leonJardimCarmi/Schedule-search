@@ -285,7 +285,7 @@ bool Solver::nextShift() {
                                               choice.slack,
                                               static_cast<int>(problem_.shifts.size()) - filledCount_,
                                               &candidates_[choice.shift]};
-        if (choice.slack < 0) observer_->deadEnd(filledCount_, why);
+        if (choice.slack < 0) observer_->deadEnd(state_, filledCount_, why);
         else observer_->shiftChosen(state_, filledCount_, why);
     }
     if (choice.slack < 0) return false;   // some shift can no longer reach its min

@@ -40,6 +40,7 @@ add_library(schedule_core STATIC
     src/io/CsvLoader.cpp
     src/io/Printer.cpp
     src/io/Terminal.cpp
+    src/io/TracePrinter.cpp
     src/solver/State.cpp
     src/solver/Availability.cpp
     src/solver/Solver.cpp

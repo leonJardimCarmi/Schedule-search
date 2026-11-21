@@ -4,6 +4,7 @@
 #include <string>
 
 #include "io/Printer.h"
+#include "io/TracePrinter.h"
 
 namespace {
 
@@ -175,4 +176,110 @@ TEST_CASE("colors mark the cells and never shift the columns", "[Printer][D45]")
     CHECK(contains(colored.str(), "\033[33m! -1\033[0m"));       // yellow: below wanted
     // Same text and the same column positions once the codes are removed.
     CHECK(withoutColors(colored.str()) == plain.str());
+}
+
+// ---- --trace (step 6.5b, D48) -------------------------------------------------
+
+namespace {
+
+// Alice and Bob, both free on Sunday; two shifts at the same time, one
+// person each. Whoever takes A is blocked for B (no-overlap).
+Problem twoShiftsAtOnce() {
+    Problem p = twoPeopleOneShift();
+    p.employees[1].availability.push_back({kSunday, std::nullopt, AvailabilityType::Available});
+    p.shifts = {Shift{"A", kSunday, TimePeriod::fromString("08:00-16:00"), 1, 1, ""},
+                Shift{"B", kSunday, TimePeriod::fromString("08:00-16:00"), 1, 1, ""}};
+    return p;
+}
+
+}  // namespace
+
+TEST_CASE("the trace shows the whole search, indented by depth", "[Printer][D48]") {
+    const Problem p = twoShiftsAtOnce();
+    Solver solver(p);
+    std::ostringstream out;
+    TracePrinter trace(out, p, solver.constraints(), 100);
+    solver.setObserver(&trace);
+
+    REQUIRE(solver.countAll() == 2);
+    trace.finish();
+    CHECK(out.str() ==
+          "--- trace: one level of indentation per shift already decided ---\n"
+          "A: 2 allowed, min 1, slack 1 (the least of 2 open)\n"
+          "  A: try 1 person\n"
+          "  + Alice\n"
+          "  B: 1 allowed, min 1, slack 0 (the last one open); blocked: Alice (no-overlap)\n"
+          "    B: try 1 person\n"
+          "    + Bob\n"
+          "    schedule #1\n"
+          "    - Bob\n"
+          "  - Alice\n"
+          "  + Bob\n"
+          "  B: 1 allowed, min 1, slack 0 (the last one open); blocked: Bob (no-overlap)\n"
+          "    B: try 1 person\n"
+          "    + Alice\n"
+          "    schedule #2\n"
+          "    - Alice\n"
+          "  - Bob\n"
+          "--- end of trace: the whole search, 16 lines ---\n\n");
+}
+
+TEST_CASE("the trace stops printing at its limit, the search does not", "[Printer][D48]") {
+    const Problem p = twoShiftsAtOnce();
+    Solver solver(p);
+    std::ostringstream out;
+    TracePrinter trace(out, p, solver.constraints(), 3);
+    solver.setObserver(&trace);
+
+    CHECK(solver.countAll() == 2);   // the same answer as without a trace
+    trace.finish();
+    CHECK(trace.linesPrinted() == 3);
+    CHECK(trace.stepsLeftOut() == 13);
+    CHECK(out.str() ==
+          "--- trace: one level of indentation per shift already decided ---\n"
+          "A: 2 allowed, min 1, slack 1 (the least of 2 open)\n"
+          "  A: try 1 person\n"
+          "  + Alice\n"
+          "--- trace stopped after 3 lines; the search went on for 13 more steps (--trace-lines <n> shows more) ---\n\n");
+}
+
+TEST_CASE("the trace shows scores, prunes and dead ends", "[Printer][D48]") {
+    const Problem p = twoShiftsAtOnce();
+    Solver solver(p);
+    std::ostringstream out;
+    TracePrinter trace(out, p, solver.constraints(), 100);
+
+    trace.scheduleFound(2, nullptr, -1);
+    const Score s{{0, 7}};
+    trace.scheduleFound(2, &s, 0);
+    trace.scheduleFound(2, &s, 2);
+    trace.scheduleFound(2, &s, -1);
+    trace.pruned(1, Score{{0, 9}}, s);
+    State state(2, 2);
+    state.assign(0, 0);
+    state.assign(1, 0);
+    const std::vector<int> both{0, 1};
+    trace.deadEnd(state, 1, SearchObserver::ShiftChoice{1, 0, 1, -1, 1, &both});
+
+    const std::string text = out.str();
+    CHECK(contains(text, "    schedule #1\n"));
+    CHECK(contains(text, "    schedule #2: Medium 0, Soft 7 -> the new best\n"));
+    CHECK(contains(text, "    schedule #3: Medium 0, Soft 7 -> #3 in the list\n"));
+    CHECK(contains(text, "    schedule #4: Medium 0, Soft 7 -> not kept\n"));
+    CHECK(contains(text, "  prune: at best Medium 0, Soft 9 from here, not better than Medium 0, Soft 7, back\n"));
+    CHECK(contains(text, "  B: 0 allowed, min 1, slack -1: cannot reach its min any more, back; "
+                         "blocked: Alice (no-overlap), Bob (no-overlap)\n"));
+}
+
+TEST_CASE("deep in the search the indentation stops growing", "[Printer][D48]") {
+    const Problem p = twoShiftsAtOnce();
+    Solver solver(p);
+    std::ostringstream out;
+    TracePrinter trace(out, p, solver.constraints(), 100);
+
+    trace.assigned(TracePrinter::kMaxIndentLevels - 1, 0, 0);   // still indented
+    trace.assigned(25, 1, 0);                                   // a number instead
+    const std::string pad(2 * TracePrinter::kMaxIndentLevels, ' ');
+    CHECK(contains(out.str(), "\n" + pad + "+ Alice\n"));
+    CHECK(contains(out.str(), "\n" + pad + "[26] + Bob\n"));
 }

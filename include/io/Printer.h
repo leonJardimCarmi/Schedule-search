@@ -44,6 +44,9 @@ std::vector<std::string> shortNames(const Problem& problem);
 // Shifts that can never reach their min (DECISIONS D25), each with the reason.
 void printShortages(std::ostream& out, const Problem& problem, const Report& report);
 
+// "Medium 0, Soft 182".
+std::string scoreText(const Score& score);
+
 // The schedule's score and where it comes from, one line per soft rule.
 // Lower is better; Medium is compared before Soft (D29).
 void printScore(std::ostream& out, const Report& report);
