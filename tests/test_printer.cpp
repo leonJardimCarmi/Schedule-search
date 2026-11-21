@@ -139,3 +139,40 @@ TEST_CASE("printWeeks shows a table with marks and missing people", "[Printer][D
     CHECK(contains(text, "Week 1: 1 shifts, 0 full, 1 below wanted"));
     CHECK_FALSE(contains(text, " \n"));       // no trailing spaces
 }
+
+// ---- colors (step 6.3b, D45) ---------------------------------------------------
+
+namespace {
+
+// Removes ANSI color codes: ESC [ ... m
+std::string withoutColors(const std::string& text) {
+    std::string plain;
+    for (std::size_t i = 0; i < text.size(); ++i) {
+        if (text[i] == '\033') {
+            while (i < text.size() && text[i] != 'm') ++i;
+            continue;
+        }
+        plain += text[i];
+    }
+    return plain;
+}
+
+}  // namespace
+
+TEST_CASE("colors mark the cells and never shift the columns", "[Printer][D45]") {
+    Problem p = twoPeopleOneShift();                              // S1: wants 2
+    p.employees[0].availability[0].type = AvailabilityType::Preferred;
+    State schedule(2, 1);
+    schedule.assign(0, 0);                                        // Alice, preferred; one missing
+    const Report report = reportOf(p, schedule);
+
+    std::ostringstream plain, colored;
+    printWeeks(plain, p, report, std::nullopt);                   // colors are off by default
+    printWeeks(colored, p, report, std::nullopt, true);
+
+    CHECK(plain.str().find('\033') == std::string::npos);
+    CHECK(contains(colored.str(), "\033[32mAlice*\033[0m"));     // green: preferred
+    CHECK(contains(colored.str(), "\033[33m! -1\033[0m"));       // yellow: below wanted
+    // Same text and the same column positions once the codes are removed.
+    CHECK(withoutColors(colored.str()) == plain.str());
+}

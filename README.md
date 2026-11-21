@@ -186,7 +186,7 @@ Shifts that cannot be fully staffed (fill them by hand)
   1208-N 2026-12-08 23:00-07:00  needs 1, can get 0: 2 available, but only 0 with role 'guard'
 ```
 
-By default the schedule is shown as one table per week (shift kinds down, Sunday to Saturday across), followed by a summary of the whole period. `--week <n>` shows one week; `--view list` shows the older list by day. In the table: `*` the employee preferred the shift, `D` part of a double, `! -1` one person below wanted, `!! -1` below min.
+By default the schedule is shown as one table per week (shift kinds down, Sunday to Saturday across), followed by a summary of the whole period. `--week <n>` shows one week; `--view list` shows the older list by day. In the table: `*` the employee preferred the shift, `D` part of a double, `! -1` one person below wanted, `!! -1` below min. On a terminal these are also colored (green, yellow, red); `--color always|never` overrides that, and so does the `NO_COLOR` environment variable.
 
 `--verbose` also prints the loaded input, the candidates for each shift, and the number of search nodes.
 `--time-limit <seconds>` (default 60) and `--max-nodes <n>` stop a search that takes too long.
@@ -262,7 +262,7 @@ src/                implementations, same layout
 tests/              Catch2 unit tests
 data/               example inputs
 PLAN.md             roadmap and status of each stage (Hebrew)
-DECISIONS.md        design decisions D1–D44 and the reasoning behind them (Hebrew)
+DECISIONS.md        design decisions D1–D45 and the reasoning behind them (Hebrew)
 ```
 
 ## Roadmap

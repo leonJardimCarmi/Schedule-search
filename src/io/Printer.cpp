@@ -226,35 +226,64 @@ std::string dayMonth(const Date& d) {
     return iso.substr(8, 2) + "/" + iso.substr(5, 2);
 }
 
+// ANSI colors (D45). A code is a few characters the terminal does not show,
+// so widths are always computed from the text alone, never from the codes.
+enum class Color { None, Red, Yellow, Green };
+
+const char* colorCode(Color c) {
+    switch (c) {
+    case Color::Red: return "\033[1;31m";   // bold red
+    case Color::Yellow: return "\033[33m";
+    case Color::Green: return "\033[32m";
+    case Color::None: break;
+    }
+    return "";
+}
+
+// One line of a cell: what is shown, and in which color.
+struct CellLine {
+    std::string text;
+    Color color = Color::None;
+};
+
+// `text` padded to `width` visible characters; the color covers the text
+// only, not the padding, so a trimmed row never ends inside a color.
+std::string padded(const CellLine& line, std::size_t width, bool colors) {
+    const std::string pad(width > line.text.size() ? width - line.text.size() : 0, ' ');
+    if (!colors || line.color == Color::None) return line.text + pad;
+    return colorCode(line.color) + line.text + "\033[0m" + pad;
+}
+
 // The lines inside one cell: a person per line, with their marks, then the
 // people still missing. Usually one shift per cell; more are listed in turn.
-std::vector<std::string> cellLines(const Problem& p, const Report& report, const std::vector<int>& shifts,
-                                   const std::vector<std::string>& names) {
-    std::vector<std::string> lines;
+std::vector<CellLine> cellLines(const Problem& p, const Report& report, const std::vector<int>& shifts,
+                                const std::vector<std::string>& names) {
+    std::vector<CellLine> lines;
     for (int s : shifts) {
         const ShiftReport& row = report.shifts[s];
         for (std::size_t i = 0; i < row.staff.size(); ++i)
-            lines.push_back(names[row.staff[i]] + (row.preferred[i] ? "*" : "") + (row.inDouble[i] ? " D" : ""));
+            lines.push_back({names[row.staff[i]] + (row.preferred[i] ? "*" : "") + (row.inDouble[i] ? " D" : ""),
+                             row.preferred[i] ? Color::Green : Color::None});
         const int missing = p.shifts[s].wantedStaff - static_cast<int>(row.staff.size());
-        if (row.status == ShiftReport::Status::BelowMin) lines.push_back("!! -" + std::to_string(missing));
-        else if (row.status == ShiftReport::Status::BelowWanted) lines.push_back("! -" + std::to_string(missing));
-        else if (row.staff.empty()) lines.push_back("-");
+        if (row.status == ShiftReport::Status::BelowMin) lines.push_back({"!! -" + std::to_string(missing), Color::Red});
+        else if (row.status == ShiftReport::Status::BelowWanted) lines.push_back({"! -" + std::to_string(missing), Color::Yellow});
+        else if (row.staff.empty()) lines.push_back({"-", Color::None});
     }
     return lines;
 }
 
 void printOneWeek(std::ostream& out, const Problem& p, const Report& report, std::size_t w,
-                  const std::vector<std::string>& names) {
+                  const std::vector<std::string>& names, bool colors) {
     const WeekReport& week = report.weeks[w];
     static const char* days[] = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
 
     // The cells first, to know how wide the columns must be.
-    std::vector<std::array<std::vector<std::string>, 7>> cells(report.kinds.size());
+    std::vector<std::array<std::vector<CellLine>, 7>> cells(report.kinds.size());
     std::size_t width = 9;   // "Sun 06/12"
     for (std::size_t k = 0; k < report.kinds.size(); ++k)
         for (int d = 0; d < 7; ++d) {
             cells[k][d] = cellLines(p, report, week.cells[k][d], names);
-            for (const std::string& line : cells[k][d]) width = std::max(width, line.size());
+            for (const CellLine& line : cells[k][d]) width = std::max(width, line.text.size());
         }
     width += 2;
     std::size_t labelWidth = 0;
@@ -280,7 +309,7 @@ void printOneWeek(std::ostream& out, const Problem& p, const Report& report, std
             std::ostringstream row;
             row << std::left << std::setw(static_cast<int>(labelWidth)) << (line == 0 ? kindLabel(report.kinds[k]) : "");
             for (int d = 0; d < 7; ++d)
-                row << std::setw(static_cast<int>(width)) << (line < cells[k][d].size() ? cells[k][d][line] : "");
+                row << padded(line < cells[k][d].size() ? cells[k][d][line] : CellLine{}, width, colors);
             emit(row.str());
         }
         out << rule << '\n';
@@ -303,13 +332,14 @@ void printOneWeek(std::ostream& out, const Problem& p, const Report& report, std
 
 }  // namespace
 
-void printWeeks(std::ostream& out, const Problem& p, const Report& report, std::optional<int> onlyWeek) {
+void printWeeks(std::ostream& out, const Problem& p, const Report& report, std::optional<int> onlyWeek,
+                bool colors) {
     out << "Schedule " << p.periodStart.toString() << " .. " << p.periodEnd.toString()
         << "  (" << report.weeks.size() << (report.weeks.size() == 1 ? " week" : " weeks") << ")\n";
     out << "  * preferred   D part of a double   ! below wanted   !! below min (see the list below)\n";
     const std::vector<std::string> names = shortNames(p);
     for (std::size_t w = 0; w < report.weeks.size(); ++w)
-        if (!onlyWeek || static_cast<int>(w) + 1 == *onlyWeek) printOneWeek(out, p, report, w, names);
+        if (!onlyWeek || static_cast<int>(w) + 1 == *onlyWeek) printOneWeek(out, p, report, w, names, colors);
 }
 
 void printPeriodSummary(std::ostream& out, const Problem& p, const Report& report) {

@@ -8,6 +8,7 @@
 #include "io/CsvLoader.h"
 #include "io/JsonLoader.h"
 #include "io/Printer.h"
+#include "io/Terminal.h"
 #include "solver/Score.h"
 #include "solver/Solver.h"
 
@@ -34,6 +35,7 @@ void printUsage() {
                  "                             (may be repeated; overrides \"weights\" in the file)\n"
                  "  --view grid|list           a table per week (default), or the list by day\n"
                  "  --week <n>                 show only week n of the table\n"
+                 "  --color auto|always|never  colors in the table (default auto: only on a terminal)\n"
                  "  --verbose                  also print the input, the candidates and the search size\n";
 }
 
@@ -48,6 +50,7 @@ struct Options {
     std::vector<WeightSetting> weights;   // D43: --weight, in the order given
     bool listView = false;                // D42: --view list (grid is the default)
     std::optional<int> week;              // D42: --week n, grid only
+    enum class ColorMode { Auto, Always, Never } color = ColorMode::Auto;   // D45
 };
 
 // Arguments may come in any order: "file --verbose" or "--verbose file".
@@ -61,7 +64,7 @@ std::optional<Options> parseArgs(int argc, char* argv[]) {
             options.firstOnly = true;
         } else if (arg == "--availability" || arg == "--time-limit" || arg == "--max-nodes" ||
                    arg == "--top" || arg == "--min-diff" || arg == "--weight" || arg == "--view" ||
-                   arg == "--week") {
+                   arg == "--week" || arg == "--color") {
             if (i + 1 >= argc) {   // these options need a value after them
                 std::cerr << arg << " needs a value\n";
                 return std::nullopt;
@@ -77,6 +80,16 @@ std::optional<Options> parseArgs(int argc, char* argv[]) {
                     return std::nullopt;
                 }
                 options.listView = value == "list";
+                continue;
+            }
+            if (arg == "--color") {
+                if (value == "auto") options.color = Options::ColorMode::Auto;
+                else if (value == "always") options.color = Options::ColorMode::Always;
+                else if (value == "never") options.color = Options::ColorMode::Never;
+                else {
+                    std::cerr << "--color must be auto, always or never, got '" << value << "'\n";
+                    return std::nullopt;
+                }
                 continue;
             }
             if (arg == "--weight") {
@@ -125,6 +138,18 @@ std::optional<Options> parseArgs(int argc, char* argv[]) {
         return std::nullopt;
     }
     return options;
+}
+
+// D45: colors only where they can be seen. "auto" colors a terminal, but
+// not a file or a pipe, and respects NO_COLOR. "always" still tries to turn
+// colors on in the Windows console, but colors even if that fails.
+bool useColors(Options::ColorMode mode) {
+    switch (mode) {
+    case Options::ColorMode::Never: return false;
+    case Options::ColorMode::Always: enableAnsiColors(); return true;
+    case Options::ColorMode::Auto: break;
+    }
+    return stdoutIsTerminal() && !noColorRequested() && enableAnsiColors();
 }
 
 }  // namespace
@@ -203,7 +228,7 @@ int main(int argc, char* argv[]) {
     if (options->listView) {
         printSchedule(std::cout, problem, report);
     } else {
-        printWeeks(std::cout, problem, report, options->week);
+        printWeeks(std::cout, problem, report, options->week, useColors(options->color));
         printPeriodSummary(std::cout, problem, report);
     }
     printShortages(std::cout, problem, report);

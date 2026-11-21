@@ -26,8 +26,10 @@ void printSchedule(std::ostream& out, const Problem& problem, const Report& repo
 
 // The schedule as one table per week (--view grid, the default; D42):
 // shift kinds down, Sunday..Saturday across. `onlyWeek` (1-based) prints
-// one week. Then a summary of the whole period per employee.
-void printWeeks(std::ostream& out, const Problem& problem, const Report& report, std::optional<int> onlyWeek);
+// one week. `colors` adds ANSI colors (D45): red below min, yellow below
+// wanted, green preferred. Off by default, so files and tests get plain text.
+void printWeeks(std::ostream& out, const Problem& problem, const Report& report, std::optional<int> onlyWeek,
+                bool colors = false);
 void printPeriodSummary(std::ostream& out, const Problem& problem, const Report& report);
 
 // Short names for narrow table cells: the first name, and when two people
