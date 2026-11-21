@@ -293,3 +293,100 @@ TEST_CASE("the next search starts with a fresh limit", "[Solver][limits]") {
     solver.findFirst();
     CHECK(solver.status() == SearchStatus::NoSchedule);
 }
+
+// ---- watching the search (step 6.5a, D48) -------------------------------------
+
+namespace {
+
+// Writes every step down as a short string, to compare whole sequences.
+class Recorder : public SearchObserver {
+public:
+    std::vector<std::string> steps;
+
+    void shiftChosen(const State&, int depth, const ShiftChoice& c) override {
+        add(depth, "choose " + std::to_string(c.shift) + " allowed " + std::to_string(c.allowed) + " min " +
+                       std::to_string(c.min) + " slack " + std::to_string(c.slack) + " open " +
+                       std::to_string(c.open));
+    }
+    void deadEnd(int depth, const ShiftChoice& c) override {
+        add(depth, "dead end " + std::to_string(c.shift) + " slack " + std::to_string(c.slack));
+    }
+    void sizeTried(int depth, int shift, int target) override {
+        add(depth, "size " + std::to_string(shift) + " = " + std::to_string(target));
+    }
+    void assigned(int depth, int emp, int shift) override {
+        add(depth, "+ " + std::to_string(emp) + " -> " + std::to_string(shift));
+    }
+    void unassigned(int depth, int emp, int shift) override {
+        add(depth, "- " + std::to_string(emp) + " -> " + std::to_string(shift));
+    }
+    void scheduleFound(int depth, const Score*, int) override { add(depth, "schedule"); }
+
+private:
+    void add(int depth, const std::string& text) { steps.push_back(std::to_string(depth) + ": " + text); }
+};
+
+}  // namespace
+
+TEST_CASE("the observer sees the search step by step", "[Solver][D48]") {
+    // Two shifts at the same time, two employees: whoever takes the first
+    // one is blocked (no-overlap) for the second.
+    Problem p = makeProblem({freeOnSunday(1), freeOnSunday(2)},
+                            {sundayShift("A", "08:00-16:00", 1), sundayShift("B", "08:00-16:00", 1)});
+    Solver solver(p);
+    Recorder recorder;
+    solver.setObserver(&recorder);
+
+    SECTION("findFirst: down to the first schedule, and no cleanup after it") {
+        REQUIRE(solver.findFirst());
+        CHECK(recorder.steps == std::vector<std::string>{
+                                    "0: choose 0 allowed 2 min 1 slack 1 open 2",   // a tie: the earliest
+                                    "0: size 0 = 1",
+                                    "0: + 0 -> 0",
+                                    "1: choose 1 allowed 1 min 1 slack 0 open 1",   // E1 is blocked now
+                                    "1: size 1 = 1",
+                                    "1: + 1 -> 1",
+                                    "2: schedule",
+                                });
+    }
+    SECTION("countAll: every backtrack is seen") {
+        CHECK(solver.countAll() == 2);
+        CHECK(recorder.steps == std::vector<std::string>{
+                                    "0: choose 0 allowed 2 min 1 slack 1 open 2",
+                                    "0: size 0 = 1",
+                                    "0: + 0 -> 0",
+                                    "1: choose 1 allowed 1 min 1 slack 0 open 1",
+                                    "1: size 1 = 1",
+                                    "1: + 1 -> 1",
+                                    "2: schedule",
+                                    "1: - 1 -> 1",
+                                    "0: - 0 -> 0",
+                                    "0: + 1 -> 0",
+                                    "1: choose 1 allowed 1 min 1 slack 0 open 1",
+                                    "1: size 1 = 1",
+                                    "1: + 0 -> 1",
+                                    "2: schedule",
+                                    "1: - 0 -> 1",
+                                    "0: - 1 -> 0",
+                                });
+    }
+}
+
+TEST_CASE("the observer sees a dead end", "[Solver][D48]") {
+    // One employee for two shifts at the same time: after the first, MRV
+    // finds the second with nobody left and goes back.
+    Problem p = makeProblem({freeOnSunday(1)},
+                            {sundayShift("A", "08:00-16:00", 1), sundayShift("B", "08:00-16:00", 1)});
+    Solver solver(p);
+    Recorder recorder;
+    solver.setObserver(&recorder);
+
+    CHECK_FALSE(solver.findFirst());
+    CHECK(recorder.steps == std::vector<std::string>{
+                                "0: choose 0 allowed 1 min 1 slack 0 open 2",
+                                "0: size 0 = 1",
+                                "0: + 0 -> 0",
+                                "1: dead end 1 slack -1",
+                                "0: - 0 -> 0",
+                            });
+}

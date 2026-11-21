@@ -143,22 +143,26 @@ long long Solver::countAll() {
 // cannot beat the LAST one in the list: anything better could still get in.
 // So until the list is full, nothing is pruned. With n = 1 this is "cannot
 // beat the best", as before.
-bool Solver::cannotBeatBest() const {
+//
+// `bound` receives the bound when the branch is cut, for the observer.
+bool Solver::cannotBeatBest(Score* bound) const {
     if (mode_ != Mode::Best || !useBound_) return false;
     if (static_cast<int>(top_.size()) < topN_) return false;
     const SearchView view{filled_, candidates_, allowedNow_, allowedCount_, searchMin_};
-    return !(model_->lowerBound(problem_, state_, view) < top_.back().score);
+    *bound = model_->lowerBound(problem_, state_, view);
+    return !(*bound < top_.back().score);
 }
 
 // A complete schedule with this score was reached: does it get into the list?
-void Solver::offer(const Score& score) {
+// Returns its place in the list (0 = the new best), or -1 if it did not get in.
+int Solver::offer(const Score& score) {
     // Not better than the last one of a full list: no.
-    if (static_cast<int>(top_.size()) == topN_ && !(score < top_.back().score)) return;
+    if (static_cast<int>(top_.size()) == topN_ && !(score < top_.back().score)) return -1;
 
     // Too close to a schedule in the list (D39) that is at least as good: no.
     // Too close only to worse ones: it takes their place.
     for (const RankedSchedule& r : top_)
-        if (!(score < r.score) && differentAssignments(r.schedule, state_) < minDifferent_) return;
+        if (!(score < r.score) && differentAssignments(r.schedule, state_) < minDifferent_) return -1;
     top_.erase(std::remove_if(top_.begin(), top_.end(), [&](const RankedSchedule& r) {
                    return differentAssignments(r.schedule, state_) < minDifferent_;
                }),
@@ -168,15 +172,16 @@ void Solver::offer(const Score& score) {
     // the one found first stays first, so the result does not jump around.
     auto at = std::upper_bound(top_.begin(), top_.end(), score,
                                [](const Score& s, const RankedSchedule& r) { return s < r.score; });
-    const bool newBest = at == top_.begin();
+    const int place = static_cast<int>(at - top_.begin());
     top_.insert(at, RankedSchedule{state_, score});
     if (static_cast<int>(top_.size()) > topN_) top_.pop_back();
 
-    if (newBest) {
+    if (place == 0) {
         found_ = state_;
         bestScore_ = score;
         ++improvements_;
     }
+    return place;
 }
 
 // A complete schedule was reached. Returns true to stop the search.
@@ -185,15 +190,20 @@ bool Solver::onSchedule() {
     switch (mode_) {
     case Mode::First:
         found_ = state_;   // copy it out before backtracking erases it
+        if (observer_) observer_->scheduleFound(filledCount_, nullptr, -1);
         return true;
     case Mode::Count:
+        if (observer_) observer_->scheduleFound(filledCount_, nullptr, -1);
         return false;      // keep looking for more
-    case Mode::Best:
+    case Mode::Best: {
         // Score every schedule, keep the best ones, and go on looking.
         // Branches that cannot get into the list are cut before they get
         // here (cannotBeatBest).
-        offer(model_->score(problem_, state_));
+        const Score score = model_->score(problem_, state_);
+        const int place = offer(score);
+        if (observer_) observer_->scheduleFound(filledCount_, &score, place);
         return false;
+    }
     }
     return false;
 }
@@ -262,12 +272,22 @@ bool Solver::nextShift() {
 
     // Branch & Bound (step 5.3): if even the best possible completion of
     // this branch is not better than the best schedule found, skip it.
-    if (cannotBeatBest()) {
+    Score bound;
+    if (cannotBeatBest(&bound)) {
         ++pruned_;
+        if (observer_) observer_->pruned(filledCount_, bound, top_.back().score);
         return false;
     }
 
     const Choice choice = chooseShift();
+    if (observer_) {
+        const SearchObserver::ShiftChoice why{choice.shift, allowedCount(choice.shift), searchMin_[choice.shift],
+                                              choice.slack,
+                                              static_cast<int>(problem_.shifts.size()) - filledCount_,
+                                              &candidates_[choice.shift]};
+        if (choice.slack < 0) observer_->deadEnd(filledCount_, why);
+        else observer_->shiftChosen(state_, filledCount_, why);
+    }
     if (choice.slack < 0) return false;   // some shift can no longer reach its min
 
     const int shiftIdx = choice.shift;
@@ -281,8 +301,10 @@ bool Solver::nextShift() {
     filled_[shiftIdx] = 1;     // decided in this branch (undone below)
     ++filledCount_;
     bool stop = false;
-    for (int target = largest; target >= searchMin_[shiftIdx] && !stop; --target)
+    for (int target = largest; target >= searchMin_[shiftIdx] && !stop; --target) {
+        if (observer_) observer_->sizeTried(filledCount_ - 1, shiftIdx, target);
         stop = fill(shiftIdx, 0, target);
+    }
     filled_[shiftIdx] = 0;
     --filledCount_;
 
@@ -313,9 +335,12 @@ bool Solver::fill(int shiftIdx, int nextCandidate, int target) {
 
         state_.assign(emp, shiftIdx);                       // write in pencil
         refreshEmployee(emp);                               // only emp's answers changed
+        if (observer_) observer_->assigned(filledCount_ - 1, emp, shiftIdx);
         const bool stop = fill(shiftIdx, i + 1, target);    // same shift, later candidates only
         state_.unassign(emp, shiftIdx);                     // erase
         refreshEmployee(emp);
+        // When the whole search stops, erasing is only cleanup, not backtracking.
+        if (observer_ && !stop) observer_->unassigned(filledCount_ - 1, emp, shiftIdx);
 
         if (stop) return true;
     }

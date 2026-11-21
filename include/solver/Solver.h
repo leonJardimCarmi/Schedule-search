@@ -7,6 +7,7 @@
 #include "Problem.h"
 #include "solver/Constraint.h"
 #include "solver/Score.h"
+#include "solver/SearchObserver.h"
 #include "solver/State.h"
 
 // Depth-first search with backtracking over the shifts.
@@ -83,6 +84,10 @@ public:
     // the same best score, only slower: the tests use that to check the bound.
     void setUseBound(bool on) { useBound_ = on; }
 
+    // Someone to tell about every step of the search (D48), e.g. --trace.
+    // Null (the default) = nobody. The Solver does not own the observer.
+    void setObserver(SearchObserver* observer) { observer_ = observer; }
+
     // True when the last search explored everything it had to: with
     // findBest, the schedule returned is then proven to be the best.
     bool complete() const { return !limitHit_; }
@@ -149,14 +154,16 @@ private:
     long long pruned_ = 0;
     Score startBound_;
     bool useBound_ = true;
-    bool cannotBeatBest() const;
-    void offer(const Score& score);
+    bool cannotBeatBest(Score* bound) const;
+    int offer(const Score& score);   // its place in top_, or -1
     int topN_ = 1;
     int minDifferent_ = 1;
     std::vector<RankedSchedule> top_;      // best first, at most topN_
     std::optional<State> found_;
     long long solutions_ = 0;
     long long nodes_ = 0;
+
+    SearchObserver* observer_ = nullptr;
 
     SearchLimits limits_;
     std::chrono::steady_clock::time_point startTime_;

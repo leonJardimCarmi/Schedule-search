@@ -463,6 +463,55 @@ TEST_CASE("the list of good schedules keeps its promises", "[Solver][Score][Bran
     }
 }
 
+// ---- watching the search (step 6.5a, D48) -------------------------------------
+
+namespace {
+
+// Counts what findBest reports, and checks every pruning on the spot.
+class BoundWatcher : public SearchObserver {
+public:
+    long long prunes = 0, newBests = 0, assigns = 0, unassigns = 0, badPrunes = 0;
+
+    void pruned(int, const Score& bound, const Score& toBeat) override {
+        ++prunes;
+        if (bound < toBeat) ++badPrunes;   // cut a branch that could still win
+    }
+    void scheduleFound(int, const Score* score, int place) override {
+        if (score && place == 0) ++newBests;
+    }
+    void assigned(int, int, int) override { ++assigns; }
+    void unassigned(int, int, int) override { ++unassigns; }
+};
+
+}  // namespace
+
+TEST_CASE("an observer only watches: same search, and it sees every prune and every new best",
+          "[Solver][Score][D48]") {
+    for (unsigned seed = 1; seed <= 40; ++seed) {
+        CAPTURE(seed);
+        const Problem p = randomProblem(seed);
+        const ScoreModel model = makeScoreModel(p);
+
+        Solver alone(p);
+        const std::optional<State> a = alone.findBest(model);
+
+        Solver watched(p);
+        BoundWatcher watcher;
+        watched.setObserver(&watcher);
+        const std::optional<State> b = watched.findBest(model);
+
+        REQUIRE(a.has_value() == b.has_value());
+        CHECK(watched.nodesVisited() == alone.nodesVisited());
+        CHECK(watched.pruned() == alone.pruned());
+        if (a) CHECK(watched.bestScore() == alone.bestScore());
+
+        CHECK(watcher.prunes == watched.pruned());
+        CHECK(watcher.badPrunes == 0);
+        CHECK(watcher.newBests == watched.improvements());
+        CHECK(watcher.assigns == watcher.unassigns);   // every pencil mark was erased
+    }
+}
+
 // ---- --weight name=value (step 6.2, D43) --------------------------------------
 
 TEST_CASE("parseWeightSetting reads name=value", "[Score][D43]") {
