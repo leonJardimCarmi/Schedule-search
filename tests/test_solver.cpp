@@ -390,3 +390,25 @@ TEST_CASE("the observer sees a dead end", "[Solver][D48]") {
                                 "0: - 0 -> 0",
                             });
 }
+
+TEST_CASE("a shift is never tried with more people than the rules allow now", "[Solver][D48]") {
+    // Step 6.6, found with --trace. B wants 2, but after A takes E1, only E2
+    // may work B (no-overlap). Trying "2 people" there can only fail, so the
+    // search goes straight to 1.
+    Problem p = makeProblem({freeOnSunday(1), freeOnSunday(2)},
+                            {sundayShift("A", "08:00-16:00", 1), sundayShift("B", "08:00-16:00", 1, 2)});
+    Solver solver(p);
+    Recorder recorder;
+    solver.setObserver(&recorder);
+
+    REQUIRE(solver.findFirst());
+    CHECK(recorder.steps == std::vector<std::string>{
+                                "0: choose 0 allowed 2 min 1 slack 1 open 2",
+                                "0: size 0 = 1",
+                                "0: + 0 -> 0",
+                                "1: choose 1 allowed 1 min 1 slack 0 open 1",
+                                "1: size 1 = 1",   // not "= 2" first
+                                "1: + 1 -> 1",
+                                "2: schedule",
+                            });
+}

@@ -292,11 +292,14 @@ bool Solver::nextShift() {
 
     const int shiftIdx = choice.shift;
     const Shift& shift = problem_.shifts[shiftIdx];
-    const int candidateCount = static_cast<int>(candidates_[shiftIdx].size());
     orderCandidates(shiftIdx);
 
-    // No point aiming for more people than there are candidates.
-    const int largest = std::min(shift.wantedStaff, candidateCount);
+    // No point aiming for more people than the rules allow right now (step
+    // 6.6). Not just the candidates: someone a hard rule blocks now stays
+    // blocked while this shift is filled, because assigning a co-worker only
+    // changes the co-worker's answers (D27). --trace showed the old limit
+    // trying "2 people" with 1 allowed, a branch that always fails.
+    const int largest = std::min(shift.wantedStaff, allowedCount(shiftIdx));
 
     filled_[shiftIdx] = 1;     // decided in this branch (undone below)
     ++filledCount_;
