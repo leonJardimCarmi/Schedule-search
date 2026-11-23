@@ -1,6 +1,7 @@
 #include "report/ReportModel.h"
 
 #include <algorithm>
+#include <tuple>
 
 #include "solver/Availability.h"
 #include "solver/WorkBlocks.h"
@@ -35,7 +36,7 @@ ShiftReport shiftReport(const Problem& p, const State& schedule, int s,
     if (staffed < shift.minStaff) status = ShiftReport::Status::BelowMin;
     else if (staffed < shift.wantedStaff) status = ShiftReport::Status::BelowWanted;
 
-    ShiftReport report{s, schedule.staffOf(s), status, {}, {}};
+    ShiftReport report{s, schedule.staffOf(s), status, {}, {}, {}};
     for (int e : report.staff) {
         report.preferred.push_back(availabilityFit(p.employees[e], shift) == Fit::Preferred);
         report.inDouble.push_back(doubles[s][e]);
@@ -127,12 +128,63 @@ AlternativeReport alternativeReport(const State& best, const RankedSchedule& alt
 
 }  // namespace
 
+CheckReport checkSchedule(const Problem& problem, const State& schedule, const ConstraintList& rules) {
+    // Every assignment, by the start of its shift; ties by shift, then in
+    // the order the file listed the people.
+    struct Item { int start, shift, pos, emp; };
+    std::vector<Item> items;
+    for (int s = 0; s < static_cast<int>(problem.shifts.size()); ++s) {
+        const std::vector<int>& staff = schedule.staffOf(s);
+        for (int k = 0; k < static_cast<int>(staff.size()); ++k)
+            items.push_back({problem.shifts[s].absoluteStart(), s, k, staff[k]});
+    }
+    std::sort(items.begin(), items.end(), [](const Item& a, const Item& b) {
+        return std::tie(a.start, a.shift, a.pos) < std::tie(b.start, b.shift, b.pos);
+    });
+
+    // One "before" per hard rule: the earlier assignments that did not break
+    // THAT rule. A rule looks at all of the employee's shifts, so an old
+    // violation would otherwise be found again at each of their later shifts
+    // (one short rest, reported at every shift after it). An assignment that
+    // breaks another rule stays: an availability exception the manager
+    // approved (D18) still counts for rest and overlaps.
+    CheckReport report;
+    const State empty(static_cast<int>(problem.employees.size()), static_cast<int>(problem.shifts.size()));
+    std::vector<State> before(rules.size(), empty);
+    for (const Item& it : items) {
+        const Employee& employee = problem.employees[it.emp];
+        const Shift& shift = problem.shifts[it.shift];
+        if (availabilityFit(employee, shift) == Fit::No)
+            report.violations.push_back({it.emp, it.shift, Violation::Kind::Availability, "", ""});
+        if (!roleFits(employee, shift))
+            report.violations.push_back({it.emp, it.shift, Violation::Kind::Role, "", ""});
+        for (std::size_t r = 0; r < rules.size(); ++r) {
+            if (auto why = rules[r]->whyNot(problem, before[r], it.emp, it.shift))
+                report.violations.push_back({it.emp, it.shift, Violation::Kind::Rule, rules[r]->name(), *why});
+            else
+                before[r].assign(it.emp, it.shift);
+        }
+    }
+    for (int s = 0; s < static_cast<int>(problem.shifts.size()); ++s)
+        if (schedule.assignedCount(s) > problem.shifts[s].wantedStaff)
+            report.overStaffed.push_back({s, schedule.assignedCount(s), problem.shifts[s].wantedStaff});
+    return report;
+}
+
 Report buildReport(const Problem& problem, const State& schedule, const std::vector<Shortage>& shortages,
-                   const ScoreModel& model, const std::vector<RankedSchedule>& top) {
+                   const ScoreModel& model, const std::vector<RankedSchedule>& top, const CheckReport* check) {
     Report report;
     const auto doubles = doublesOf(problem, schedule);
-    for (int s = 0; s < static_cast<int>(problem.shifts.size()); ++s)
-        report.shifts.push_back(shiftReport(problem, schedule, s, doubles));
+    for (int s = 0; s < static_cast<int>(problem.shifts.size()); ++s) {
+        ShiftReport row = shiftReport(problem, schedule, s, doubles);
+        row.breaksRule.assign(row.staff.size(), 0);
+        if (check)
+            for (const Violation& v : check->violations)
+                if (v.shift == s)
+                    for (std::size_t k = 0; k < row.staff.size(); ++k)
+                        if (row.staff[k] == v.employee) row.breaksRule[k] = 1;
+        report.shifts.push_back(std::move(row));
+    }
     for (int e = 0; e < static_cast<int>(problem.employees.size()); ++e)
         report.employees.push_back(employeeReport(problem, schedule, e));
     for (const Shortage& gap : shortages)

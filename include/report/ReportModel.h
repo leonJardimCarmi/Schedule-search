@@ -27,6 +27,7 @@ struct ShiftReport {
     // One flag per person in `staff`, same order (step 6.3, D42):
     std::vector<char> preferred;   // they marked this shift "preferred"
     std::vector<char> inDouble;    // this shift is part of a double for them (D16)
+    std::vector<char> breaksRule;  // --check (D51): this assignment has a violation; all 0 otherwise
 };
 
 // A kind of shift = a row of the weekly table (step 6.3): the same hours and
@@ -116,7 +117,38 @@ struct Explanation {
 Explanation explainAssignment(const Problem& problem, const State& schedule, const ConstraintList& rules,
                               int employee, int shift);
 
+// --check (stage 7.2, D51): what a hand-made schedule breaks. Nothing is
+// blocked (D18): every assignment stays, and each problem is listed.
+struct Violation {
+    enum class Kind { Availability, Role, Rule };
+    int employee;
+    int shift;
+    Kind kind;
+    std::string rule;   // Kind::Rule: the hard rule's name, e.g. "min-rest"
+    std::string why;    // Kind::Rule: the rule's own reason (D47)
+};
+// More people than the shift wants: not a rule, wanted is a target. A note only.
+struct OverStaffed {
+    int shift;
+    int staff;
+    int wanted;
+};
+struct CheckReport {
+    std::vector<Violation> violations;   // by the shift's start time
+    std::vector<OverStaffed> overStaffed;
+    bool clean() const { return violations.empty(); }
+};
+
+// Each assignment is checked against the ones that start before it, the way
+// the search assigns. So a rule that involves two shifts (an overlap, too
+// little rest) is reported once, at the later shift (D51). For each hard
+// rule, the earlier assignments that already broke that rule are left out,
+// so one violation is not found again at every later shift.
+CheckReport checkSchedule(const Problem& problem, const State& schedule, const ConstraintList& rules);
+
 // Builds the report of `schedule`. `top` is the solver's list of good
 // schedules (top[0] is `schedule` itself); pass an empty list for none.
+// `check` (--check) marks the assignments that break a rule.
 Report buildReport(const Problem& problem, const State& schedule, const std::vector<Shortage>& shortages,
-                   const ScoreModel& model, const std::vector<RankedSchedule>& top);
+                   const ScoreModel& model, const std::vector<RankedSchedule>& top,
+                   const CheckReport* check = nullptr);

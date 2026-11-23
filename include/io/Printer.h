@@ -36,6 +36,10 @@ void printPeriodSummary(std::ostream& out, const Problem& problem, const Report&
 // rule, each with its reason, then a one-line answer.
 void printExplanation(std::ostream& out, const Problem& problem, const State& schedule, const Explanation& e);
 
+// --check (stage 7.2, D51): each violation of a hand-made schedule, with its
+// reason, and a note for each shift with more people than it wants.
+void printViolations(std::ostream& out, const Problem& problem, const CheckReport& check);
+
 // Short names for narrow table cells: the first name, and when two people
 // share it, also the first letter of the last name ("Noa A.", "Noa L.").
 // If even that is shared, the full name.

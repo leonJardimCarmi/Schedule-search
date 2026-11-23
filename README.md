@@ -206,7 +206,18 @@ MON-M: 1 allowed, min 1, slack 0 (the least of 6 open); blocked: Dana (min-rest)
   MON-M: try 1 person
 ```
 
-`--save <file.json>` also writes the schedule found to a file, one shift per line: `{"assignments": {"SUN-M": [104, 101], "SUN-E": [102]}}` (employees by id; when writing one by hand, a full name works too). This is the format stage 7 reads back to check a schedule made or edited by hand.
+`--save <file.json>` also writes the schedule found to a file, one shift per line: `{"assignments": {"SUN-M": [104, 101], "SUN-E": [102]}}` (employees by id; when writing one by hand, a full name works too). This is also the format `--check` reads.
+
+To check a schedule made or edited by hand: `schedule_search problem.json --check my_schedule.json`. There is no search: the schedule is shown in the same table with the same score, every assignment that breaks availability, a role or a hard rule is marked ` x` in its cell, and a list below the score gives each one with its reason. Nothing is blocked: a manager may make exceptions, the program only points them out. Each violation is listed once, at the later of the shifts involved, and a shift with more people than it wants gets a note. `--explain` works against the hand-made schedule too.
+
+```
+Rule violations (4): nothing was blocked, each is listed at the later of the shifts involved
+  MON-M      Dana Levi          min-rest              only 8h of rest between SUN-E and MON-M, needs 10h
+  MON-N      Yossi Cohen        availability          not available for 2026-11-09 22:00-06:00
+  MON-N      Yossi Cohen        role                  does not have the role 'guard'
+  MON-N      Yossi Cohen        min-rest              only 6h of rest between MON-M and MON-N, needs 10h
+  note: TUE-E has 2 people, it wants 1
+```
 
 `--verbose` also prints the loaded input, the candidates for each shift, and the number of search nodes.
 `--time-limit <seconds>` (default 60) and `--max-nodes <n>` stop a search that takes too long.
@@ -245,7 +256,7 @@ For example, medics who travel 4 hours each way and stay on site for several day
 
 On a real month of this kind (7 medics, 62 shifts, 20 s search), the days outside the 3..7 ideal fell from 174 (everyone a day on, a day off) to 2. While `fewer-trips` is on, the search also tries first, inside each shift, someone who works the day before or after (after "no double", before "preferred"), and its bound knows when a trip can no longer grow long enough, so it prunes. Fairness did not suffer here (346 with the rule off, 322 with it on), but the two can pull against each other, so tune their weights.
 
-Exit codes: `0` schedule found (with a note if it is the best found in time, not proven best) · `1` bad arguments or input · `2` valid input, and no schedule exists (the whole search space was checked) · `3` stopped by a limit before finding a schedule (one may still exist).
+Exit codes: `0` schedule found (with a note if it is the best found in time, not proven best) · `1` bad arguments or input · `2` valid input, and no schedule exists (the whole search space was checked) · `3` stopped by a limit before finding a schedule (one may still exist) · `4` (`--check`) the schedule breaks a rule.
 
 ---
 

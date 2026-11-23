@@ -22,6 +22,7 @@ constexpr int kOk = 0;           // a schedule was found (maybe not proven best:
 constexpr int kBadInput = 1;     // wrong arguments or errors in the input file
 constexpr int kNoSchedule = 2;   // the input is fine but no schedule exists
 constexpr int kLimitReached = 3; // stopped by --time-limit / --max-nodes (D24)
+constexpr int kViolations = 4;   // --check: the schedule breaks a hard rule (D51)
 
 constexpr double kDefaultTimeLimit = 60;   // seconds (D23)
 constexpr int kDefaultTraceLines = 200;    // D48
@@ -44,7 +45,10 @@ void printUsage() {
                  "                             and if not, why (employee by id or full name, shift by id)\n"
                  "  --trace                    print the search step by step, first 200 lines (for small inputs)\n"
                  "  --trace-lines <n>          the same, first n lines\n"
-                 "  --save <file.json>         also write the schedule found to a file (stage 7: --check reads it)\n"
+                 "  --save <file.json>         also write the schedule found to a file (--check reads it)\n"
+                 "  --check <file.json>        no search: check a schedule made by hand against availability,\n"
+                 "                             roles and every hard rule, and show its table and score\n"
+                 "                             (exit code 4 if it breaks a rule; works with --explain)\n"
                  "  --verbose                  also print the input, the candidates and the search size\n";
 }
 
@@ -63,6 +67,8 @@ struct Options {
     std::optional<std::pair<std::string, std::string>> explain;            // D43: employee, shift
     std::optional<int> traceLines;   // D48: --trace / --trace-lines n; empty = no trace
     std::string savePath;            // D51: --save file; empty = do not save
+    std::string checkPath;           // D51: --check file; empty = search as usual
+    std::vector<std::string> searchFlags;   // given flags that only make sense with a search
 };
 
 // Arguments may come in any order: "file --verbose" or "--verbose file".
@@ -80,12 +86,15 @@ std::optional<Options> parseArgs(int argc, char* argv[]) {
             options.explain = std::make_pair(std::string(argv[i + 1]), std::string(argv[i + 2]));
             i += 2;
         } else if (arg == "--trace") {
+            options.searchFlags.push_back(arg);
             if (!options.traceLines) options.traceLines = kDefaultTraceLines;   // keeps an earlier --trace-lines
         } else if (arg == "--first") {
             options.firstOnly = true;
+            options.searchFlags.push_back(arg);
         } else if (arg == "--availability" || arg == "--time-limit" || arg == "--max-nodes" ||
                    arg == "--top" || arg == "--min-diff" || arg == "--weight" || arg == "--view" ||
-                   arg == "--week" || arg == "--color" || arg == "--trace-lines" || arg == "--save") {
+                   arg == "--week" || arg == "--color" || arg == "--trace-lines" || arg == "--save" ||
+                   arg == "--check") {
             if (i + 1 >= argc) {   // these options need a value after them
                 std::cerr << arg << " needs a value\n";
                 return std::nullopt;
@@ -95,8 +104,15 @@ std::optional<Options> parseArgs(int argc, char* argv[]) {
                 options.availabilityPath = value;
                 continue;
             }
+            if (arg == "--time-limit" || arg == "--max-nodes" || arg == "--top" || arg == "--min-diff" ||
+                arg == "--trace-lines" || arg == "--save")
+                options.searchFlags.push_back(arg);
             if (arg == "--save") {
                 options.savePath = value;
+                continue;
+            }
+            if (arg == "--check") {
+                options.checkPath = value;
                 continue;
             }
             if (arg == "--view") {
@@ -159,6 +175,10 @@ std::optional<Options> parseArgs(int argc, char* argv[]) {
         }
     }
     if (options.inputPath.empty()) return std::nullopt;
+    if (!options.checkPath.empty() && !options.searchFlags.empty()) {
+        std::cerr << "--check does not search, so " << options.searchFlags.front() << " has no meaning with it\n";
+        return std::nullopt;
+    }
     if (options.week && options.listView) {
         std::cerr << "--week works with the table (--view grid) only\n";
         return std::nullopt;
@@ -176,6 +196,54 @@ bool useColors(Options::ColorMode mode) {
     case Options::ColorMode::Auto: break;
     }
     return stdoutIsTerminal() && !noColorRequested() && enableAnsiColors();
+}
+
+// The schedule itself, the same for a search and for --check: the table (or
+// the list), the shifts that cannot be staffed, and the score.
+// Returns false if --week is past the last week.
+bool printResult(const Options& options, const Problem& problem, const Report& report) {
+    if (options.week && *options.week > static_cast<int>(report.weeks.size())) {
+        std::cerr << "--week " << *options.week << ": the period has only " << report.weeks.size() << " weeks\n";
+        return false;
+    }
+    if (options.listView) {
+        printSchedule(std::cout, problem, report);
+    } else {
+        printWeeks(std::cout, problem, report, options.week, useColors(options.color));
+        printPeriodSummary(std::cout, problem, report);
+    }
+    printShortages(std::cout, problem, report);
+    printScore(std::cout, report);
+    return true;
+}
+
+// --check (stage 7.2, D51): no search. A schedule made by hand is loaded and
+// shown like a found one, with every rule it breaks. Nothing is blocked (D18).
+int checkHandMade(const Options& options, const Problem& problem, const ScoreModel& scoreModel, const Solver& solver) {
+    ScheduleLoadResult loaded = loadScheduleFile(options.checkPath, problem);
+    for (const Diagnostic& d : loaded.diagnostics.all()) std::cerr << d << '\n';
+    if (!loaded.ok()) {
+        std::cerr << "schedule file has errors, stopping.\n";
+        return kBadInput;
+    }
+    const State& schedule = *loaded.schedule;
+    if (options.explain) {   // --explain against the hand-made schedule
+        const auto emp = problem.findEmployee(options.explain->first);
+        const auto shift = problem.findShift(options.explain->second);
+        if (!emp) std::cerr << "--explain: no employee '" << options.explain->first << "' (use the id or the full name)\n";
+        if (!shift) std::cerr << "--explain: no shift '" << options.explain->second << "'\n";
+        if (!emp || !shift) return kBadInput;
+        printExplanation(std::cout, problem, schedule,
+                         explainAssignment(problem, schedule, solver.constraints(), static_cast<int>(*emp),
+                                           static_cast<int>(*shift)));
+        return kOk;
+    }
+    const CheckReport check = checkSchedule(problem, schedule, solver.constraints());
+    const Report report = buildReport(problem, schedule, solver.shortages(), scoreModel, {}, &check);
+    std::cout << "Checking " << options.checkPath << " (made by hand, not searched)\n\n";
+    if (!printResult(options, problem, report)) return kBadInput;
+    printViolations(std::cout, problem, check);
+    return check.clean() ? kOk : kViolations;
 }
 
 }  // namespace
@@ -217,6 +285,8 @@ int main(int argc, char* argv[]) {
         for (const auto& constraint : solver.constraints()) std::cout << ' ' << constraint->name();
         std::cout << "\n\n";
     }
+    if (!options->checkPath.empty()) return checkHandMade(*options, problem, scoreModel, solver);
+
     // --trace (D48): the search tells the printer every step. It goes to
     // stdout before the result, and stops printing after its line limit.
     std::optional<TracePrinter> trace;
@@ -279,18 +349,7 @@ int main(int argc, char* argv[]) {
 
     // 4. Report: computed once (D41), then shown.
     const Report report = buildReport(problem, *schedule, solver.shortages(), scoreModel, solver.top());
-    if (options->week && *options->week > static_cast<int>(report.weeks.size())) {
-        std::cerr << "--week " << *options->week << ": the period has only " << report.weeks.size() << " weeks\n";
-        return kBadInput;
-    }
-    if (options->listView) {
-        printSchedule(std::cout, problem, report);
-    } else {
-        printWeeks(std::cout, problem, report, options->week, useColors(options->color));
-        printPeriodSummary(std::cout, problem, report);
-    }
-    printShortages(std::cout, problem, report);
-    printScore(std::cout, report);
+    if (!printResult(*options, problem, report)) return kBadInput;
 
     // Anytime (D31, D34): a usable schedule, but the search did not finish.
     if (!options->firstOnly) {

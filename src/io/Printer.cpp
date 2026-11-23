@@ -261,9 +261,12 @@ std::vector<CellLine> cellLines(const Problem& p, const Report& report, const st
     std::vector<CellLine> lines;
     for (int s : shifts) {
         const ShiftReport& row = report.shifts[s];
-        for (std::size_t i = 0; i < row.staff.size(); ++i)
-            lines.push_back({names[row.staff[i]] + (row.preferred[i] ? "*" : "") + (row.inDouble[i] ? " D" : ""),
-                             row.preferred[i] ? Color::Green : Color::None});
+        for (std::size_t i = 0; i < row.staff.size(); ++i) {
+            const bool breaks = i < row.breaksRule.size() && row.breaksRule[i];   // --check (D51)
+            lines.push_back({names[row.staff[i]] + (row.preferred[i] ? "*" : "") + (row.inDouble[i] ? " D" : "") +
+                                 (breaks ? " x" : ""),
+                             breaks ? Color::Red : row.preferred[i] ? Color::Green : Color::None});
+        }
         const int missing = p.shifts[s].wantedStaff - static_cast<int>(row.staff.size());
         if (row.status == ShiftReport::Status::BelowMin) lines.push_back({"!! -" + std::to_string(missing), Color::Red});
         else if (row.status == ShiftReport::Status::BelowWanted) lines.push_back({"! -" + std::to_string(missing), Color::Yellow});
@@ -336,7 +339,13 @@ void printWeeks(std::ostream& out, const Problem& p, const Report& report, std::
                 bool colors) {
     out << "Schedule " << p.periodStart.toString() << " .. " << p.periodEnd.toString()
         << "  (" << report.weeks.size() << (report.weeks.size() == 1 ? " week" : " weeks") << ")\n";
-    out << "  * preferred   D part of a double   ! below wanted   !! below min (see the list below)\n";
+    out << "  * preferred   D part of a double   ! below wanted   !! below min (see the list below)";
+    // --check (D51): only when something is marked, so other output stays as it was.
+    const bool anyBroken = std::any_of(report.shifts.begin(), report.shifts.end(), [](const ShiftReport& r) {
+        return std::find(r.breaksRule.begin(), r.breaksRule.end(), 1) != r.breaksRule.end();
+    });
+    if (anyBroken) out << "   x breaks a rule";
+    out << "\n";
     const std::vector<std::string> names = shortNames(p);
     for (std::size_t w = 0; w < report.weeks.size(); ++w)
         if (!onlyWeek || static_cast<int>(w) + 1 == *onlyWeek) printOneWeek(out, p, report, w, names, colors);
@@ -353,6 +362,40 @@ void printPeriodSummary(std::ostream& out, const Problem& p, const Report& repor
     for (const ScoreLine& line : report.scoreLines)
         if (line.rule == "fairness" && line.weight != 0)
             out << "  Fairness: " << line.violations << "  (0 = shifts spread as evenly as possible)\n";
+}
+
+// ---- --check (stage 7.2, D51) -------------------------------------------------
+
+void printViolations(std::ostream& out, const Problem& p, const CheckReport& check) {
+    if (check.clean()) {
+        out << "\nRules: no violations. Every assignment respects availability, roles and the hard rules.\n";
+    } else {
+        out << "\nRule violations (" << check.violations.size()
+            << "): nothing was blocked, each is listed at the later of the shifts involved\n";
+        for (const Violation& v : check.violations) {
+            const Shift& shift = p.shifts[v.shift];
+            const Employee& employee = p.employees[v.employee];
+            std::string rule, why;
+            switch (v.kind) {
+            case Violation::Kind::Availability:
+                rule = "availability";
+                why = "not available for " + shift.date.toString() + " " + shift.time.toString();
+                break;
+            case Violation::Kind::Role:
+                rule = "role";
+                why = "does not have the role '" + shift.role + "'";
+                break;
+            case Violation::Kind::Rule:
+                rule = v.rule;
+                why = v.why;
+                break;
+            }
+            out << "  " << std::left << std::setw(10) << shift.id << ' ' << std::setw(18) << employee.name << ' '
+                << std::setw(22) << rule << why << '\n';
+        }
+    }
+    for (const OverStaffed& o : check.overStaffed)
+        out << "  note: " << p.shifts[o.shift].id << " has " << o.staff << " people, it wants " << o.wanted << '\n';
 }
 
 // ---- --explain (step 6.4, D43, D47) -------------------------------------------
