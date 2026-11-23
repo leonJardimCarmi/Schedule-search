@@ -202,7 +202,7 @@ Rules readRules(Reader& r, const json& root) {
 
     r.warnUnknownKeys(*it, "rules", {"minRestHours", "blockGapMinutes", "doubleAboveHours",
                                      "maxDoubleHours", "maxConsecutiveDays",
-                                     "nightWindow", "nightMinHours"});
+                                     "nightWindow", "nightMinHours", "tripMinDays", "tripMaxDays"});
     if (auto v = r.optionalInt(*it, "rules", "minRestHours")) rules.minRestHours = *v;
     if (auto v = r.optionalInt(*it, "rules", "blockGapMinutes")) rules.blockGapMinutes = *v;
     if (auto v = r.optionalInt(*it, "rules", "doubleAboveHours")) rules.doubleAboveHours = *v;
@@ -211,6 +211,19 @@ Rules readRules(Reader& r, const json& root) {
     if (auto s = r.optionalString(*it, "rules", "nightWindow"))
         if (auto w = r.parse<TimePeriod>(*s, "rules.nightWindow", TimePeriod::fromString)) rules.nightWindow = *w;
     if (auto v = r.optionalInt(*it, "rules", "nightMinHours")) rules.nightMinHours = *v;
+    const auto tripMin = r.optionalInt(*it, "rules", "tripMinDays");
+    const auto tripMax = r.optionalInt(*it, "rules", "tripMaxDays");
+    if (tripMin) rules.tripMinDays = *tripMin;
+    if (tripMax) rules.tripMaxDays = *tripMax;
+    // D49: the hard rule comes first, so a longer ideal trip can never be
+    // reached. Only when the file asks for it: the defaults never warn.
+    if (rules.maxConsecutiveDays)
+        for (const auto& [key, value] : {std::pair{"tripMinDays", tripMin}, std::pair{"tripMaxDays", tripMax}})
+            if (value && *value > *rules.maxConsecutiveDays)
+                r.warning(std::string("rules.") + key,
+                          std::to_string(*value) + " is more than maxConsecutiveDays (" +
+                              std::to_string(*rules.maxConsecutiveDays) + "): trips will be at most " +
+                              std::to_string(*rules.maxConsecutiveDays) + " days");
     return rules;
 }
 
@@ -282,6 +295,8 @@ void validate(Reader& r, const Problem& p) {
     if (rules.maxConsecutiveDays && *rules.maxConsecutiveDays < 1) r.error("rules.maxConsecutiveDays", "must be at least 1");
     if (rules.nightMinHours < 1 || rules.nightMinHours * 60 > rules.nightWindow.duration())
         r.error("rules.nightMinHours", "must be at least 1 and fit inside nightWindow");
+    if (rules.tripMinDays < 1) r.error("rules.tripMinDays", "must be at least 1");
+    if (rules.tripMaxDays < rules.tripMinDays) r.error("rules.tripMaxDays", "must not be smaller than tripMinDays");
 }
 
 }  // namespace

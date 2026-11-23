@@ -512,6 +512,126 @@ TEST_CASE("an observer only watches: same search, and it sees every prune and ev
     }
 }
 
+// ---- fewer-trips (step 6.7, D49) ------------------------------------------------
+
+namespace {
+
+// Two weeks, one 08:00-16:00 shift every day, plus an evening shift on day 5
+// (index 14) to make a double. fewer-trips is turned on (its default weight is 0).
+Problem twoWeeksOfDays() {
+    Problem p{kSunday, kSunday + 13, {freeAllWeek(1)}, {}, Rules{}};
+    for (int d = 0; d < 14; ++d) p.shifts.push_back(shiftOn("D" + std::to_string(d), d, "08:00-16:00"));
+    p.shifts.push_back(shiftOn("E5", 5, "16:00-23:00"));
+    p.rules.weights["fewer-trips"] = 1;
+    return p;
+}
+
+State working(const Problem& p, std::initializer_list<int> shifts) {
+    State s(1, static_cast<int>(p.shifts.size()));
+    for (int i : shifts) s.assign(0, i);
+    return s;
+}
+
+}  // namespace
+
+TEST_CASE("fewer-trips counts the days outside the ideal trip length", "[Score][D49]") {
+    Problem p = twoWeeksOfDays();   // the ideal trip: 3..7 days (the defaults)
+    const ScoreModel model = makeScoreModel(p);
+
+    // Trips: {0} at the start of the period: may have begun earlier -> 0
+    //        {2} one day                                            -> 2
+    //        {4,5} two days; day 5 is a double, still one day       -> 1
+    //        {7,8,9} three days                                     -> 0
+    //        {13} at the end of the period: may go on               -> 0
+    CHECK(violationsOf(model, p, working(p, {0, 2, 4, 5, 14, 7, 8, 9, 13}), "fewer-trips") == 3);
+
+    // One trip of 10 days (days 1..10): 3 above the max of 7.
+    CHECK(violationsOf(model, p, working(p, {1, 2, 3, 4, 5, 6, 7, 8, 9, 10}), "fewer-trips") == 3);
+    // A long trip at the edge is still too long: days 0..8 -> 2.
+    CHECK(violationsOf(model, p, working(p, {0, 1, 2, 3, 4, 5, 6, 7, 8}), "fewer-trips") == 2);
+    // Nobody works: no trips, nothing to count.
+    CHECK(violationsOf(model, p, working(p, {}), "fewer-trips") == 0);
+
+    SECTION("tripMinDays and tripMaxDays come from the rules") {
+        p.rules.tripMinDays = 1;
+        p.rules.tripMaxDays = 1;
+        const ScoreModel daily = makeScoreModel(p);
+        CHECK(violationsOf(daily, p, working(p, {0, 2, 4, 5, 14, 7, 8, 9, 13}), "fewer-trips") == 3);   // 1 + 2
+    }
+}
+
+TEST_CASE("fewer-trips is off by default", "[Score][D49]") {
+    Problem p = twoWeeksOfDays();
+    p.rules.weights.clear();
+    const ScoreModel model = makeScoreModel(p);
+    const State s = working(p, {2});   // a one-day trip
+    bool found = false;
+    for (const ScoreLine& line : model.breakdown(p, s))
+        if (line.rule == "fewer-trips") {
+            found = true;
+            CHECK(line.weight == 0);
+            CHECK(line.penalty == 0);
+        }
+    CHECK(found);
+}
+
+TEST_CASE("the bound never loses the best schedule with fewer-trips on", "[Solver][Score][BranchAndBound][D49]") {
+    // Trips of exactly 2 days are ideal, so both "too short" and "too long"
+    // (3 days in a row) happen in these 3-day problems.
+    for (unsigned seed = 1; seed <= 60; ++seed) {
+        CAPTURE(seed);
+        Problem p = randomProblem(seed);
+        p.rules.tripMinDays = 2;
+        p.rules.tripMaxDays = 2;
+        p.rules.weights["fewer-trips"] = 7;
+        const ScoreModel model = makeScoreModel(p);
+
+        Solver plain(p);
+        plain.setUseBound(false);
+        const std::optional<State> slow = plain.findBest(model);
+        Solver pruning(p);
+        const std::optional<State> fast = pruning.findBest(model);
+
+        REQUIRE(slow.has_value() == fast.has_value());
+        if (!slow) continue;
+        CHECK(pruning.bestScore() == plain.bestScore());
+    }
+}
+
+TEST_CASE("the loader reads the trip rules", "[Score][JsonLoader][D49]") {
+    const std::string base = R"({
+        "period": {"start": "2026-11-08", "end": "2026-11-08"},
+        "employees": [], "shifts": [],)";
+    auto warned = [](const LoadResult& r, const std::string& where) {
+        for (const Diagnostic& d : r.diagnostics.all())
+            if (d.severity == Severity::Warning && d.where.find(where) != std::string::npos) return true;
+        return false;
+    };
+    SECTION("custom values") {
+        LoadResult r = JsonLoader::loadString(base + R"("rules": {"tripMinDays": 5, "tripMaxDays": 7}})", "t.json");
+        REQUIRE(r.ok());
+        CHECK(r.problem->rules.tripMinDays == 5);
+        CHECK(r.problem->rules.tripMaxDays == 7);
+        CHECK(r.diagnostics.all().empty());
+    }
+    SECTION("errors") {
+        CHECK_FALSE(JsonLoader::loadString(base + R"("rules": {"tripMinDays": 0}})", "t.json").ok());
+        CHECK_FALSE(JsonLoader::loadString(base + R"("rules": {"tripMinDays": 5, "tripMaxDays": 4}})", "t.json").ok());
+    }
+    SECTION("an ideal trip longer than maxConsecutiveDays: a warning, the hard rule wins") {
+        LoadResult r = JsonLoader::loadString(
+            base + R"("rules": {"maxConsecutiveDays": 5, "tripMinDays": 3, "tripMaxDays": 7}})", "t.json");
+        REQUIRE(r.ok());
+        CHECK(warned(r, "rules.tripMaxDays"));
+        CHECK_FALSE(warned(r, "rules.tripMinDays"));
+    }
+    SECTION("the defaults never warn, even with a small maxConsecutiveDays") {
+        LoadResult r = JsonLoader::loadString(base + R"("rules": {"maxConsecutiveDays": 2}})", "t.json");
+        REQUIRE(r.ok());
+        CHECK(r.diagnostics.all().empty());
+    }
+}
+
 // ---- --weight name=value (step 6.2, D43) --------------------------------------
 
 TEST_CASE("parseWeightSetting reads name=value", "[Score][D43]") {

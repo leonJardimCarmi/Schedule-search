@@ -20,6 +20,11 @@ struct Rules {
     TimePeriod nightWindow = TimePeriod::fromString("22:00-06:00");
     int nightMinHours = 2;
 
+    // D49: the ideal length of a trip (days in a row on site) for the soft
+    // rule "fewer-trips". A wish, not a limit: maxConsecutiveDays still wins.
+    int tripMinDays = 3;
+    int tripMaxDays = 7;
+
     // Soft-rule weights from the input's "weights" object, by rule name
     // (D28). Rules not listed here keep their default weight.
     std::map<std::string, int> weights;

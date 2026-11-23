@@ -217,6 +217,54 @@ private:
     std::vector<char> night_;
 };
 
+// D49: fewer trips to a remote site. A trip is a run of days in a row on
+// which the employee works (by start day, D13); a day off ends it. The ideal
+// trip is tripMinDays..tripMaxDays long. Violations, in days:
+//   - a trip shorter than the min: the days missing (1 day, min 3 -> 2),
+//     except a trip that touches the first or last day of the period, which
+//     may go on outside it, so its real length is not known;
+//   - a trip longer than the max: the days above it.
+// Default weight 0: only a business with a far site turns it on.
+class FewerTrips : public SoftRule {
+public:
+    explicit FewerTrips(const Problem& p)
+        : first_(p.periodStart.daysSinceEpoch()), last_(p.periodEnd.daysSinceEpoch()),
+          min_(p.rules.tripMinDays), max_(p.rules.tripMaxDays) {}
+    const char* name() const override { return "fewer-trips"; }
+    const char* description() const override { return "day outside the ideal trip length (days in a row)"; }
+    long long violations(const Problem& p, const State& s) const override { return count(p, s, true); }
+    // Assigning more shifts only makes trips longer or joins two of them,
+    // and the days above the max never shrink: max(0, a+b+1-max) is at least
+    // max(0, a-max) + max(0, b-max). A short trip can still grow, so only the
+    // "too long" part is a lower bound.
+    long long lowerBound(const Problem& p, const State& s, const SearchView&) const override {
+        return count(p, s, false);
+    }
+
+private:
+    long long count(const Problem& p, const State& s, bool shortToo) const {
+        long long days = 0;
+        std::vector<int> workDays;
+        for (int e = 0; e < static_cast<int>(p.employees.size()); ++e) {
+            workDays.clear();
+            for (int i : s.shiftsOf(e)) workDays.push_back(p.shifts[i].date.daysSinceEpoch());
+            std::sort(workDays.begin(), workDays.end());
+            workDays.erase(std::unique(workDays.begin(), workDays.end()), workDays.end());   // a double is one day
+            for (std::size_t k = 0; k < workDays.size();) {
+                std::size_t end = k + 1;   // the trip is workDays[k .. end)
+                while (end < workDays.size() && workDays[end] == workDays[end - 1] + 1) ++end;
+                const int length = static_cast<int>(end - k);
+                if (length > max_) days += length - max_;
+                const bool atEdge = workDays[k] == first_ || workDays[end - 1] == last_;
+                if (shortToo && length < min_ && !atEdge) days += min_ - length;
+                k = end;
+            }
+        }
+        return days;
+    }
+    int first_, last_, min_, max_;
+};
+
 // Fairness: shifts should be spread evenly. Violations = sum of squares of
 // each employee's shift count, minus the smallest possible sum for the same
 // total. 0 means "as even as possible"; one big gap costs more than several
@@ -373,6 +421,7 @@ ScoreModel makeScoreModel(const Problem& problem) {
     add(std::make_unique<NotPreferred>(problem), 1);
     add(std::make_unique<ConsecutiveNights>(problem), 3);
     add(std::make_unique<Fairness>(problem), 1);
+    add(std::make_unique<FewerTrips>(problem), 0);   // off unless a business turns it on (D49)
     // New soft rules are added here (D32).
 
     for (const auto& [name, weight] : custom) {
