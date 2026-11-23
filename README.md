@@ -206,6 +206,8 @@ MON-M: 1 allowed, min 1, slack 0 (the least of 6 open); blocked: Dana (min-rest)
   MON-M: try 1 person
 ```
 
+`--save <file.json>` also writes the schedule found to a file, one shift per line: `{"assignments": {"SUN-M": [104, 101], "SUN-E": [102]}}` (employees by id; when writing one by hand, a full name works too). This is the format stage 7 reads back to check a schedule made or edited by hand.
+
 `--verbose` also prints the loaded input, the candidates for each shift, and the number of search nodes.
 `--time-limit <seconds>` (default 60) and `--max-nodes <n>` stop a search that takes too long.
 

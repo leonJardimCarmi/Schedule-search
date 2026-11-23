@@ -41,6 +41,7 @@ add_library(schedule_core STATIC
     src/io/Printer.cpp
     src/io/Terminal.cpp
     src/io/TracePrinter.cpp
+    src/io/ScheduleFile.cpp
     src/solver/State.cpp
     src/solver/Availability.cpp
     src/solver/Solver.cpp
@@ -78,6 +79,7 @@ if(SCHEDULE_BUILD_TESTS)
         tests/test_printer.cpp
         tests/test_constraints.cpp
         tests/test_score.cpp
+        tests/test_schedule_file.cpp
         tests/test_report.cpp
     )
     # Catch2WithMain supplies main() for the test runner.

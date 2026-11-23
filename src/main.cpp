@@ -9,6 +9,7 @@
 #include "io/CsvLoader.h"
 #include "io/JsonLoader.h"
 #include "io/Printer.h"
+#include "io/ScheduleFile.h"
 #include "io/Terminal.h"
 #include "io/TracePrinter.h"
 #include "solver/Score.h"
@@ -43,6 +44,7 @@ void printUsage() {
                  "                             and if not, why (employee by id or full name, shift by id)\n"
                  "  --trace                    print the search step by step, first 200 lines (for small inputs)\n"
                  "  --trace-lines <n>          the same, first n lines\n"
+                 "  --save <file.json>         also write the schedule found to a file (stage 7: --check reads it)\n"
                  "  --verbose                  also print the input, the candidates and the search size\n";
 }
 
@@ -60,6 +62,7 @@ struct Options {
     enum class ColorMode { Auto, Always, Never } color = ColorMode::Auto;   // D45
     std::optional<std::pair<std::string, std::string>> explain;            // D43: employee, shift
     std::optional<int> traceLines;   // D48: --trace / --trace-lines n; empty = no trace
+    std::string savePath;            // D51: --save file; empty = do not save
 };
 
 // Arguments may come in any order: "file --verbose" or "--verbose file".
@@ -82,7 +85,7 @@ std::optional<Options> parseArgs(int argc, char* argv[]) {
             options.firstOnly = true;
         } else if (arg == "--availability" || arg == "--time-limit" || arg == "--max-nodes" ||
                    arg == "--top" || arg == "--min-diff" || arg == "--weight" || arg == "--view" ||
-                   arg == "--week" || arg == "--color" || arg == "--trace-lines") {
+                   arg == "--week" || arg == "--color" || arg == "--trace-lines" || arg == "--save") {
             if (i + 1 >= argc) {   // these options need a value after them
                 std::cerr << arg << " needs a value\n";
                 return std::nullopt;
@@ -90,6 +93,10 @@ std::optional<Options> parseArgs(int argc, char* argv[]) {
             const std::string value = argv[++i];
             if (arg == "--availability") {
                 options.availabilityPath = value;
+                continue;
+            }
+            if (arg == "--save") {
+                options.savePath = value;
                 continue;
             }
             if (arg == "--view") {
@@ -246,6 +253,16 @@ int main(int argc, char* argv[]) {
         std::cout << "No schedule satisfies the input.\n";
         return kNoSchedule;
     }
+    // --save (D51): the schedule found, in the format --check reads.
+    if (!options->savePath.empty()) {
+        Diagnostics saveProblems;
+        if (!saveSchedule(options->savePath, problem, *schedule, saveProblems)) {
+            for (const Diagnostic& d : saveProblems.all()) std::cerr << d << '\n';
+            return kBadInput;
+        }
+        std::cout << "Schedule saved to " << options->savePath << "\n\n";
+    }
+
     // --explain (D43, D47): the answer about one employee and one shift in
     // the schedule found, instead of the whole schedule.
     if (options->explain) {
