@@ -222,6 +222,27 @@ If the time limit stops the search, the best schedule found so far is printed, w
 
 The program also lists the next best schedules (`--top <n>`, default 5), each differing from the others in at least `--min-diff <k>` assignments (default 3), with a short summary of who leaves and who joins which shift. Keeping a longer list means less pruning, so with a time limit the best schedule found may be a little worse; `--top 1` gives the fastest search for a single schedule.
 
+### Recipe: a far site with 24-hour shifts
+
+For example, medics who travel 4 hours each way and stay on site for several days, working 13:00-13:00 shifts back to back. Two things have to change, and neither needs new code:
+
+1. **Several days in a row must not count as a double.** Back-to-back 24-hour shifts form one long work block (D14), and a block longer than `doubleAboveHours` is a double, which needs one availability line with `"double": true` covering the whole block (D16). Availability is filled in day by day, so no line covers several days, and the engine falls back to "a day on, a day off". Raise both limits to the longest stay, here a week:
+
+   ```json
+   "rules": { "minRestHours": 10, "doubleAboveHours": 168, "maxDoubleHours": 168,
+              "tripMinDays": 3, "tripMaxDays": 7 }
+   ```
+   If there is a real upper limit on days in a row, add it as a hard rule too (`"maxConsecutiveDays": 5`).
+
+2. **Prefer long trips over single days.** Turn `fewer-trips` on, and turn off the two rules that would punish exactly what it asks for:
+
+   ```json
+   "weights": { "fewer-trips": 20, "double": 0, "consecutive-nights": 0 }
+   ```
+   or, for one run: `--weight fewer-trips=20 --weight double=0 --weight consecutive-nights=0`.
+
+On a real month of this kind (7 medics, 62 shifts, 20 s search), the days outside the 3..7 ideal fell from 174 (everyone a day on, a day off) to 13. Fairness pays for it (346 → 652): long trips are harder to split evenly, so tune the two weights against each other.
+
 Exit codes: `0` schedule found (with a note if it is the best found in time, not proven best) · `1` bad arguments or input · `2` valid input, and no schedule exists (the whole search space was checked) · `3` stopped by a limit before finding a schedule (one may still exist).
 
 ---
