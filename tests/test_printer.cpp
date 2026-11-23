@@ -283,3 +283,22 @@ TEST_CASE("deep in the search the indentation stops growing", "[Printer][D48]") 
     CHECK(contains(out.str(), "\n" + pad + "+ Alice\n"));
     CHECK(contains(out.str(), "\n" + pad + "[26] + Bob\n"));
 }
+
+// ---- --check --compare (stage 7.3, D52) ----------------------------------------
+
+TEST_CASE("the comparison verdict does not praise a schedule that breaks rules", "[Printer][D52]") {
+    const Problem p = twoPeopleOneShift();
+    ComparisonReport c{Score{{0, 5}}, Score{{0, 9}}, {}, 0, {}};
+    auto verdict = [&](std::size_t violations) {
+        std::ostringstream out;
+        printComparison(out, p, c, true, violations);
+        return out.str();
+    };
+    CHECK(contains(verdict(0), "Yours is better."));
+    CHECK(contains(verdict(2), "Yours scores lower only by breaking 2 hard rules"));
+    c.mine = Score{{0, 12}};
+    CHECK(contains(verdict(2), "The engine's schedule is better."));
+    c.mine = c.engine;
+    CHECK(contains(verdict(0), "Both score the same."));
+    CHECK(contains(verdict(0), "The two schedules are the same."));
+}

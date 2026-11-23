@@ -210,6 +210,8 @@ MON-M: 1 allowed, min 1, slack 0 (the least of 6 open); blocked: Dana (min-rest)
 
 To check a schedule made or edited by hand: `schedule_search problem.json --check my_schedule.json`. There is no search: the schedule is shown in the same table with the same score, every assignment that breaks availability, a role or a hard rule is marked ` x` in its cell, and a list below the score gives each one with its reason. Nothing is blocked: a manager may make exceptions, the program only points them out. Each violation is listed once, at the later of the shifts involved, and a shift with more people than it wants gets a note. `--explain` works against the hand-made schedule too.
 
+Add `--compare` to also run the search and set the two side by side: the penalty of every soft rule in yours and in the engine's, both scores, and every shift that differs (`out:` only in yours, `in:` only in the engine's). Search options work with `--compare`, and `--save` then saves the engine's schedule. The score does not count hard rules (the engine never breaks one), so when a hand-made schedule scores better only by breaking rules, the verdict says that instead of calling it better.
+
 ```
 Rule violations (4): nothing was blocked, each is listed at the later of the shifts involved
   MON-M      Dana Levi          min-rest              only 8h of rest between SUN-E and MON-M, needs 10h
@@ -328,7 +330,7 @@ DECISIONS.md        design decisions D1–D47 and the reasoning behind them (Heb
 | 4 | Pruning: time/node limits, static shortage check, most-constrained shift first (MRV) with dead-end detection, incremental cache | ✅ |
 | 5 | **Optimization**: pluggable soft-rule scoring, best-so-far search (anytime), Branch & Bound with per-rule lower bounds, top-N distinct schedules | ✅ |
 | 6 | Output and tools to explore the engine: a table per week with colors, `--explain` (why someone can't work a shift), `--trace` (the search step by step), `--weight` (CSV/HTML export postponed) | ✅ |
-| 7 | Manual edits: check a hand-edited schedule against all the rules and flag violations | ⬜ |
+| 7 | Manual edits: `--save` a schedule, `--check` a hand-made one against every rule (marked, not blocked), and `--compare` it with the engine's | ✅ |
 
 ## Continuous integration
 

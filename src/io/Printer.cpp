@@ -398,6 +398,49 @@ void printViolations(std::ostream& out, const Problem& p, const CheckReport& che
         out << "  note: " << p.shifts[o.shift].id << " has " << o.staff << " people, it wants " << o.wanted << '\n';
 }
 
+// ---- --check --compare (stage 7.3, D52) ---------------------------------------
+
+void printComparison(std::ostream& out, const Problem& p, const ComparisonReport& c, bool proven,
+                     std::size_t myViolations) {
+    out << "\nCompared with the engine's schedule ("
+        << (proven ? "proven the best" : "the best found in the time limit, a better one may exist") << ")\n";
+    out << "  " << std::left << std::setw(20) << "rule" << std::setw(8) << "level" << std::right << std::setw(8)
+        << "yours" << std::setw(9) << "engine" << std::setw(9) << "change" << '\n';
+    for (const RuleComparison& r : c.rules) {
+        out << "  " << std::left << std::setw(20) << r.rule << std::setw(8) << toString(r.level) << std::right;
+        if (r.weight == 0) {
+            out << std::setw(8) << "off" << '\n';
+            continue;
+        }
+        out << std::setw(8) << r.mine << std::setw(9) << r.engine;
+        if (r.engine != r.mine) out << std::setw(9) << std::showpos << r.engine - r.mine << std::noshowpos;
+        out << '\n';
+    }
+    out << "  Yours:  " << scoreText(c.mine) << "\n  Engine: " << scoreText(c.engine) << '\n';
+    if (c.engine < c.mine) out << "  The engine's schedule is better.\n";
+    else if (c.mine < c.engine && myViolations > 0)
+        out << "  Yours scores lower only by breaking " << myViolations
+            << (myViolations == 1 ? " hard rule" : " hard rules")
+            << " (listed above). The score does not count those: the engine keeps every rule.\n";
+    else if (c.mine < c.engine) out << "  Yours is better" << (proven ? "" : " than what the engine found in time") << ".\n";
+    else out << "  Both score the same.\n";
+
+    if (c.changes.empty()) {
+        out << "\nThe two schedules are the same.\n";
+        return;
+    }
+    out << "\nThe engine's schedule differs in " << c.differences << (c.differences == 1 ? " assignment" : " assignments")
+        << ", in " << c.changes.size()
+        << (c.changes.size() == 1 ? " shift" : " shifts") << " (out: only in yours, in: only in the engine's):\n";
+    for (const ShiftChange& change : c.changes) {
+        const Shift& shift = p.shifts[change.shift];
+        out << "  " << std::left << std::setw(10) << shift.id << std::right << shift.date.toString();
+        if (!change.out.empty()) out << "  out: " << names(p, change.out);
+        if (!change.in.empty()) out << "  in: " << names(p, change.in);
+        out << '\n';
+    }
+}
+
 // ---- --explain (step 6.4, D43, D47) -------------------------------------------
 
 void printExplanation(std::ostream& out, const Problem& p, const State& schedule, const Explanation& e) {

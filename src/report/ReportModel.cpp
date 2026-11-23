@@ -116,17 +116,33 @@ ShortageReport shortageReport(const Problem& p, const Shortage& gap) {
     return ShortageReport{gap.shift, gap.needed, gap.candidates, available, reason};
 }
 
-AlternativeReport alternativeReport(const State& best, const RankedSchedule& alt) {
-    AlternativeReport report{alt.score, differentAssignments(best, alt.schedule), {}};
-    for (int s = 0; s < alt.schedule.shiftCount(); ++s) {
-        std::vector<int> out = missingFrom(best.staffOf(s), alt.schedule.staffOf(s));
-        std::vector<int> in = missingFrom(alt.schedule.staffOf(s), best.staffOf(s));
-        if (!out.empty() || !in.empty()) report.changes.push_back(ShiftChange{s, std::move(out), std::move(in)});
+// Every shift whose staff differs: `out` only in `from`, `in` only in `to`.
+std::vector<ShiftChange> changesBetween(const State& from, const State& to) {
+    std::vector<ShiftChange> changes;
+    for (int s = 0; s < to.shiftCount(); ++s) {
+        std::vector<int> out = missingFrom(from.staffOf(s), to.staffOf(s));
+        std::vector<int> in = missingFrom(to.staffOf(s), from.staffOf(s));
+        if (!out.empty() || !in.empty()) changes.push_back(ShiftChange{s, std::move(out), std::move(in)});
     }
-    return report;
+    return changes;
+}
+
+AlternativeReport alternativeReport(const State& best, const RankedSchedule& alt) {
+    return AlternativeReport{alt.score, differentAssignments(best, alt.schedule), changesBetween(best, alt.schedule)};
 }
 
 }  // namespace
+
+ComparisonReport compareSchedules(const Problem& problem, const State& mine, const State& engine,
+                                  const ScoreModel& model) {
+    ComparisonReport report{model.score(problem, mine), model.score(problem, engine), {},
+                            differentAssignments(mine, engine), changesBetween(mine, engine)};
+    const std::vector<ScoreLine> a = model.breakdown(problem, mine);
+    const std::vector<ScoreLine> b = model.breakdown(problem, engine);
+    for (std::size_t k = 0; k < a.size(); ++k)   // the same model: the same rules in the same order
+        report.rules.push_back(RuleComparison{a[k].rule, a[k].level, a[k].weight, a[k].penalty, b[k].penalty});
+    return report;
+}
 
 CheckReport checkSchedule(const Problem& problem, const State& schedule, const ConstraintList& rules) {
     // Every assignment, by the start of its shift; ties by shift, then in

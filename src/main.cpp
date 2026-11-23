@@ -49,6 +49,8 @@ void printUsage() {
                  "  --check <file.json>        no search: check a schedule made by hand against availability,\n"
                  "                             roles and every hard rule, and show its table and score\n"
                  "                             (exit code 4 if it breaks a rule; works with --explain)\n"
+                 "  --compare                  with --check: also search, and compare the two schedules\n"
+                 "                             (search options work here; --save saves the engine's schedule)\n"
                  "  --verbose                  also print the input, the candidates and the search size\n";
 }
 
@@ -68,6 +70,7 @@ struct Options {
     std::optional<int> traceLines;   // D48: --trace / --trace-lines n; empty = no trace
     std::string savePath;            // D51: --save file; empty = do not save
     std::string checkPath;           // D51: --check file; empty = search as usual
+    bool compare = false;            // D52: --check ... --compare: also search and compare
     std::vector<std::string> searchFlags;   // given flags that only make sense with a search
 };
 
@@ -88,6 +91,8 @@ std::optional<Options> parseArgs(int argc, char* argv[]) {
         } else if (arg == "--trace") {
             options.searchFlags.push_back(arg);
             if (!options.traceLines) options.traceLines = kDefaultTraceLines;   // keeps an earlier --trace-lines
+        } else if (arg == "--compare") {
+            options.compare = true;
         } else if (arg == "--first") {
             options.firstOnly = true;
             options.searchFlags.push_back(arg);
@@ -175,8 +180,13 @@ std::optional<Options> parseArgs(int argc, char* argv[]) {
         }
     }
     if (options.inputPath.empty()) return std::nullopt;
-    if (!options.checkPath.empty() && !options.searchFlags.empty()) {
-        std::cerr << "--check does not search, so " << options.searchFlags.front() << " has no meaning with it\n";
+    if (options.compare && options.checkPath.empty()) {
+        std::cerr << "--compare works with --check <file>\n";
+        return std::nullopt;
+    }
+    if (!options.checkPath.empty() && !options.compare && !options.searchFlags.empty()) {
+        std::cerr << "--check does not search, so " << options.searchFlags.front()
+                  << " has no meaning with it (add --compare to also search)\n";
         return std::nullopt;
     }
     if (options.week && options.listView) {
@@ -219,7 +229,7 @@ bool printResult(const Options& options, const Problem& problem, const Report& r
 
 // --check (stage 7.2, D51): no search. A schedule made by hand is loaded and
 // shown like a found one, with every rule it breaks. Nothing is blocked (D18).
-int checkHandMade(const Options& options, const Problem& problem, const ScoreModel& scoreModel, const Solver& solver) {
+int checkHandMade(const Options& options, const Problem& problem, const ScoreModel& scoreModel, Solver& solver) {
     ScheduleLoadResult loaded = loadScheduleFile(options.checkPath, problem);
     for (const Diagnostic& d : loaded.diagnostics.all()) std::cerr << d << '\n';
     if (!loaded.ok()) {
@@ -243,7 +253,36 @@ int checkHandMade(const Options& options, const Problem& problem, const ScoreMod
     std::cout << "Checking " << options.checkPath << " (made by hand, not searched)\n\n";
     if (!printResult(options, problem, report)) return kBadInput;
     printViolations(std::cout, problem, check);
-    return check.clean() ? kOk : kViolations;
+    const int code = check.clean() ? kOk : kViolations;   // --compare does not change it
+    if (!options.compare) return code;
+
+    // --compare (stage 7.3, D52): the engine's schedule for the same problem.
+    std::optional<TracePrinter> trace;
+    if (options.traceLines) {
+        std::cout << '\n';
+        trace.emplace(std::cout, problem, solver.constraints(), *options.traceLines);
+        solver.setObserver(&*trace);
+    }
+    const std::optional<State> engine = options.firstOnly ? solver.findFirst() : solver.findBest(scoreModel);
+    if (trace) trace->finish();
+    if (!engine) {
+        std::cout << "\nThe engine found no schedule to compare with ("
+                  << (solver.status() == SearchStatus::LimitReached ? "stopped by a limit; try a larger --time-limit"
+                                                                     : "no legal schedule exists")
+                  << ").\n";
+        return code;
+    }
+    if (!options.savePath.empty()) {
+        Diagnostics saveProblems;
+        if (!saveSchedule(options.savePath, problem, *engine, saveProblems)) {
+            for (const Diagnostic& d : saveProblems.all()) std::cerr << d << '\n';
+            return kBadInput;
+        }
+        std::cout << "\nThe engine's schedule saved to " << options.savePath << '\n';
+    }
+    printComparison(std::cout, problem, compareSchedules(problem, schedule, *engine, scoreModel),
+                    !options.firstOnly && solver.complete(), check.violations.size());
+    return code;
 }
 
 }  // namespace

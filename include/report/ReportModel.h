@@ -146,6 +146,28 @@ struct CheckReport {
 // so one violation is not found again at every later shift.
 CheckReport checkSchedule(const Problem& problem, const State& schedule, const ConstraintList& rules);
 
+// --check --compare (stage 7.3, D52): a hand-made schedule next to the
+// schedule the engine finds for the same problem.
+struct RuleComparison {
+    std::string rule;
+    Level level;
+    int weight;
+    long long mine;     // weighted penalty of the hand-made schedule
+    long long engine;   // ... of the engine's
+};
+struct ComparisonReport {
+    Score mine;
+    Score engine;
+    std::vector<RuleComparison> rules;   // every soft rule, in the model's order
+    int differences;                     // differentAssignments()
+    // Every shift that differs, in calendar order. `out` = only in the
+    // hand-made schedule, `in` = only in the engine's: what to change in
+    // the hand-made one to get the engine's.
+    std::vector<ShiftChange> changes;
+};
+ComparisonReport compareSchedules(const Problem& problem, const State& mine, const State& engine,
+                                  const ScoreModel& model);
+
 // Builds the report of `schedule`. `top` is the solver's list of good
 // schedules (top[0] is `schedule` itself); pass an empty list for none.
 // `check` (--check) marks the assignments that break a rule.

@@ -349,3 +349,38 @@ TEST_CASE("every schedule the search finds passes the check", "[Report][Solver][
         CHECK(checkSchedule(p, *best, solver.constraints()).clean());
     }
 }
+
+// ---- --check --compare (stage 7.3, D52) ----------------------------------------
+
+TEST_CASE("compareSchedules gives both scores rule by rule and every changed shift", "[Report][D52]") {
+    Problem p{kSunday, kSunday, {availableOn(1, {0}), availableOn(2, {0}, AvailabilityType::Preferred)},
+              {shiftOn("A", 0, "06:00-14:00", 1, 1), shiftOn("B", 0, "14:00-22:00", 1, 2)}, Rules{}};
+    State mine(2, 2), engine(2, 2);
+    mine.assign(0, 0);     // A: E1
+    mine.assign(0, 1);     // B: E1 (one person below wanted)
+    engine.assign(1, 0);   // A: E2 (who prefers it)
+    engine.assign(0, 1);   // B: E1 ...
+    engine.assign(1, 1);   // ... and E2: full
+    const ScoreModel model = makeScoreModel(p);
+    const ComparisonReport c = compareSchedules(p, mine, engine, model);
+
+    CHECK(c.mine == model.score(p, mine));
+    CHECK(c.engine == model.score(p, engine));
+    REQUIRE(c.rules.size() == model.breakdown(p, mine).size());
+    for (const RuleComparison& r : c.rules)
+        if (r.rule == "below-wanted") {
+            CHECK(r.mine == 10);
+            CHECK(r.engine == 0);
+        }
+    CHECK(c.differences == 2);   // A: E1 -> E2; B: + E2
+    REQUIRE(c.changes.size() == 2);
+    CHECK(c.changes[0].shift == 0);
+    CHECK(c.changes[0].out == std::vector<int>{0});
+    CHECK(c.changes[0].in == std::vector<int>{1});
+    CHECK(c.changes[1].out.empty());
+    CHECK(c.changes[1].in == std::vector<int>{1});
+
+    const ComparisonReport same = compareSchedules(p, engine, engine, model);
+    CHECK(same.differences == 0);
+    CHECK(same.changes.empty());
+}

@@ -40,6 +40,15 @@ void printExplanation(std::ostream& out, const Problem& problem, const State& sc
 // reason, and a note for each shift with more people than it wants.
 void printViolations(std::ostream& out, const Problem& problem, const CheckReport& check);
 
+// --check --compare (stage 7.3, D52): the score rule by rule, mine against
+// the engine's, then every shift that differs. `proven`: the engine's
+// schedule is proven the best (the search was not stopped by a limit).
+// `myViolations`: how many hard rules the hand-made one breaks. The score
+// does not count them (the engine never breaks one), so a schedule that
+// breaks rules can score better; the verdict says so.
+void printComparison(std::ostream& out, const Problem& problem, const ComparisonReport& comparison, bool proven,
+                     std::size_t myViolations);
+
 // Short names for narrow table cells: the first name, and when two people
 // share it, also the first letter of the last name ("Noa A.", "Noa L.").
 // If even that is shared, the full name.
