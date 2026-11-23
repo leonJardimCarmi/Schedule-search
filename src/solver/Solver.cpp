@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <cassert>
+#include <cstdlib>
 
 #include "solver/Availability.h"
 #include "solver/WorkBlocks.h"
@@ -14,6 +15,10 @@ Solver::Solver(const Problem& problem)
       prefers_(problem.shifts.size(), std::vector<char>(problem.employees.size(), 0)),
       filled_(problem.shifts.size(), 0),
       constraints_(makeConstraints(problem)),
+      tripsOn_([&] {
+          const auto it = problem.rules.weights.find("fewer-trips");
+          return it != problem.rules.weights.end() && it->second > 0;
+      }()),
       state_(static_cast<int>(problem.employees.size()), static_cast<int>(problem.shifts.size())) {
     // Availability and role never change during the search, so they are
     // checked once here instead of millions of times inside the search.
@@ -211,7 +216,10 @@ bool Solver::onSchedule() {
 // Decides in which order to try this shift's candidates (DECISIONS D16, D36):
 //   1. people for whom this shift would NOT be a double, so a double is used
 //      only when there is no other way;
-//   2. inside each group, people who marked the shift "preferred".
+//   2. only when fewer-trips is on (D49, step 6.7b): people who work the day
+//      before or the day after, so the shift continues a trip instead of
+//      starting a new one;
+//   3. inside each group, people who marked the shift "preferred".
 // A good first schedule gives the bound (step 5.3) a strong target early.
 // stable_sort keeps the input order among equals, so the search stays
 // predictable.
@@ -223,12 +231,19 @@ void Solver::orderCandidates(int shiftIdx) {
     const int doubleAbove = problem_.rules.doubleAboveHours * 60;
     const int gap = problem_.rules.blockGapMinutes;
 
-    // Rank: 0 = no double + preferred, 1 = no double, 2 = double + preferred, 3 = double.
+    // Rank, lower first: double 4, starts a new trip 2, not preferred 1.
+    // With fewer-trips off the "trip" part is always 0, so the order is
+    // exactly the one before step 6.7b.
     // Computed once per candidate: blockWith() is too costly to call inside the sort.
+    const int day = problem_.shifts[shiftIdx].date.daysSinceEpoch();
     rank_.resize(problem_.employees.size());
     for (int emp : candidates_[shiftIdx]) {
         const bool isDouble = blockWith(problem_, state_, emp, shiftIdx, gap).minutes() > doubleAbove;
-        rank_[emp] = (isDouble ? 2 : 0) + (prefers_[shiftIdx][emp] ? 0 : 1);
+        bool continues = false;
+        if (tripsOn_)
+            for (int other : state_.shiftsOf(emp))
+                if (std::abs(problem_.shifts[other].date.daysSinceEpoch() - day) == 1) continues = true;
+        rank_[emp] = (isDouble ? 4 : 0) + (tripsOn_ && !continues ? 2 : 0) + (prefers_[shiftIdx][emp] ? 0 : 1);
     }
     std::vector<int>& order = order_[shiftIdx];
     order = candidates_[shiftIdx];

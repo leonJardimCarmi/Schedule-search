@@ -143,6 +143,7 @@ private:
     std::vector<std::vector<char>> allowedNow_;              // [shift][pos] -> rules allow it now
     std::vector<int> allowedCount_;                          // [shift] -> how many are allowed now
     ConstraintList constraints_;
+    const bool tripsOn_;   // fewer-trips has a weight above 0: orderCandidates prefers continuing a trip (D49)
 
     State state_;
     // What to do with a complete schedule (one leaf, three uses).

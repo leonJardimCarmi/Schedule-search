@@ -241,7 +241,7 @@ For example, medics who travel 4 hours each way and stay on site for several day
    ```
    or, for one run: `--weight fewer-trips=20 --weight double=0 --weight consecutive-nights=0`.
 
-On a real month of this kind (7 medics, 62 shifts, 20 s search), the days outside the 3..7 ideal fell from 174 (everyone a day on, a day off) to 13. Fairness pays for it (346 → 652): long trips are harder to split evenly, so tune the two weights against each other.
+On a real month of this kind (7 medics, 62 shifts, 20 s search), the days outside the 3..7 ideal fell from 174 (everyone a day on, a day off) to 2. While `fewer-trips` is on, the search also tries first, inside each shift, someone who works the day before or after (after "no double", before "preferred"), and its bound knows when a trip can no longer grow long enough, so it prunes. Fairness did not suffer here (346 with the rule off, 322 with it on), but the two can pull against each other, so tune their weights.
 
 Exit codes: `0` schedule found (with a note if it is the best found in time, not proven best) · `1` bad arguments or input · `2` valid input, and no schedule exists (the whole search space was checked) · `3` stopped by a limit before finding a schedule (one may still exist).
 

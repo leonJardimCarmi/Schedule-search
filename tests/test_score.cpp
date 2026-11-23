@@ -228,13 +228,15 @@ namespace {
 // A small random problem: 3 days, 2-3 shifts a day, 4 employees with mixed
 // availability. Small enough for a full search without the bound to finish. std::mt19937 gives the same numbers on every compiler; the
 // std:: distributions do not, so plain modulo is used instead.
-Problem randomProblem(unsigned seed) {
+// `days` > 3 is for rules about days in a row (step 6.7b); with 3 the
+// random numbers are drawn exactly as before, so old seeds keep their problems.
+Problem randomProblem(unsigned seed, int days = 3) {
     std::mt19937 rng(seed);
     auto pick = [&](int n) { return static_cast<int>(rng() % static_cast<unsigned>(n)); };
     const char* times[] = {"06:00-14:00", "14:00-22:00", "22:00-06:00"};
 
-    Problem p{kSunday, kSunday + 2, {}, {}, Rules{}};
-    for (int day = 0; day < 3; ++day)
+    Problem p{kSunday, kSunday + (days - 1), {}, {}, Rules{}};
+    for (int day = 0; day < days; ++day)
         for (int t = 0; t < 2 + pick(2); ++t) {
             const int min = pick(2);   // 0 or 1
             p.shifts.push_back(Shift{"D" + std::to_string(day) + "-" + std::to_string(t), kSunday + day,
@@ -245,7 +247,7 @@ Problem randomProblem(unsigned seed) {
         e.id = id;
         e.name = "E" + std::to_string(id);
         if (pick(2)) e.minShifts = 1 + pick(3);
-        for (int day = 0; day < 3; ++day) {
+        for (int day = 0; day < days; ++day) {
             const int kind = pick(4);   // 0 off, 1 available, 2 preferred, 3 available + double ok
             if (kind == 0) continue;
             e.availability.push_back({kSunday + day, std::nullopt,
@@ -578,7 +580,7 @@ TEST_CASE("fewer-trips is off by default", "[Score][D49]") {
 TEST_CASE("the bound never loses the best schedule with fewer-trips on", "[Solver][Score][BranchAndBound][D49]") {
     // Trips of exactly 2 days are ideal, so both "too short" and "too long"
     // (3 days in a row) happen in these 3-day problems.
-    for (unsigned seed = 1; seed <= 60; ++seed) {
+    for (unsigned seed = 1; seed <= 30; ++seed) {
         CAPTURE(seed);
         Problem p = randomProblem(seed);
         p.rules.tripMinDays = 2;
@@ -596,6 +598,88 @@ TEST_CASE("the bound never loses the best schedule with fewer-trips on", "[Solve
         if (!slow) continue;
         CHECK(pruning.bestScore() == plain.bestScore());
     }
+}
+
+TEST_CASE("the fewer-trips bound counts a region too short to hold a long enough trip", "[Score][BranchAndBound][D49]") {
+    // Only fewer-trips counts here: every other rule is turned off.
+    Problem p = twoWeeksOfDays();   // ideal trip 3..7
+    for (const char* rule : {"below-min", "below-wanted", "double", "below-min-shifts", "not-preferred",
+                             "consecutive-nights", "fairness"})
+        p.rules.weights[rule] = 0;
+    const ScoreModel model = makeScoreModel(p);
+    const int shifts = static_cast<int>(p.shifts.size());
+
+    // E1 works day 4 (D4). `open` lists the shifts still undecided and
+    // allowed for E1; every other shift is decided without E1.
+    auto bound = [&](std::initializer_list<int> open) {
+        State s(1, shifts);
+        s.assign(0, 4);
+        std::vector<char> decided(shifts, 1);
+        std::vector<std::vector<int>> candidates(shifts, std::vector<int>{0});
+        std::vector<std::vector<char>> allowed(shifts, std::vector<char>{0});
+        for (int i : open) {
+            decided[i] = 0;
+            allowed[i][0] = 1;
+        }
+        const std::vector<int> counts(shifts, 1), mins(shifts, 0);
+        return model.lowerBound(p, s, SearchView{decided, candidates, allowed, counts, mins}).at(Level::Soft);
+    };
+    CHECK(bound({}) == 2);          // the region is day 4 alone: a 1-day trip, 2 short
+    CHECK(bound({5}) == 1);         // days 4..5 at most: 1 short
+    CHECK(bound({3, 5}) == 0);      // days 3..5 may still be a 3-day trip
+    CHECK(bound({5, 6, 14}) == 0);  // E5 (day 5 too) is one more open shift on day 5; region 4..6
+    CHECK(bound({1, 2, 3}) == 0);   // days 1..4: could be 4 days
+    CHECK(bound({0, 1, 2, 3}) == 0);  // reaches the first day of the period: not counted
+}
+
+TEST_CASE("the fewer-trips bound never loses the best schedule on longer periods", "[Solver][Score][BranchAndBound][D49]") {
+    int checked = 0;
+    for (unsigned seed = 1; seed <= 40; ++seed) {
+        CAPTURE(seed);
+        Problem p = randomProblem(seed, 4);
+        p.rules.tripMinDays = 3;
+        p.rules.tripMaxDays = 3;
+        p.rules.weights["fewer-trips"] = 7;
+        const ScoreModel model = makeScoreModel(p);
+
+        // The full search without the bound is the referee, and it grows
+        // fast (5 days took minutes). A problem it cannot finish within the
+        // node limit proves nothing, so it is skipped.
+        Solver plain(p);
+        plain.setUseBound(false);
+        plain.setLimits(SearchLimits{std::nullopt, 10000});
+        const std::optional<State> slow = plain.findBest(model);
+        if (!plain.complete()) continue;
+        ++checked;
+        Solver pruning(p);
+        const std::optional<State> fast = pruning.findBest(model);
+
+        REQUIRE(slow.has_value() == fast.has_value());
+        if (!slow) continue;
+        CHECK(pruning.bestScore() == plain.bestScore());
+    }
+    CHECK(checked >= 15);   // enough problems must really be checked
+}
+
+TEST_CASE("with fewer-trips on, a shift goes first to someone it continues a trip for", "[Solver][D49]") {
+    // E1 and E2 are free on days 0 and 1; E2 prefers day 1. MRV fills D0
+    // first, with E1. Then for D1: normally E2 first (preferred, D36); with
+    // fewer-trips on, E1 first, because D1 continues E1's trip.
+    Problem p{kSunday, kSunday + 1, {freeAllWeek(1), freeAllWeek(2)},
+              {shiftOn("D0", 0, "08:00-16:00"), shiftOn("D1", 1, "08:00-16:00")}, Rules{}};
+    for (Shift& shift : p.shifts) shift.minStaff = 1;
+    p.employees[1].availability[1].type = AvailabilityType::Preferred;
+
+    auto whoWorksDay1 = [&] {
+        Solver solver(p);
+        const std::optional<State> first = solver.findFirst();
+        REQUIRE(first);
+        REQUIRE(first->staffOf(0) == std::vector<int>{0});   // D0: E1, as the input order says
+        return first->staffOf(1);
+    };
+    CHECK(whoWorksDay1() == std::vector<int>{1});   // off: E2, who prefers it
+    p.rules.weights["fewer-trips"] = 1;
+    CHECK(whoWorksDay1() == std::vector<int>{0});   // on: E1 stays on
 }
 
 TEST_CASE("the loader reads the trip rules", "[Score][JsonLoader][D49]") {

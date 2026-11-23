@@ -233,15 +233,54 @@ public:
     const char* name() const override { return "fewer-trips"; }
     const char* description() const override { return "day outside the ideal trip length (days in a row)"; }
     long long violations(const Problem& p, const State& s) const override { return count(p, s, true); }
-    // Assigning more shifts only makes trips longer or joins two of them,
-    // and the days above the max never shrink: max(0, a+b+1-max) is at least
-    // max(0, a-max) + max(0, b-max). A short trip can still grow, so only the
-    // "too long" part is a lower bound.
-    long long lowerBound(const Problem& p, const State& s, const SearchView&) const override {
-        return count(p, s, false);
+
+    // Two parts, both certain in every completion of this branch:
+    //  - too long: assigning more shifts only makes trips longer or joins two
+    //    of them, and max(0, a+b+1-max) >= max(0, a-max) + max(0, b-max).
+    //  - too short (step 6.7b): a "region" is a run of days in a row on which
+    //    the employee works already, or still may (an open shift the hard
+    //    rules allow them now; D35: what is blocked stays blocked). Every
+    //    final trip lies inside one region, so a region shorter than the min
+    //    that holds a work day will end as a trip that is too short, by at
+    //    least min - region. Counted once per region: its short trips may
+    //    still join into one. A region at the edge of the period: nothing.
+    long long lowerBound(const Problem& p, const State& s, const SearchView& v) const override {
+        long long days = count(p, s, false);
+        const int n = last_ - first_ + 1;
+        const int employees = static_cast<int>(p.employees.size());
+        day_.assign(static_cast<std::size_t>(employees) * n, kOff);
+        auto at = [&](int e, int shift) -> char& {
+            return day_[static_cast<std::size_t>(e) * n + (p.shifts[shift].date.daysSinceEpoch() - first_)];
+        };
+        for (int i = 0; i < static_cast<int>(p.shifts.size()); ++i) {
+            if (v.decided[i]) continue;
+            for (std::size_t pos = 0; pos < v.candidates[i].size(); ++pos)
+                if (v.allowedNow[i][pos]) {
+                    char& d = at(v.candidates[i][pos], i);
+                    if (d == kOff) d = kMay;
+                }
+        }
+        for (int e = 0; e < employees; ++e)
+            for (int i : s.shiftsOf(e)) at(e, i) = kWorks;
+
+        for (int e = 0; e < employees; ++e) {
+            const char* row = &day_[static_cast<std::size_t>(e) * n];
+            for (int k = 0; k < n;) {
+                if (row[k] == kOff) { ++k; continue; }
+                int end = k;   // the region is days k .. end-1
+                bool works = false;
+                while (end < n && row[end] != kOff) works |= row[end++] == kWorks;
+                const bool atEdge = k == 0 || end == n;
+                if (works && !atEdge && end - k < min_) days += min_ - (end - k);
+                k = end;
+            }
+        }
+        return days;
     }
 
 private:
+    static constexpr char kOff = 0, kMay = 1, kWorks = 2;
+    mutable std::vector<char> day_;   // [employee][day] -> kOff / kMay / kWorks, scratch for lowerBound
     long long count(const Problem& p, const State& s, bool shortToo) const {
         long long days = 0;
         std::vector<int> workDays;
