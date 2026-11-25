@@ -258,6 +258,13 @@ For example, medics who travel 4 hours each way and stay on site for several day
 
 On a real month of this kind (7 medics, 62 shifts, 20 s search), the days outside the 3..7 ideal fell from 174 (everyone a day on, a day off) to 2. While `fewer-trips` is on, the search also tries first, inside each shift, someone who works the day before or after (after "no double", before "preferred"), and its bound knows when a trip can no longer grow long enough, so it prunes. Fairness did not suffer here (346 with the rule off, 322 with it on), but the two can pull against each other, so tune their weights.
 
+**JSON for apps** (stage 8, DECISIONS D57–D62): `--json <file>` also writes the whole result as JSON, and `--json -` writes only the JSON, to stdout. It holds the problem (employees and shifts), the layout of the weekly table, the shifts that cannot be staffed, every schedule of the top list in full, and how the search went. Every field is described in [`contract/CONTRACT.md`](contract/CONTRACT.md); the exact shape is `contract/result.schema.json`, and `tools/check_contract.py` checks a file against it:
+```bash
+./build/schedule_search data/medics_december.json --json result.json
+python3 tools/check_contract.py result.json      # needs: pip install "jsonschema>=4.18"
+```
+A JSON is written also when there is no schedule (`"status": "noSchedule"` or `"limitReached"`) or when the input has errors (`"inputError"`, with the errors in `"diagnostics"`).
+
 Exit codes: `0` schedule found (with a note if it is the best found in time, not proven best) · `1` bad arguments or input · `2` valid input, and no schedule exists (the whole search space was checked) · `3` stopped by a limit before finding a schedule (one may still exist) · `4` (`--check`) the schedule breaks a rule.
 
 ---
@@ -299,6 +306,20 @@ cmake --build build
 ctest --test-dir build
 ```
 
+**Golden output** (DECISIONS D63): 23 fixed runs of the program, and for each one its stdout, stderr and exit code, compared with `tests/golden/expected/`:
+```bash
+bash tools/golden.sh build/schedule_search            # compare; exit 1 on a difference
+bash tools/golden.sh build/schedule_search --update   # after an intended change: write it again, then read the diff
+```
+
+**Real data** (D60): the repository is public, so files with real names stay in `data/private/`, which Git ignores. `tools/anonymize.py` writes a copy with made-up names, and the engine finds the same schedule on it:
+```bash
+python3 tools/anonymize.py data/private/real.json data/demo.json
+```
+`data/medics_december.json` is such a copy: 7 medics in December, 24-hour shifts, with the far-site recipe above.
+
+**The main example** (D65): `data/cafe_december.json`, written by `python3 tools/make_showcase.py`: a café over three weeks of December, 12 employees with every kind of availability the engine knows (evenings only, weekends only, mornings only, night guards, a vacation, exam days, a split day, a new hire, approved doubles, preferred shifts, minimum and maximum shifts), 7 kinds of shifts (a Friday-only row, a night across midnight, a one-day event), and one shift for each reason it cannot be staffed. Its result as JSON is `contract/examples/cafe_december.result.json`.
+
 ## Tech stack
 
 - **C++17**, CMake
@@ -311,12 +332,15 @@ ctest --test-dir build
 include/            headers
   Date.h, TimePeriod.h, Employee.h, Shift.h, Rules.h, Problem.h   the problem (read-only)
   solver/           State, Solver, Constraint, Availability, WorkBlocks
-  io/               JsonLoader, CsvLoader, Diagnostics, Printer
+  io/               JsonLoader, CsvLoader, Diagnostics, Printer, ResultJson
 src/                implementations, same layout
 tests/              Catch2 unit tests
-data/               example inputs
+  golden/           the golden output: inputs/ and expected/ (tools/golden.sh)
+data/               example inputs (data/private/: real data, not in Git)
+tools/              generate_problem.py, benchmark.py, anonymize.py, golden.sh, check_contract.py, make_showcase.py
+contract/           the JSON result for apps: result.schema.json, examples/ (stage 8)
 PLAN.md             roadmap and status of each stage (Hebrew)
-DECISIONS.md        design decisions D1–D47 and the reasoning behind them (Hebrew)
+DECISIONS.md        design decisions D1–D63 and the reasoning behind them (Hebrew)
 ```
 
 ## Roadmap
@@ -331,7 +355,8 @@ DECISIONS.md        design decisions D1–D47 and the reasoning behind them (Heb
 | 5 | **Optimization**: pluggable soft-rule scoring, best-so-far search (anytime), Branch & Bound with per-rule lower bounds, top-N distinct schedules | ✅ |
 | 6 | Output and tools to explore the engine: a table per week with colors, `--explain` (why someone can't work a shift), `--trace` (the search step by step), `--weight` (CSV/HTML export postponed) | ✅ |
 | 7 | Manual edits: `--save` a schedule, `--check` a hand-made one against every rule (marked, not blocked), and `--compare` it with the engine's | ✅ |
+| 8 | The contract for apps: the whole result as JSON (`--json`), with a JSON Schema and a checker | 🔶 |
 
 ## Continuous integration
 
-Every push is built and tested on Windows, Linux and macOS by GitHub Actions (`.github/workflows/build.yml`): a Release build with CMake, all unit tests with `ctest`, and one run of the program on the example week. The results are in the repository's **Actions** tab.
+Every push is built and tested on Windows, Linux and macOS by GitHub Actions (`.github/workflows/build.yml`): a Release build with CMake, all unit tests with `ctest`, the golden output (`tools/golden.sh`), the JSON results against the contract (on Linux), and one run of the program on the example week. The results are in the repository's **Actions** tab.

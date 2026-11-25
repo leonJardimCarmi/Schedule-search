@@ -1,0 +1,13 @@
+Can Dana Levi (#102) work MON-M (Mon 2026-11-09 08:00-16:00)?
+  In this schedule Dana Levi works: SUN-E TUE-M TUE-E
+  MON-M has 1/2: Yossi Cohen
+
+  availability          ok       available; that day: available 08:00-16:00
+  role                  ok       no role needed
+  no-overlap            ok       
+  min-rest              BLOCKED  only 8h of rest between SUN-E and MON-M, needs 10h
+  double-needs-approval ok       
+  max-shifts            ok       
+  max-consecutive-days  ok       
+
+Answer: no. Blocked by: min-rest

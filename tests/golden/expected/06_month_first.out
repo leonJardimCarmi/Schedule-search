@@ -1,0 +1,105 @@
+Schedule 2026-12-06 .. 2027-01-04  (5 weeks)
+  * preferred   D part of a double   ! below wanted   !! below min (see the list below)
+
+Week 1  2026-12-06 .. 2026-12-12
+                     Sun 06/12  Mon 07/12  Tue 08/12  Wed 09/12  Thu 10/12  Fri 11/12  Sat 12/12
+--------------------------------------------------------------------------------------------------
+07:00-15:00          Noa A.*    Ron        Lior A.*   Lior B.    Omer       Ron*       Ido*
+                     Lior A.    Lior A.    Ron        ! -1       Yossi      Omer       Ron
+--------------------------------------------------------------------------------------------------
+15:00-23:00          Roni*      Yossi*     Tamar      Noa L.*    Roni*      Roni       Tamar*
+                     Avi P.*    Avi P.     Noa L.     Avi P.*    Tamar      Avi P.     Shira*
+--------------------------------------------------------------------------------------------------
+23:00-07:00 [guard]  Avi C.     Maya       Maya       Avi C.     Maya       Maya*      Hila*
+--------------------------------------------------------------------------------------------------
+Week 1: 21 shifts, 20 full, 1 below wanted
+Shifts this week: Omer 2, Ron 4, Noa A. 1, Lior A. 3, Roni 3, Tamar 3, Noa L. 2, Avi P. 4,
+                  Yossi 2, Lior B. 1, Ido 1, Maya 4, Avi C. 2, Shira 1, Hila 1
+
+Week 2  2026-12-13 .. 2026-12-19
+                     Sun 13/12  Mon 14/12  Tue 15/12  Wed 16/12  Thu 17/12  Fri 18/12  Sat 19/12
+--------------------------------------------------------------------------------------------------
+07:00-15:00          Yossi*     Noa A.*    Ron        Omer*      Yossi*     Lior A.*   Ron
+                     Noa A.     Lior A.*   Lior A.    Ron        Omer       Ron        Noa A.
+--------------------------------------------------------------------------------------------------
+15:00-23:00          Roni*      Roni       Tamar*     Noa L.*    Avi P.*    Noa L.*    Tamar*
+                     Avi P.     Tamar      Lior B.    Avi P.*    Roni       Roni       Roni
+--------------------------------------------------------------------------------------------------
+23:00-07:00 [guard]  Hila       Avi C.*    Avi C.*    Maya       Hila       Avi C.     Avi C.
+--------------------------------------------------------------------------------------------------
+Week 2: 21 shifts, 21 full
+Shifts this week: Omer 2, Ron 4, Noa A. 3, Lior A. 3, Roni 5, Tamar 3, Noa L. 2, Avi P. 3,
+                  Yossi 2, Lior B. 1, Ido 0, Maya 1, Avi C. 4, Shira 0, Hila 2
+
+Week 3  2026-12-20 .. 2026-12-26
+                     Sun 20/12  Mon 21/12  Tue 22/12  Wed 23/12  Thu 24/12  Fri 25/12  Sat 26/12
+--------------------------------------------------------------------------------------------------
+07:00-15:00          Ido*       Ron*       Ron        Ido*       Noa A.*    Omer*      Ido*
+                     Noa A.     Noa A.     Lior A.    Omer       Omer       Ron*       Ron
+--------------------------------------------------------------------------------------------------
+15:00-23:00          Tamar*     Roni       Lior B.*   Roni       Tamar*     Roni*      Roni
+                     Roni       Tamar      Tamar      Tamar      Noa L.*    Avi P.*    Tamar
+--------------------------------------------------------------------------------------------------
+23:00-07:00 [guard]  Avi C.     Shira*     Maya       Avi C.*    Hila*      Maya*      Hila*
+--------------------------------------------------------------------------------------------------
+Week 3: 21 shifts, 21 full
+Shifts this week: Omer 3, Ron 4, Noa A. 3, Lior A. 1, Roni 5, Tamar 6, Noa L. 1, Avi P. 1,
+                  Yossi 0, Lior B. 1, Ido 3, Maya 2, Avi C. 2, Shira 1, Hila 2
+
+Week 4  2026-12-27 .. 2027-01-02
+                     Sun 27/12  Mon 28/12  Tue 29/12  Wed 30/12  Thu 31/12  Fri 01/01  Sat 02/01
+--------------------------------------------------------------------------------------------------
+07:00-15:00          Noa A.*    Ron*       Ron*       Omer*      Ron*       Noa A.*    Ron*
+                     Omer       Noa A.     Noa A.*    Ron        Omer       Omer       Omer
+--------------------------------------------------------------------------------------------------
+15:00-23:00          Roni       Maya*      Noa L.     Avi P.*    Lior B.*   Roni*      Roni*
+                     Tamar      Hila*      Lior B.    Ido*       Roni       Ido*       Tamar
+--------------------------------------------------------------------------------------------------
+23:00-07:00 [guard]  Avi C.     Shira      Avi C.     Avi C.*    Hila*      Maya       Avi C.
+--------------------------------------------------------------------------------------------------
+Week 4: 21 shifts, 21 full
+Shifts this week: Omer 5, Ron 5, Noa A. 4, Lior A. 0, Roni 4, Tamar 2, Noa L. 1, Avi P. 1,
+                  Yossi 0, Lior B. 2, Ido 2, Maya 2, Avi C. 4, Shira 1, Hila 2
+
+Week 5  2027-01-03 .. 2027-01-09
+                     Sun 03/01  Mon 04/01  Tue 05/01  Wed 06/01  Thu 07/01  Fri 08/01  Sat 09/01
+--------------------------------------------------------------------------------------------------
+07:00-15:00          Noa A.*    Noa A.*
+                     Lior A.    Ron
+--------------------------------------------------------------------------------------------------
+15:00-23:00          Avi P.*    Roni*
+                     Hila*      Avi P.*
+--------------------------------------------------------------------------------------------------
+23:00-07:00 [guard]  Shira      Shira*
+--------------------------------------------------------------------------------------------------
+Week 5: 6 shifts, 6 full
+Shifts this week: Omer 0, Ron 1, Noa A. 2, Lior A. 1, Roni 1, Tamar 0, Noa L. 0, Avi P. 2,
+                  Yossi 0, Lior B. 0, Ido 0, Maya 0, Avi C. 0, Shira 2, Hila 1
+
+Whole period, per employee
+  Omer Cohen         12 shifts   96 h
+  Ron Biton          18 shifts  144 h
+  Noa Azoulay        13 shifts  104 h
+  Lior Azoulay        8 shifts   64 h
+  Roni Biton         18 shifts  144 h
+  Tamar Peretz       14 shifts  112 h
+  Noa Levi            6 shifts   48 h
+  Avi Peretz         11 shifts   88 h  (below minimum 12)
+  Yossi Ben-David     4 shifts   32 h
+  Lior Ben-David      5 shifts   40 h  (below minimum 10)
+  Ido Avraham         6 shifts   48 h
+  Maya Halevi         9 shifts   72 h
+  Avi Cohen          12 shifts   96 h
+  Shira Katz          5 shifts   40 h
+  Hila Avraham        8 shifts   64 h
+  Fairness: 288  (0 = shifts spread as evenly as possible)
+
+Score (lower is better): Medium 0, Soft 429
+  below-min          Medium     0 x   1 =     0   person missing below a shift's minimum
+  below-wanted         Soft     1 x  10 =    10   person missing below a shift's wanted staff
+  double               Soft     0 x   5 =     0   double shift (approved, but best avoided)
+  below-min-shifts     Soft     6 x   5 =    30   shift missing below an employee's minShifts
+  not-preferred        Soft    77 x   1 =    77   assignment the employee did not mark as preferred
+  consecutive-nights   Soft     8 x   3 =    24   night shift right after a night shift
+  fairness             Soft   288 x   1 =   288   unevenness of shifts per employee (squares)
+  fewer-trips          Soft  off (weight 0)

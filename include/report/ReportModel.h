@@ -174,3 +174,11 @@ ComparisonReport compareSchedules(const Problem& problem, const State& mine, con
 Report buildReport(const Problem& problem, const State& schedule, const std::vector<Shortage>& shortages,
                    const ScoreModel& model, const std::vector<RankedSchedule>& top,
                    const CheckReport* check = nullptr);
+
+// --json (stage 8, D58): a full report for every schedule of the top list,
+// so a view can switch between them without computing anything itself.
+// reports[0] is the report of `best` (the same as buildReport with `top`,
+// so it also lists how each other schedule differs); then one report per
+// other schedule in `top`, in its order, with no alternatives of its own.
+std::vector<Report> buildReports(const Problem& problem, const State& best, const std::vector<Shortage>& shortages,
+                                 const ScoreModel& model, const std::vector<RankedSchedule>& top);

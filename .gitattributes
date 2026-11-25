@@ -1,0 +1,4 @@
+# Shell scripts keep \n line endings, also in a checkout on Windows: bash
+# fails on a \r at the end of a line, and tools/golden.sh runs in CI on
+# Windows too (DECISIONS D63).
+*.sh text eol=lf

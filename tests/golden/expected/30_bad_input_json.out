@@ -1,0 +1,65 @@
+{
+  "formatVersion": 1,
+  "run": {
+    "status": "inputError",
+    "exitCode": 1
+  },
+  "schedules": [],
+  "diagnostics": [
+    {
+      "severity": "error",
+      "where": "data/bad_example.json: employees[0].availability[0].date",
+      "message": "date does not exist: 2026-02-30"
+    },
+    {
+      "severity": "error",
+      "where": "data/bad_example.json: employees[1].availability[0].time",
+      "message": "bad time: 25:00"
+    },
+    {
+      "severity": "error",
+      "where": "data/bad_example.json: employees[1].availability[0].type",
+      "message": "must be available, preferred or unavailable"
+    },
+    {
+      "severity": "error",
+      "where": "data/bad_example.json: employees[2].id",
+      "message": "missing required field"
+    },
+    {
+      "severity": "warning",
+      "where": "data/bad_example.json: rules.minRestHour",
+      "message": "unknown field, ignored"
+    },
+    {
+      "severity": "warning",
+      "where": "data/bad_example.json: employees[0]",
+      "message": "Yossi Cohen has no availability and will never be assigned"
+    },
+    {
+      "severity": "error",
+      "where": "data/bad_example.json: employees[1]",
+      "message": "duplicate employee id 101"
+    },
+    {
+      "severity": "warning",
+      "where": "data/bad_example.json: employees[1]",
+      "message": "Yossi Again has no availability and will never be assigned"
+    },
+    {
+      "severity": "error",
+      "where": "data/bad_example.json: shifts[S1]",
+      "message": "min (3) is larger than wanted (2)"
+    },
+    {
+      "severity": "error",
+      "where": "data/bad_example.json: shifts[S2].date",
+      "message": "2026-12-01 is outside the period"
+    },
+    {
+      "severity": "warning",
+      "where": "data/bad_example.json: shifts[S2].role",
+      "message": "no employee has role 'chef'"
+    }
+  ]
+}

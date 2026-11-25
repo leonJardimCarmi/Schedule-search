@@ -1,0 +1,12 @@
+error: data/bad_example.json: employees[0].availability[0].date: date does not exist: 2026-02-30
+error: data/bad_example.json: employees[1].availability[0].time: bad time: 25:00
+error: data/bad_example.json: employees[1].availability[0].type: must be available, preferred or unavailable
+error: data/bad_example.json: employees[2].id: missing required field
+warning: data/bad_example.json: rules.minRestHour: unknown field, ignored
+warning: data/bad_example.json: employees[0]: Yossi Cohen has no availability and will never be assigned
+error: data/bad_example.json: employees[1]: duplicate employee id 101
+warning: data/bad_example.json: employees[1]: Yossi Again has no availability and will never be assigned
+error: data/bad_example.json: shifts[S1]: min (3) is larger than wanted (2)
+error: data/bad_example.json: shifts[S2].date: 2026-12-01 is outside the period
+warning: data/bad_example.json: shifts[S2].role: no employee has role 'chef'
+input has errors, stopping.

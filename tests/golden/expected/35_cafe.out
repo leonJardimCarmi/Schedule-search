@@ -1,0 +1,156 @@
+Schedule 2026-12-02 .. 2026-12-22  (4 weeks)
+  * preferred   D part of a double   ! below wanted   !! below min (see the list below)
+
+Week 1  2026-11-29 .. 2026-12-05
+                       Sun 29/11  Mon 30/11  Tue 01/12  Wed 02/12  Thu 03/12  Fri 04/12  Sat 05/12
+----------------------------------------------------------------------------------------------------
+06:30-14:30                                             Orly*      Orly*                 Tom H.
+                                                        David      David
+----------------------------------------------------------------------------------------------------
+07:00-13:00                                                                   Yoav*
+                                                                              Tom H.
+----------------------------------------------------------------------------------------------------
+10:00-18:00 [manager]                                   Michal*    Michal*
+----------------------------------------------------------------------------------------------------
+14:30-22:30                                             Shir       Shir*      David      David
+                                                        ! -1       ! -1       ! -2       ! -2
+----------------------------------------------------------------------------------------------------
+17:00-23:00 [waiter]
+----------------------------------------------------------------------------------------------------
+18:00-23:00 [barista]                                              Lia*       Lia*       Lia*
+----------------------------------------------------------------------------------------------------
+22:30-06:30 [guard]                                     Boris*     Ruth       Ruth       Ruth
+----------------------------------------------------------------------------------------------------
+Week 1: 17 shifts, 13 full, 4 below wanted
+Shifts this week: Michal 2, Yoav 1, Shir 2, Tom H. 2, Orly 2, Boris 1, Ruth 3, David 4,
+                  Lia 3, Nadav 0, Hen 0, Tom S. 0
+
+Week 2  2026-12-06 .. 2026-12-12
+                       Sun 06/12  Mon 07/12  Tue 08/12  Wed 09/12  Thu 10/12  Fri 11/12  Sat 12/12
+----------------------------------------------------------------------------------------------------
+06:30-14:30            Orly*      Orly*      Orly*      Orly*      Orly*                 Tom H.
+                       Hen D      ! -1       ! -1       Michal     ! -1
+----------------------------------------------------------------------------------------------------
+07:00-13:00                                                                   Yoav*
+                                                                              Tom H.
+----------------------------------------------------------------------------------------------------
+10:00-18:00 [manager]  Michal*    Michal*    Michal*    Yoav       Michal*
+----------------------------------------------------------------------------------------------------
+14:30-22:30            Shir       Shir       Shir       David      David      David      David
+                       Hen D      Hen        Hen        ! -1       ! -1       ! -2       ! -2
+----------------------------------------------------------------------------------------------------
+17:00-23:00 [waiter]
+----------------------------------------------------------------------------------------------------
+18:00-23:00 [barista]                                              Lia*       Lia*       Lia*
+----------------------------------------------------------------------------------------------------
+22:30-06:30 [guard]    Boris*     Boris*     Boris      Boris*     Ruth       Ruth       !! -1
+----------------------------------------------------------------------------------------------------
+Week 2: 29 shifts, 21 full, 7 below wanted, 1 below min
+Shifts this week: Michal 5, Yoav 2, Shir 3, Tom H. 2, Orly 5, Boris 4, Ruth 2, David 4,
+                  Lia 3, Nadav 0, Hen 4, Tom S. 0
+
+Week 3  2026-12-13 .. 2026-12-19
+                       Sun 13/12  Mon 14/12  Tue 15/12  Wed 16/12  Thu 17/12  Fri 18/12  Sat 19/12
+----------------------------------------------------------------------------------------------------
+06:30-14:30            Orly*      Orly*      Orly*      Orly*      Orly*                 Tom H.
+                       Hen D      Tom S.     Tom S.     Tom S.     Tom S.                !! -1
+----------------------------------------------------------------------------------------------------
+07:00-13:00                                                                   !! -2
+----------------------------------------------------------------------------------------------------
+10:00-18:00 [manager]  Michal*    Michal*    Michal*    Yoav       Michal*
+----------------------------------------------------------------------------------------------------
+14:30-22:30            Hen D      Hen        Shir       Shir       Shir*      David      David
+                       ! -1       ! -1       Hen        David      ! -1       ! -2       ! -2
+----------------------------------------------------------------------------------------------------
+17:00-23:00 [waiter]                         Nadav*
+                                             David
+                                             !! -2
+----------------------------------------------------------------------------------------------------
+18:00-23:00 [barista]                                              Lia*       Lia*       Lia*
+----------------------------------------------------------------------------------------------------
+22:30-06:30 [guard]    Boris*     Boris*     Boris*     Boris*     Ruth       Ruth       Ruth
+----------------------------------------------------------------------------------------------------
+Week 3: 30 shifts, 22 full, 5 below wanted, 3 below min
+Shifts this week: Michal 4, Yoav 1, Shir 3, Tom H. 1, Orly 5, Boris 4, Ruth 3, David 4,
+                  Lia 3, Nadav 1, Hen 4, Tom S. 4
+
+Week 4  2026-12-20 .. 2026-12-26
+                       Sun 20/12  Mon 21/12  Tue 22/12  Wed 23/12  Thu 24/12  Fri 25/12  Sat 26/12
+----------------------------------------------------------------------------------------------------
+06:30-14:30            Tom S.     Orly*      Orly*
+                       ! -1       ! -1       ! -1
+----------------------------------------------------------------------------------------------------
+07:00-13:00
+----------------------------------------------------------------------------------------------------
+10:00-18:00 [manager]  Michal*    Yoav       Michal*
+----------------------------------------------------------------------------------------------------
+14:30-22:30            Hen        Hen        Hen
+                       ! -1       Tom S.     Tom S.
+----------------------------------------------------------------------------------------------------
+17:00-23:00 [waiter]
+----------------------------------------------------------------------------------------------------
+18:00-23:00 [barista]
+----------------------------------------------------------------------------------------------------
+22:30-06:30 [guard]    Boris*     Boris*     Boris*
+----------------------------------------------------------------------------------------------------
+Week 4: 12 shifts, 8 full, 4 below wanted
+Shifts this week: Michal 2, Yoav 1, Shir 0, Tom H. 0, Orly 2, Boris 3, Ruth 0, David 0,
+                  Lia 0, Nadav 0, Hen 3, Tom S. 3
+
+Whole period, per employee
+  Michal Avrahami    13 shifts  104 h
+  Yoav Ben-Ami        5 shifts   36 h
+  Shir Levinson       8 shifts   64 h
+  Tom Harel           5 shifts   36 h
+  Orly Segal         14 shifts  112 h
+  Boris Klein        12 shifts   96 h
+  Ruth Amar           8 shifts   64 h
+  David Navon        12 shifts   94 h
+  Lia Kaplan          9 shifts   45 h
+  Nadav Elkayam       1 shifts    6 h
+  Hen Barak          11 shifts   88 h
+  Tom Stern           7 shifts   56 h
+  Fairness: 162  (0 = shifts spread as evenly as possible)
+
+Shifts that cannot be fully staffed (fill them by hand)
+  1212-N 2026-12-12 22:30-06:30  needs 1, can get 0: 2 available, but only 0 with role 'guard'
+  1215-X 2026-12-15 17:00-23:00  needs 3, can get 2: 5 available, but only 2 with role 'waiter'
+  1218-F 2026-12-18 07:00-13:00  needs 1, can get 0: nobody is available at this time
+  1219-M 2026-12-19 06:30-14:30  needs 2, can get 1: only 1 available
+
+Score (lower is better): Medium 4, Soft 585
+  below-min          Medium     4 x   1 =     4   person missing below a shift's minimum
+  below-wanted         Soft    32 x  10 =   320   person missing below a shift's wanted staff
+  double               Soft     2 x   5 =    10   double shift (approved, but best avoided)
+  below-min-shifts     Soft     0 x   5 =     0   shift missing below an employee's minShifts
+  not-preferred        Soft    54 x   1 =    54   assignment the employee did not mark as preferred
+  consecutive-nights   Soft    13 x   3 =    39   night shift right after a night shift
+  fairness             Soft   162 x   1 =   162   unevenness of shifts per employee (squares)
+  fewer-trips          Soft  off (weight 0)
+Search stopped by the time or node limit: this is the best schedule
+found so far, and a better one may exist. Try a larger --time-limit.
+
+Other good schedules (each differs from the others in at least 3 assignments):
+  #2  Medium 4, Soft 585  (+0), 3 assignments differ from #1
+      1220-M  2026-12-20  in: Orly Segal
+      1221-M  2026-12-21  out: Orly Segal  in: Tom Stern
+      1221-E  2026-12-21  out: Tom Stern
+      1222-M  2026-12-22  in: Tom Stern
+      1222-E  2026-12-22  out: Tom Stern
+  #3  Medium 4, Soft 585  (+0), 5 assignments differ from #1
+      1220-M  2026-12-20  out: Tom Stern  in: Orly Segal, Hen Barak
+      1220-E  2026-12-20  out: Hen Barak  in: Tom Stern
+      1221-M  2026-12-21  out: Orly Segal  in: Hen Barak
+      1221-E  2026-12-21  out: Hen Barak
+      1222-M  2026-12-22  in: Hen Barak
+      1222-E  2026-12-22  out: Hen Barak
+  #4  Medium 4, Soft 585  (+0), 3 assignments differ from #1
+      1215-M  2026-12-15  out: Orly Segal
+      1220-M  2026-12-20  out: Tom Stern  in: Orly Segal, Hen Barak
+      1220-E  2026-12-20  out: Hen Barak  in: Tom Stern
+  #5  Medium 4, Soft 585  (+0), 4 assignments differ from #1
+      1214-M  2026-12-14  out: Orly Segal
+      1220-M  2026-12-20  out: Tom Stern  in: Hen Barak
+      1220-E  2026-12-20  out: Hen Barak  in: Tom Stern
+      1221-M  2026-12-21  in: Hen Barak
+      1221-E  2026-12-21  out: Hen Barak

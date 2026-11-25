@@ -1,0 +1,97 @@
+Schedule 2026-12-01 .. 2026-12-31  (5 weeks)
+  * preferred   D part of a double   ! below wanted   !! below min (see the list below)
+
+Week 1  2026-11-29 .. 2026-12-05
+                     Sun 29/11  Mon 30/11  Tue 01/12  Wed 02/12  Thu 03/12  Fri 04/12  Sat 05/12
+--------------------------------------------------------------------------------------------------
+13:00-13:00 [hofel]                        Adam       Adam       Adam       Adam       Adam
+--------------------------------------------------------------------------------------------------
+13:00-13:00 [medic]                        Bar        Bar        Bar        Bar        Bar
+                                           Carmel     Carmel     Carmel     Dor        Dor
+--------------------------------------------------------------------------------------------------
+Week 1: 10 shifts, 10 full
+Shifts this week: Adam 5, Bar 5, Carmel 3, Dor 2, Eden 0, Gal 0, Hadar 0
+
+Week 2  2026-12-06 .. 2026-12-12
+                     Sun 06/12  Mon 07/12  Tue 08/12  Wed 09/12  Thu 10/12  Fri 11/12  Sat 12/12
+--------------------------------------------------------------------------------------------------
+13:00-13:00 [hofel]  Adam       Adam       Bar        Bar        Bar        Bar        Bar
+--------------------------------------------------------------------------------------------------
+13:00-13:00 [medic]  Bar        Carmel     Carmel     Carmel     Dor        Carmel     Carmel
+                     Dor        Eden       Eden       Eden       Eden       Dor        Dor
+--------------------------------------------------------------------------------------------------
+Week 2: 14 shifts, 14 full
+Shifts this week: Adam 2, Bar 6, Carmel 5, Dor 4, Eden 4, Gal 0, Hadar 0
+
+Week 3  2026-12-13 .. 2026-12-19
+                     Sun 13/12  Mon 14/12  Tue 15/12  Wed 16/12  Thu 17/12  Fri 18/12  Sat 19/12
+--------------------------------------------------------------------------------------------------
+13:00-13:00 [hofel]  Bar        Bar        Adam       Adam       Adam       Adam       Adam
+--------------------------------------------------------------------------------------------------
+13:00-13:00 [medic]  Carmel     Carmel     Carmel     Carmel     Carmel     Eden       Bar
+                     Dor        Dor        Eden       Eden       Eden       Bar        Eden
+--------------------------------------------------------------------------------------------------
+Week 3: 14 shifts, 14 full
+Shifts this week: Adam 5, Bar 4, Carmel 5, Dor 2, Eden 5, Gal 0, Hadar 0
+
+Week 4  2026-12-20 .. 2026-12-26
+                     Sun 20/12  Mon 21/12  Tue 22/12  Wed 23/12  Thu 24/12  Fri 25/12  Sat 26/12
+--------------------------------------------------------------------------------------------------
+13:00-13:00 [hofel]  Adam       Adam       Bar        Bar        Bar        Carmel     Carmel
+--------------------------------------------------------------------------------------------------
+13:00-13:00 [medic]  Bar        Bar        Carmel     Adam       Adam       Adam       Dor
+                     Carmel     Carmel     Dor        Dor        Dor        Dor        Eden
+--------------------------------------------------------------------------------------------------
+Week 4: 14 shifts, 14 full
+Shifts this week: Adam 5, Bar 5, Carmel 5, Dor 5, Eden 1, Gal 0, Hadar 0
+
+Week 5  2026-12-27 .. 2027-01-02
+                     Sun 27/12  Mon 28/12  Tue 29/12  Wed 30/12  Thu 31/12  Fri 01/01  Sat 02/01
+--------------------------------------------------------------------------------------------------
+13:00-13:00 [hofel]  Carmel     Carmel     Carmel     Carmel     Carmel
+--------------------------------------------------------------------------------------------------
+13:00-13:00 [medic]  Dor        Dor        Adam       Adam       Gal
+                     Eden       Eden       Bar        Bar        Hadar
+--------------------------------------------------------------------------------------------------
+Week 5: 10 shifts, 10 full
+Shifts this week: Adam 2, Bar 2, Carmel 5, Dor 2, Eden 2, Gal 1, Hadar 1
+
+Whole period, per employee
+  Adam               19 shifts  456 h
+  Bar                22 shifts  528 h
+  Carmel             23 shifts  552 h
+  Dor                15 shifts  360 h
+  Eden               12 shifts  288 h
+  Gal                 1 shifts   24 h
+  Hadar               1 shifts   24 h
+  Fairness: 508  (0 = shifts spread as evenly as possible)
+
+Score (lower is better): Medium 0, Soft 548
+  below-min          Medium     0 x   1 =     0   person missing below a shift's minimum
+  below-wanted         Soft     0 x  10 =     0   person missing below a shift's wanted staff
+  double               Soft  off (weight 0)
+  below-min-shifts     Soft     0 x   5 =     0   shift missing below an employee's minShifts
+  not-preferred        Soft  off (weight 0)
+  consecutive-nights   Soft  off (weight 0)
+  fairness             Soft   508 x   1 =   508   unevenness of shifts per employee (squares)
+  fewer-trips          Soft     2 x  20 =    40   day outside the ideal trip length (days in a row)
+Search stopped by the time or node limit: this is the best schedule
+found so far, and a better one may exist. Try a larger --time-limit.
+
+Other good schedules (each differs from the others in at least 3 assignments):
+  #2  Medium 0, Soft 550  (+2), 3 assignments differ from #1
+      21-MEDIC2026-12-21  out: Bar  in: Gal
+      29-MEDIC2026-12-29  out: Bar  in: Eden
+      31-MEDIC2026-12-31  out: Gal  in: Bar
+  #3  Medium 0, Soft 550  (+2), 3 assignments differ from #1
+      21-MEDIC2026-12-21  out: Bar  in: Hadar
+      29-MEDIC2026-12-29  out: Adam  in: Eden
+      31-MEDIC2026-12-31  out: Hadar  in: Adam
+  #4  Medium 0, Soft 568  (+20), 3 assignments differ from #1
+      21-MEDIC2026-12-21  out: Bar  in: Hadar
+      29-MEDIC2026-12-29  out: Bar  in: Gal
+      31-MEDIC2026-12-31  out: Hadar  in: Bar
+  #5  Medium 0, Soft 568  (+20), 3 assignments differ from #1
+      19-MEDIC2026-12-19  out: Eden  in: Gal
+      29-MEDIC2026-12-29  out: Adam  in: Eden
+      31-MEDIC2026-12-31  out: Gal  in: Adam

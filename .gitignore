@@ -15,3 +15,13 @@ out/
 *.exe
 *.tlog/
 *.log
+
+# Real names stay off GitHub: the repository is public (DECISIONS D60).
+# tools/anonymize.py makes a copy with made-up names that can be committed.
+data/private/
+
+# Python caches (tools/)
+__pycache__/
+
+# tools/golden.sh writes the actual output here (D63)
+tests/golden/actual/

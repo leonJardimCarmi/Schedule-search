@@ -217,6 +217,15 @@ Report buildReport(const Problem& problem, const State& schedule, const std::vec
     return report;
 }
 
+std::vector<Report> buildReports(const Problem& problem, const State& best, const std::vector<Shortage>& shortages,
+                                 const ScoreModel& model, const std::vector<RankedSchedule>& top) {
+    std::vector<Report> reports;
+    reports.push_back(buildReport(problem, best, shortages, model, top));
+    for (std::size_t k = 1; k < top.size(); ++k)
+        reports.push_back(buildReport(problem, top[k].schedule, shortages, model, {}));
+    return reports;
+}
+
 bool Explanation::canWork() const {
     if (availability == Fit::No || !roleOk) return false;
     return std::all_of(rules.begin(), rules.end(), [](const RuleCheck& c) { return !c.whyNot; });

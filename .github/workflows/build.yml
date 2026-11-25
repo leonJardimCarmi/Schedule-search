@@ -31,6 +31,26 @@ jobs:
       - name: Unit tests
         run: ctest --test-dir build -C Release --output-on-failure
 
+      # The console output of 23 fixed runs, compared line by line with
+      # tests/golden/expected/ (D63). A difference between the systems is
+      # a finding, not noise.
+      - name: Golden output
+        shell: bash
+        run: |
+          exe=build/schedule_search
+          if [ -f build/Release/schedule_search.exe ]; then exe=build/Release/schedule_search.exe; fi
+          bash tools/golden.sh "$exe"
+
+      # The JSON results of the golden runs, against the contract (D62): the
+      # JSON Schema, and the ids that point into the problem. The shape does
+      # not depend on the system, so Linux is enough; the golden above
+      # already compares the content on all three.
+      - name: Contract (JSON Schema)
+        if: runner.os == 'Linux'
+        run: |
+          python3 -m pip install --quiet "jsonschema>=4.18"
+          python3 tools/check_contract.py tests/golden/actual/*_json.out contract/examples/*.result.json
+
       # The program itself, end to end, on the example week. Windows puts the
       # program in build/Release/, the others in build/.
       - name: Run the example week

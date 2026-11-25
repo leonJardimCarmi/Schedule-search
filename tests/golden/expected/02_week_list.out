@@ -1,0 +1,32 @@
+Schedule 2026-11-08 .. 2026-11-14
+
+Sun 2026-11-08
+  SUN-M  08:00-16:00  2/2  Noa Shapira, Yossi Cohen
+  SUN-E  16:00-00:00  1/1  Dana Levi
+  SUN-N  22:00-06:00  1/1  Avi Mizrahi  [guard]
+
+Mon 2026-11-09
+  MON-M  08:00-16:00  1/2  Yossi Cohen  (below wanted)
+  MON-E  16:00-00:00  1/1  Noa Shapira
+  MON-N  22:00-06:00  1/1  Avi Mizrahi  [guard]
+
+Tue 2026-11-10
+  TUE-M  08:00-16:00  1/2  Dana Levi  (below wanted)
+  TUE-E  16:00-00:00  1/1  Dana Levi
+
+Per employee
+  Yossi Cohen      2 shifts  16 h   SUN-M MON-M
+  Dana Levi        3 shifts  24 h   SUN-E TUE-M TUE-E
+  Avi Mizrahi      2 shifts  16 h   SUN-N MON-N
+  Noa Shapira      2 shifts  16 h   SUN-M MON-E
+
+Score (lower is better): Medium 0, Soft 33
+  below-min          Medium     0 x   1 =     0   person missing below a shift's minimum
+  below-wanted         Soft     2 x  10 =    20   person missing below a shift's wanted staff
+  double               Soft     1 x   5 =     5   double shift (approved, but best avoided)
+  below-min-shifts     Soft     0 x   5 =     0   shift missing below an employee's minShifts
+  not-preferred        Soft     5 x   1 =     5   assignment the employee did not mark as preferred
+  consecutive-nights   Soft     1 x   3 =     3   night shift right after a night shift
+  fairness             Soft     0 x   1 =     0   unevenness of shifts per employee (squares)
+  fewer-trips          Soft  off (weight 0)
+This is the best schedule: the whole search space was checked.

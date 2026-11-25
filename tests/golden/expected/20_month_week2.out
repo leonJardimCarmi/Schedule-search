@@ -1,0 +1,65 @@
+Schedule 2026-12-06 .. 2027-01-04  (5 weeks)
+  * preferred   D part of a double   ! below wanted   !! below min (see the list below)
+
+Week 2  2026-12-13 .. 2026-12-19
+                     Sun 13/12  Mon 14/12  Tue 15/12  Wed 16/12  Thu 17/12  Fri 18/12  Sat 19/12
+--------------------------------------------------------------------------------------------------
+07:00-15:00          Yossi*     Noa A.*    Ron        Omer*      Yossi*     Lior A.*   Ron
+                     Noa A.     Lior A.*   Lior A.    Ron        Omer       Ron        Noa A.
+--------------------------------------------------------------------------------------------------
+15:00-23:00          Roni*      Roni       Tamar*     Noa L.*    Avi P.*    Noa L.*    Tamar*
+                     Avi P.     Tamar      Lior B.    Avi P.*    Roni       Roni       Roni
+--------------------------------------------------------------------------------------------------
+23:00-07:00 [guard]  Hila       Avi C.*    Avi C.*    Maya       Hila       Avi C.     Avi C.
+--------------------------------------------------------------------------------------------------
+Week 2: 21 shifts, 21 full
+Shifts this week: Omer 2, Ron 4, Noa A. 3, Lior A. 3, Roni 5, Tamar 3, Noa L. 2, Avi P. 3,
+                  Yossi 2, Lior B. 1, Ido 0, Maya 1, Avi C. 4, Shira 0, Hila 2
+
+Whole period, per employee
+  Omer Cohen         12 shifts   96 h
+  Ron Biton          18 shifts  144 h
+  Noa Azoulay        13 shifts  104 h
+  Lior Azoulay        8 shifts   64 h
+  Roni Biton         17 shifts  136 h
+  Tamar Peretz       13 shifts  104 h
+  Noa Levi            6 shifts   48 h
+  Avi Peretz         10 shifts   80 h  (below minimum 12)
+  Yossi Ben-David     5 shifts   40 h
+  Lior Ben-David      7 shifts   56 h  (below minimum 10)
+  Ido Avraham         6 shifts   48 h
+  Maya Halevi         9 shifts   72 h
+  Avi Cohen          12 shifts   96 h
+  Shira Katz          5 shifts   40 h
+  Hila Avraham        8 shifts   64 h
+  Fairness: 238  (0 = shifts spread as evenly as possible)
+
+Score (lower is better): Medium 0, Soft 376
+  below-min          Medium     0 x   1 =     0   person missing below a shift's minimum
+  below-wanted         Soft     1 x  10 =    10   person missing below a shift's wanted staff
+  double               Soft     0 x   5 =     0   double shift (approved, but best avoided)
+  below-min-shifts     Soft     5 x   5 =    25   shift missing below an employee's minShifts
+  not-preferred        Soft    79 x   1 =    79   assignment the employee did not mark as preferred
+  consecutive-nights   Soft     8 x   3 =    24   night shift right after a night shift
+  fairness             Soft   238 x   1 =   238   unevenness of shifts per employee (squares)
+  fewer-trips          Soft  off (weight 0)
+Search stopped by the time or node limit: this is the best schedule
+found so far, and a better one may exist. Try a larger --time-limit.
+
+Other good schedules (each differs from the others in at least 3 assignments):
+  #2  Medium 0, Soft 380  (+4), 3 assignments differ from #1
+      1224-E  2026-12-24  out: Noa Levi  in: Yossi Ben-David
+      1230-E  2026-12-30  out: Ido Avraham  in: Noa Levi
+      1231-E  2026-12-31  out: Yossi Ben-David  in: Noa Levi
+  #3  Medium 0, Soft 380  (+4), 3 assignments differ from #1
+      1209-E  2026-12-09  out: Avi Peretz  in: Ido Avraham
+      1224-E  2026-12-24  out: Lior Ben-David  in: Yossi Ben-David
+      1230-E  2026-12-30  out: Ido Avraham  in: Avi Peretz
+  #4  Medium 0, Soft 382  (+6), 3 assignments differ from #1
+      1209-E  2026-12-09  out: Avi Peretz  in: Ido Avraham
+      1230-E  2026-12-30  out: Ido Avraham  in: Noa Levi
+      1231-E  2026-12-31  out: Yossi Ben-David  in: Avi Peretz
+  #5  Medium 0, Soft 385  (+9), 3 assignments differ from #1
+      1209-E  2026-12-09  out: Avi Peretz  in: Ido Avraham
+      1230-E  2026-12-30  out: Lior Ben-David  in: Avi Peretz
+      1231-E  2026-12-31  out: Yossi Ben-David  in: Noa Levi

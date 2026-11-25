@@ -9,6 +9,7 @@
 #include "io/CsvLoader.h"
 #include "io/JsonLoader.h"
 #include "io/Printer.h"
+#include "io/ResultJson.h"
 #include "io/ScheduleFile.h"
 #include "io/Terminal.h"
 #include "io/TracePrinter.h"
@@ -51,6 +52,8 @@ void printUsage() {
                  "                             (exit code 4 if it breaks a rule; works with --explain)\n"
                  "  --compare                  with --check: also search, and compare the two schedules\n"
                  "                             (search options work here; --save saves the engine's schedule)\n"
+                 "  --json <file.json>         also write the whole result as JSON, the contract for apps\n"
+                 "                             (\"-\" = to stdout, instead of the text; see contract/)\n"
                  "  --verbose                  also print the input, the candidates and the search size\n";
 }
 
@@ -71,6 +74,7 @@ struct Options {
     std::string savePath;            // D51: --save file; empty = do not save
     std::string checkPath;           // D51: --check file; empty = search as usual
     bool compare = false;            // D52: --check ... --compare: also search and compare
+    std::string jsonPath;            // D57: --json file, "-" = stdout; empty = no JSON
     std::vector<std::string> searchFlags;   // given flags that only make sense with a search
 };
 
@@ -99,7 +103,7 @@ std::optional<Options> parseArgs(int argc, char* argv[]) {
         } else if (arg == "--availability" || arg == "--time-limit" || arg == "--max-nodes" ||
                    arg == "--top" || arg == "--min-diff" || arg == "--weight" || arg == "--view" ||
                    arg == "--week" || arg == "--color" || arg == "--trace-lines" || arg == "--save" ||
-                   arg == "--check") {
+                   arg == "--check" || arg == "--json") {
             if (i + 1 >= argc) {   // these options need a value after them
                 std::cerr << arg << " needs a value\n";
                 return std::nullopt;
@@ -118,6 +122,10 @@ std::optional<Options> parseArgs(int argc, char* argv[]) {
             }
             if (arg == "--check") {
                 options.checkPath = value;
+                continue;
+            }
+            if (arg == "--json") {
+                options.jsonPath = value;
                 continue;
             }
             if (arg == "--view") {
@@ -188,6 +196,17 @@ std::optional<Options> parseArgs(int argc, char* argv[]) {
         std::cerr << "--check does not search, so " << options.searchFlags.front()
                   << " has no meaning with it (add --compare to also search)\n";
         return std::nullopt;
+    }
+    if (!options.jsonPath.empty()) {   // D57
+        if (!options.checkPath.empty() || options.explain) {
+            std::cerr << "--json does not work with --check or --explain yet\n";
+            return std::nullopt;
+        }
+        if (options.jsonPath == "-" && (options.verbose || options.traceLines)) {
+            std::cerr << "--json - writes only JSON to stdout, so it cannot be used with "
+                      << (options.verbose ? "--verbose" : "--trace") << " (write the JSON to a file instead)\n";
+            return std::nullopt;
+        }
     }
     if (options.week && options.listView) {
         std::cerr << "--week works with the table (--view grid) only\n";
@@ -294,6 +313,25 @@ int main(int argc, char* argv[]) {
         return kBadInput;
     }
 
+    // --json - (D57): stdout carries the JSON only. The console text is
+    // switched off: std::cout without a buffer writes nothing. The JSON goes
+    // to the real stdout. Warnings still go to stderr.
+    std::streambuf* const realStdout = std::cout.rdbuf();
+    if (options->jsonPath == "-") std::cout.rdbuf(nullptr);
+    std::ostream jsonOut(realStdout);
+    std::vector<Diagnostic> notes;   // every warning and error, also for the JSON (D61)
+    // Writes the JSON, if asked for. Returns `code`, or kBadInput when the
+    // file cannot be written.
+    auto emitJson = [&](const Problem* problem, const Report* shape, const std::vector<Report>& schedules,
+                        const RunInfo& run) {
+        if (options->jsonPath.empty()) return run.exitCode;
+        Diagnostics problems;
+        if (writeResultJson(options->jsonPath, resultToJson(problem, shape, schedules, run, notes), jsonOut, problems))
+            return run.exitCode;
+        for (const Diagnostic& d : problems.all()) std::cerr << d << '\n';
+        return kBadInput;
+    };
+
     // 1. Load. Warnings and errors go to stderr, separate from the output.
     LoadResult result = JsonLoader::loadFile(options->inputPath);
     if (result.ok() && !options->availabilityPath.empty())
@@ -301,9 +339,13 @@ int main(int argc, char* argv[]) {
 
     for (const Diagnostic& d : result.diagnostics.all())
         std::cerr << d << '\n';
+    notes = result.diagnostics.all();
     if (!result.ok()) {
         std::cerr << "input has errors, stopping.\n";
-        return kBadInput;
+        RunInfo run;
+        run.status = RunStatus::InputError;
+        run.exitCode = kBadInput;
+        return emitJson(nullptr, nullptr, {}, run);
     }
     // --weight wins over "weights" in the file; a later --weight wins over
     // an earlier one for the same rule (D43).
@@ -312,8 +354,10 @@ int main(int argc, char* argv[]) {
 
     // 2. Search.
     const ScoreModel scoreModel = makeScoreModel(problem);
-    for (const std::string& name : scoreModel.unknownWeights())
-        std::cerr << "warning: weights." << name << ": no soft rule with this name, ignored\n";
+    for (const std::string& name : scoreModel.unknownWeights()) {
+        notes.push_back({Severity::Warning, "weights." + name, "no soft rule with this name, ignored"});
+        std::cerr << notes.back() << '\n';
+    }
     Solver solver(problem);
     solver.setLimits(options->limits);
     solver.setTop(options->top, options->minDifferent);
@@ -351,16 +395,37 @@ int main(int argc, char* argv[]) {
                   << ", Soft " << solver.startBound().at(Level::Soft) << "\n";
     if (options->verbose) std::cout << "\n";
 
+    // How the search went, for the JSON (D58, D61).
+    RunInfo run;
+    run.firstOnly = options->firstOnly;
+    run.nodes = solver.nodesVisited();
+    run.ms = searchTime.count();
+    run.complete = solver.complete();
+    run.improvements = solver.improvements();
+    run.pruned = solver.pruned();
+    run.startBound = solver.startBound();
+    run.top = options->top;
+    run.minDiff = options->minDifferent;
+    run.timeLimit = options->limits.seconds;
+    run.maxNodes = options->limits.maxNodes;
+
     // 3. Report.
-    if (solver.status() == SearchStatus::LimitReached) {
-        std::cout << "Search stopped after " << solver.nodesVisited()
-                  << " nodes (time or node limit). No schedule found yet;\n"
-                     "a schedule may still exist. Try a larger --time-limit.\n";
-        return kLimitReached;
-    }
-    if (!schedule) {
-        std::cout << "No schedule satisfies the input.\n";
-        return kNoSchedule;
+    if (solver.status() == SearchStatus::LimitReached || !schedule) {
+        // No schedule. The JSON still has the problem, its layout and the
+        // shifts that cannot be staffed, from the report of an empty schedule.
+        const bool limit = solver.status() == SearchStatus::LimitReached;
+        if (limit)
+            std::cout << "Search stopped after " << solver.nodesVisited()
+                      << " nodes (time or node limit). No schedule found yet;\n"
+                         "a schedule may still exist. Try a larger --time-limit.\n";
+        else
+            std::cout << "No schedule satisfies the input.\n";
+        run.status = limit ? RunStatus::LimitReached : RunStatus::NoSchedule;
+        run.exitCode = limit ? kLimitReached : kNoSchedule;
+        if (options->jsonPath.empty()) return run.exitCode;
+        const State empty(static_cast<int>(problem.employees.size()), static_cast<int>(problem.shifts.size()));
+        const Report shape = buildReport(problem, empty, solver.shortages(), scoreModel, {});
+        return emitJson(&problem, &shape, {}, run);
     }
     // --save (D51): the schedule found, in the format --check reads.
     if (!options->savePath.empty()) {
@@ -386,8 +451,20 @@ int main(int argc, char* argv[]) {
         return kOk;
     }
 
-    // 4. Report: computed once (D41), then shown.
-    const Report report = buildReport(problem, *schedule, solver.shortages(), scoreModel, solver.top());
+    // 4. Report: computed once (D41), then shown. The JSON also has a full
+    // report for every other schedule of the list (D58).
+    const std::vector<Report> reports =
+        options->jsonPath.empty()
+            ? std::vector<Report>{buildReport(problem, *schedule, solver.shortages(), scoreModel, solver.top())}
+            : buildReports(problem, *schedule, solver.shortages(), scoreModel, solver.top());
+    const Report& report = reports.front();
+    if (options->week && *options->week > static_cast<int>(report.weeks.size())) {   // before any output
+        std::cerr << "--week " << *options->week << ": the period has only " << report.weeks.size() << " weeks\n";
+        return kBadInput;
+    }
+    run.status = RunStatus::Found;
+    run.exitCode = kOk;
+    if (emitJson(&problem, &report, reports, run) != kOk) return kBadInput;
     if (!printResult(*options, problem, report)) return kBadInput;
 
     // Anytime (D31, D34): a usable schedule, but the search did not finish.

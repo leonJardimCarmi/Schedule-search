@@ -1,0 +1,5426 @@
+{
+  "formatVersion": 1,
+  "run": {
+    "status": "found",
+    "exitCode": 0,
+    "mode": "best",
+    "complete": false,
+    "nodes": 50001,
+    "ms": 0,
+    "improvements": 15,
+    "pruned": 4274,
+    "startBound": {
+      "medium": 0,
+      "soft": 39
+    },
+    "options": {
+      "top": 2,
+      "minDiff": 3,
+      "timeLimit": 60.0,
+      "maxNodes": 50000
+    }
+  },
+  "problem": {
+    "period": {
+      "start": "2026-12-06",
+      "end": "2027-01-04"
+    },
+    "employees": [
+      {
+        "id": 100,
+        "name": "Omer Cohen",
+        "roles": [
+          "cashier"
+        ],
+        "minShifts": 12,
+        "maxShifts": 12
+      },
+      {
+        "id": 101,
+        "name": "Ron Biton",
+        "roles": [
+          "cashier"
+        ]
+      },
+      {
+        "id": 102,
+        "name": "Noa Azoulay",
+        "roles": [
+          "cashier"
+        ]
+      },
+      {
+        "id": 103,
+        "name": "Lior Azoulay",
+        "roles": [
+          "cashier"
+        ],
+        "maxShifts": 18
+      },
+      {
+        "id": 104,
+        "name": "Roni Biton",
+        "roles": [
+          "cashier"
+        ],
+        "minShifts": 12
+      },
+      {
+        "id": 105,
+        "name": "Tamar Peretz",
+        "roles": [
+          "cashier"
+        ]
+      },
+      {
+        "id": 106,
+        "name": "Noa Levi",
+        "roles": [
+          "cashier"
+        ]
+      },
+      {
+        "id": 107,
+        "name": "Avi Peretz",
+        "roles": [
+          "cashier"
+        ],
+        "minShifts": 12
+      },
+      {
+        "id": 108,
+        "name": "Yossi Ben-David",
+        "roles": [
+          "cashier"
+        ],
+        "maxShifts": 18
+      },
+      {
+        "id": 109,
+        "name": "Lior Ben-David",
+        "roles": [
+          "cashier"
+        ],
+        "minShifts": 10
+      },
+      {
+        "id": 110,
+        "name": "Ido Avraham",
+        "roles": [
+          "cashier"
+        ]
+      },
+      {
+        "id": 111,
+        "name": "Maya Halevi",
+        "roles": [
+          "cashier",
+          "guard"
+        ]
+      },
+      {
+        "id": 112,
+        "name": "Avi Cohen",
+        "roles": [
+          "cashier",
+          "guard"
+        ]
+      },
+      {
+        "id": 113,
+        "name": "Shira Katz",
+        "roles": [
+          "cashier",
+          "guard"
+        ]
+      },
+      {
+        "id": 114,
+        "name": "Hila Avraham",
+        "roles": [
+          "cashier",
+          "guard"
+        ]
+      }
+    ],
+    "shifts": [
+      {
+        "id": "1206-M",
+        "date": "2026-12-06",
+        "time": "07:00-15:00",
+        "minutes": 480,
+        "min": 1,
+        "wanted": 2,
+        "kind": 0
+      },
+      {
+        "id": "1206-E",
+        "date": "2026-12-06",
+        "time": "15:00-23:00",
+        "minutes": 480,
+        "min": 1,
+        "wanted": 2,
+        "kind": 1
+      },
+      {
+        "id": "1206-N",
+        "date": "2026-12-06",
+        "time": "23:00-07:00",
+        "minutes": 480,
+        "min": 1,
+        "wanted": 1,
+        "role": "guard",
+        "kind": 2
+      },
+      {
+        "id": "1207-M",
+        "date": "2026-12-07",
+        "time": "07:00-15:00",
+        "minutes": 480,
+        "min": 1,
+        "wanted": 2,
+        "kind": 0
+      },
+      {
+        "id": "1207-E",
+        "date": "2026-12-07",
+        "time": "15:00-23:00",
+        "minutes": 480,
+        "min": 1,
+        "wanted": 2,
+        "kind": 1
+      },
+      {
+        "id": "1207-N",
+        "date": "2026-12-07",
+        "time": "23:00-07:00",
+        "minutes": 480,
+        "min": 1,
+        "wanted": 1,
+        "role": "guard",
+        "kind": 2
+      },
+      {
+        "id": "1208-M",
+        "date": "2026-12-08",
+        "time": "07:00-15:00",
+        "minutes": 480,
+        "min": 1,
+        "wanted": 2,
+        "kind": 0
+      },
+      {
+        "id": "1208-E",
+        "date": "2026-12-08",
+        "time": "15:00-23:00",
+        "minutes": 480,
+        "min": 1,
+        "wanted": 2,
+        "kind": 1
+      },
+      {
+        "id": "1208-N",
+        "date": "2026-12-08",
+        "time": "23:00-07:00",
+        "minutes": 480,
+        "min": 1,
+        "wanted": 1,
+        "role": "guard",
+        "kind": 2
+      },
+      {
+        "id": "1209-M",
+        "date": "2026-12-09",
+        "time": "07:00-15:00",
+        "minutes": 480,
+        "min": 1,
+        "wanted": 2,
+        "kind": 0
+      },
+      {
+        "id": "1209-E",
+        "date": "2026-12-09",
+        "time": "15:00-23:00",
+        "minutes": 480,
+        "min": 1,
+        "wanted": 2,
+        "kind": 1
+      },
+      {
+        "id": "1209-N",
+        "date": "2026-12-09",
+        "time": "23:00-07:00",
+        "minutes": 480,
+        "min": 1,
+        "wanted": 1,
+        "role": "guard",
+        "kind": 2
+      },
+      {
+        "id": "1210-M",
+        "date": "2026-12-10",
+        "time": "07:00-15:00",
+        "minutes": 480,
+        "min": 1,
+        "wanted": 2,
+        "kind": 0
+      },
+      {
+        "id": "1210-E",
+        "date": "2026-12-10",
+        "time": "15:00-23:00",
+        "minutes": 480,
+        "min": 1,
+        "wanted": 2,
+        "kind": 1
+      },
+      {
+        "id": "1210-N",
+        "date": "2026-12-10",
+        "time": "23:00-07:00",
+        "minutes": 480,
+        "min": 1,
+        "wanted": 1,
+        "role": "guard",
+        "kind": 2
+      },
+      {
+        "id": "1211-M",
+        "date": "2026-12-11",
+        "time": "07:00-15:00",
+        "minutes": 480,
+        "min": 1,
+        "wanted": 2,
+        "kind": 0
+      },
+      {
+        "id": "1211-E",
+        "date": "2026-12-11",
+        "time": "15:00-23:00",
+        "minutes": 480,
+        "min": 1,
+        "wanted": 2,
+        "kind": 1
+      },
+      {
+        "id": "1211-N",
+        "date": "2026-12-11",
+        "time": "23:00-07:00",
+        "minutes": 480,
+        "min": 1,
+        "wanted": 1,
+        "role": "guard",
+        "kind": 2
+      },
+      {
+        "id": "1212-M",
+        "date": "2026-12-12",
+        "time": "07:00-15:00",
+        "minutes": 480,
+        "min": 1,
+        "wanted": 2,
+        "kind": 0
+      },
+      {
+        "id": "1212-E",
+        "date": "2026-12-12",
+        "time": "15:00-23:00",
+        "minutes": 480,
+        "min": 1,
+        "wanted": 2,
+        "kind": 1
+      },
+      {
+        "id": "1212-N",
+        "date": "2026-12-12",
+        "time": "23:00-07:00",
+        "minutes": 480,
+        "min": 1,
+        "wanted": 1,
+        "role": "guard",
+        "kind": 2
+      },
+      {
+        "id": "1213-M",
+        "date": "2026-12-13",
+        "time": "07:00-15:00",
+        "minutes": 480,
+        "min": 1,
+        "wanted": 2,
+        "kind": 0
+      },
+      {
+        "id": "1213-E",
+        "date": "2026-12-13",
+        "time": "15:00-23:00",
+        "minutes": 480,
+        "min": 1,
+        "wanted": 2,
+        "kind": 1
+      },
+      {
+        "id": "1213-N",
+        "date": "2026-12-13",
+        "time": "23:00-07:00",
+        "minutes": 480,
+        "min": 1,
+        "wanted": 1,
+        "role": "guard",
+        "kind": 2
+      },
+      {
+        "id": "1214-M",
+        "date": "2026-12-14",
+        "time": "07:00-15:00",
+        "minutes": 480,
+        "min": 1,
+        "wanted": 2,
+        "kind": 0
+      },
+      {
+        "id": "1214-E",
+        "date": "2026-12-14",
+        "time": "15:00-23:00",
+        "minutes": 480,
+        "min": 1,
+        "wanted": 2,
+        "kind": 1
+      },
+      {
+        "id": "1214-N",
+        "date": "2026-12-14",
+        "time": "23:00-07:00",
+        "minutes": 480,
+        "min": 1,
+        "wanted": 1,
+        "role": "guard",
+        "kind": 2
+      },
+      {
+        "id": "1215-M",
+        "date": "2026-12-15",
+        "time": "07:00-15:00",
+        "minutes": 480,
+        "min": 1,
+        "wanted": 2,
+        "kind": 0
+      },
+      {
+        "id": "1215-E",
+        "date": "2026-12-15",
+        "time": "15:00-23:00",
+        "minutes": 480,
+        "min": 1,
+        "wanted": 2,
+        "kind": 1
+      },
+      {
+        "id": "1215-N",
+        "date": "2026-12-15",
+        "time": "23:00-07:00",
+        "minutes": 480,
+        "min": 1,
+        "wanted": 1,
+        "role": "guard",
+        "kind": 2
+      },
+      {
+        "id": "1216-M",
+        "date": "2026-12-16",
+        "time": "07:00-15:00",
+        "minutes": 480,
+        "min": 1,
+        "wanted": 2,
+        "kind": 0
+      },
+      {
+        "id": "1216-E",
+        "date": "2026-12-16",
+        "time": "15:00-23:00",
+        "minutes": 480,
+        "min": 1,
+        "wanted": 2,
+        "kind": 1
+      },
+      {
+        "id": "1216-N",
+        "date": "2026-12-16",
+        "time": "23:00-07:00",
+        "minutes": 480,
+        "min": 1,
+        "wanted": 1,
+        "role": "guard",
+        "kind": 2
+      },
+      {
+        "id": "1217-M",
+        "date": "2026-12-17",
+        "time": "07:00-15:00",
+        "minutes": 480,
+        "min": 1,
+        "wanted": 2,
+        "kind": 0
+      },
+      {
+        "id": "1217-E",
+        "date": "2026-12-17",
+        "time": "15:00-23:00",
+        "minutes": 480,
+        "min": 1,
+        "wanted": 2,
+        "kind": 1
+      },
+      {
+        "id": "1217-N",
+        "date": "2026-12-17",
+        "time": "23:00-07:00",
+        "minutes": 480,
+        "min": 1,
+        "wanted": 1,
+        "role": "guard",
+        "kind": 2
+      },
+      {
+        "id": "1218-M",
+        "date": "2026-12-18",
+        "time": "07:00-15:00",
+        "minutes": 480,
+        "min": 1,
+        "wanted": 2,
+        "kind": 0
+      },
+      {
+        "id": "1218-E",
+        "date": "2026-12-18",
+        "time": "15:00-23:00",
+        "minutes": 480,
+        "min": 1,
+        "wanted": 2,
+        "kind": 1
+      },
+      {
+        "id": "1218-N",
+        "date": "2026-12-18",
+        "time": "23:00-07:00",
+        "minutes": 480,
+        "min": 1,
+        "wanted": 1,
+        "role": "guard",
+        "kind": 2
+      },
+      {
+        "id": "1219-M",
+        "date": "2026-12-19",
+        "time": "07:00-15:00",
+        "minutes": 480,
+        "min": 1,
+        "wanted": 2,
+        "kind": 0
+      },
+      {
+        "id": "1219-E",
+        "date": "2026-12-19",
+        "time": "15:00-23:00",
+        "minutes": 480,
+        "min": 1,
+        "wanted": 2,
+        "kind": 1
+      },
+      {
+        "id": "1219-N",
+        "date": "2026-12-19",
+        "time": "23:00-07:00",
+        "minutes": 480,
+        "min": 1,
+        "wanted": 1,
+        "role": "guard",
+        "kind": 2
+      },
+      {
+        "id": "1220-M",
+        "date": "2026-12-20",
+        "time": "07:00-15:00",
+        "minutes": 480,
+        "min": 1,
+        "wanted": 2,
+        "kind": 0
+      },
+      {
+        "id": "1220-E",
+        "date": "2026-12-20",
+        "time": "15:00-23:00",
+        "minutes": 480,
+        "min": 1,
+        "wanted": 2,
+        "kind": 1
+      },
+      {
+        "id": "1220-N",
+        "date": "2026-12-20",
+        "time": "23:00-07:00",
+        "minutes": 480,
+        "min": 1,
+        "wanted": 1,
+        "role": "guard",
+        "kind": 2
+      },
+      {
+        "id": "1221-M",
+        "date": "2026-12-21",
+        "time": "07:00-15:00",
+        "minutes": 480,
+        "min": 1,
+        "wanted": 2,
+        "kind": 0
+      },
+      {
+        "id": "1221-E",
+        "date": "2026-12-21",
+        "time": "15:00-23:00",
+        "minutes": 480,
+        "min": 1,
+        "wanted": 2,
+        "kind": 1
+      },
+      {
+        "id": "1221-N",
+        "date": "2026-12-21",
+        "time": "23:00-07:00",
+        "minutes": 480,
+        "min": 1,
+        "wanted": 1,
+        "role": "guard",
+        "kind": 2
+      },
+      {
+        "id": "1222-M",
+        "date": "2026-12-22",
+        "time": "07:00-15:00",
+        "minutes": 480,
+        "min": 1,
+        "wanted": 2,
+        "kind": 0
+      },
+      {
+        "id": "1222-E",
+        "date": "2026-12-22",
+        "time": "15:00-23:00",
+        "minutes": 480,
+        "min": 1,
+        "wanted": 2,
+        "kind": 1
+      },
+      {
+        "id": "1222-N",
+        "date": "2026-12-22",
+        "time": "23:00-07:00",
+        "minutes": 480,
+        "min": 1,
+        "wanted": 1,
+        "role": "guard",
+        "kind": 2
+      },
+      {
+        "id": "1223-M",
+        "date": "2026-12-23",
+        "time": "07:00-15:00",
+        "minutes": 480,
+        "min": 1,
+        "wanted": 2,
+        "kind": 0
+      },
+      {
+        "id": "1223-E",
+        "date": "2026-12-23",
+        "time": "15:00-23:00",
+        "minutes": 480,
+        "min": 1,
+        "wanted": 2,
+        "kind": 1
+      },
+      {
+        "id": "1223-N",
+        "date": "2026-12-23",
+        "time": "23:00-07:00",
+        "minutes": 480,
+        "min": 1,
+        "wanted": 1,
+        "role": "guard",
+        "kind": 2
+      },
+      {
+        "id": "1224-M",
+        "date": "2026-12-24",
+        "time": "07:00-15:00",
+        "minutes": 480,
+        "min": 1,
+        "wanted": 2,
+        "kind": 0
+      },
+      {
+        "id": "1224-E",
+        "date": "2026-12-24",
+        "time": "15:00-23:00",
+        "minutes": 480,
+        "min": 1,
+        "wanted": 2,
+        "kind": 1
+      },
+      {
+        "id": "1224-N",
+        "date": "2026-12-24",
+        "time": "23:00-07:00",
+        "minutes": 480,
+        "min": 1,
+        "wanted": 1,
+        "role": "guard",
+        "kind": 2
+      },
+      {
+        "id": "1225-M",
+        "date": "2026-12-25",
+        "time": "07:00-15:00",
+        "minutes": 480,
+        "min": 1,
+        "wanted": 2,
+        "kind": 0
+      },
+      {
+        "id": "1225-E",
+        "date": "2026-12-25",
+        "time": "15:00-23:00",
+        "minutes": 480,
+        "min": 1,
+        "wanted": 2,
+        "kind": 1
+      },
+      {
+        "id": "1225-N",
+        "date": "2026-12-25",
+        "time": "23:00-07:00",
+        "minutes": 480,
+        "min": 1,
+        "wanted": 1,
+        "role": "guard",
+        "kind": 2
+      },
+      {
+        "id": "1226-M",
+        "date": "2026-12-26",
+        "time": "07:00-15:00",
+        "minutes": 480,
+        "min": 1,
+        "wanted": 2,
+        "kind": 0
+      },
+      {
+        "id": "1226-E",
+        "date": "2026-12-26",
+        "time": "15:00-23:00",
+        "minutes": 480,
+        "min": 1,
+        "wanted": 2,
+        "kind": 1
+      },
+      {
+        "id": "1226-N",
+        "date": "2026-12-26",
+        "time": "23:00-07:00",
+        "minutes": 480,
+        "min": 1,
+        "wanted": 1,
+        "role": "guard",
+        "kind": 2
+      },
+      {
+        "id": "1227-M",
+        "date": "2026-12-27",
+        "time": "07:00-15:00",
+        "minutes": 480,
+        "min": 1,
+        "wanted": 2,
+        "kind": 0
+      },
+      {
+        "id": "1227-E",
+        "date": "2026-12-27",
+        "time": "15:00-23:00",
+        "minutes": 480,
+        "min": 1,
+        "wanted": 2,
+        "kind": 1
+      },
+      {
+        "id": "1227-N",
+        "date": "2026-12-27",
+        "time": "23:00-07:00",
+        "minutes": 480,
+        "min": 1,
+        "wanted": 1,
+        "role": "guard",
+        "kind": 2
+      },
+      {
+        "id": "1228-M",
+        "date": "2026-12-28",
+        "time": "07:00-15:00",
+        "minutes": 480,
+        "min": 1,
+        "wanted": 2,
+        "kind": 0
+      },
+      {
+        "id": "1228-E",
+        "date": "2026-12-28",
+        "time": "15:00-23:00",
+        "minutes": 480,
+        "min": 1,
+        "wanted": 2,
+        "kind": 1
+      },
+      {
+        "id": "1228-N",
+        "date": "2026-12-28",
+        "time": "23:00-07:00",
+        "minutes": 480,
+        "min": 1,
+        "wanted": 1,
+        "role": "guard",
+        "kind": 2
+      },
+      {
+        "id": "1229-M",
+        "date": "2026-12-29",
+        "time": "07:00-15:00",
+        "minutes": 480,
+        "min": 1,
+        "wanted": 2,
+        "kind": 0
+      },
+      {
+        "id": "1229-E",
+        "date": "2026-12-29",
+        "time": "15:00-23:00",
+        "minutes": 480,
+        "min": 1,
+        "wanted": 2,
+        "kind": 1
+      },
+      {
+        "id": "1229-N",
+        "date": "2026-12-29",
+        "time": "23:00-07:00",
+        "minutes": 480,
+        "min": 1,
+        "wanted": 1,
+        "role": "guard",
+        "kind": 2
+      },
+      {
+        "id": "1230-M",
+        "date": "2026-12-30",
+        "time": "07:00-15:00",
+        "minutes": 480,
+        "min": 1,
+        "wanted": 2,
+        "kind": 0
+      },
+      {
+        "id": "1230-E",
+        "date": "2026-12-30",
+        "time": "15:00-23:00",
+        "minutes": 480,
+        "min": 1,
+        "wanted": 2,
+        "kind": 1
+      },
+      {
+        "id": "1230-N",
+        "date": "2026-12-30",
+        "time": "23:00-07:00",
+        "minutes": 480,
+        "min": 1,
+        "wanted": 1,
+        "role": "guard",
+        "kind": 2
+      },
+      {
+        "id": "1231-M",
+        "date": "2026-12-31",
+        "time": "07:00-15:00",
+        "minutes": 480,
+        "min": 1,
+        "wanted": 2,
+        "kind": 0
+      },
+      {
+        "id": "1231-E",
+        "date": "2026-12-31",
+        "time": "15:00-23:00",
+        "minutes": 480,
+        "min": 1,
+        "wanted": 2,
+        "kind": 1
+      },
+      {
+        "id": "1231-N",
+        "date": "2026-12-31",
+        "time": "23:00-07:00",
+        "minutes": 480,
+        "min": 1,
+        "wanted": 1,
+        "role": "guard",
+        "kind": 2
+      },
+      {
+        "id": "0101-M",
+        "date": "2027-01-01",
+        "time": "07:00-15:00",
+        "minutes": 480,
+        "min": 1,
+        "wanted": 2,
+        "kind": 0
+      },
+      {
+        "id": "0101-E",
+        "date": "2027-01-01",
+        "time": "15:00-23:00",
+        "minutes": 480,
+        "min": 1,
+        "wanted": 2,
+        "kind": 1
+      },
+      {
+        "id": "0101-N",
+        "date": "2027-01-01",
+        "time": "23:00-07:00",
+        "minutes": 480,
+        "min": 1,
+        "wanted": 1,
+        "role": "guard",
+        "kind": 2
+      },
+      {
+        "id": "0102-M",
+        "date": "2027-01-02",
+        "time": "07:00-15:00",
+        "minutes": 480,
+        "min": 1,
+        "wanted": 2,
+        "kind": 0
+      },
+      {
+        "id": "0102-E",
+        "date": "2027-01-02",
+        "time": "15:00-23:00",
+        "minutes": 480,
+        "min": 1,
+        "wanted": 2,
+        "kind": 1
+      },
+      {
+        "id": "0102-N",
+        "date": "2027-01-02",
+        "time": "23:00-07:00",
+        "minutes": 480,
+        "min": 1,
+        "wanted": 1,
+        "role": "guard",
+        "kind": 2
+      },
+      {
+        "id": "0103-M",
+        "date": "2027-01-03",
+        "time": "07:00-15:00",
+        "minutes": 480,
+        "min": 1,
+        "wanted": 2,
+        "kind": 0
+      },
+      {
+        "id": "0103-E",
+        "date": "2027-01-03",
+        "time": "15:00-23:00",
+        "minutes": 480,
+        "min": 1,
+        "wanted": 2,
+        "kind": 1
+      },
+      {
+        "id": "0103-N",
+        "date": "2027-01-03",
+        "time": "23:00-07:00",
+        "minutes": 480,
+        "min": 1,
+        "wanted": 1,
+        "role": "guard",
+        "kind": 2
+      },
+      {
+        "id": "0104-M",
+        "date": "2027-01-04",
+        "time": "07:00-15:00",
+        "minutes": 480,
+        "min": 1,
+        "wanted": 2,
+        "kind": 0
+      },
+      {
+        "id": "0104-E",
+        "date": "2027-01-04",
+        "time": "15:00-23:00",
+        "minutes": 480,
+        "min": 1,
+        "wanted": 2,
+        "kind": 1
+      },
+      {
+        "id": "0104-N",
+        "date": "2027-01-04",
+        "time": "23:00-07:00",
+        "minutes": 480,
+        "min": 1,
+        "wanted": 1,
+        "role": "guard",
+        "kind": 2
+      }
+    ]
+  },
+  "layout": {
+    "kinds": [
+      {
+        "time": "07:00-15:00"
+      },
+      {
+        "time": "15:00-23:00"
+      },
+      {
+        "time": "23:00-07:00",
+        "role": "guard"
+      }
+    ],
+    "weeks": [
+      {
+        "start": "2026-12-06",
+        "end": "2026-12-12",
+        "days": [
+          {
+            "date": "2026-12-06",
+            "inPeriod": true
+          },
+          {
+            "date": "2026-12-07",
+            "inPeriod": true
+          },
+          {
+            "date": "2026-12-08",
+            "inPeriod": true
+          },
+          {
+            "date": "2026-12-09",
+            "inPeriod": true
+          },
+          {
+            "date": "2026-12-10",
+            "inPeriod": true
+          },
+          {
+            "date": "2026-12-11",
+            "inPeriod": true
+          },
+          {
+            "date": "2026-12-12",
+            "inPeriod": true
+          }
+        ],
+        "cells": [
+          [
+            [
+              "1206-M"
+            ],
+            [
+              "1207-M"
+            ],
+            [
+              "1208-M"
+            ],
+            [
+              "1209-M"
+            ],
+            [
+              "1210-M"
+            ],
+            [
+              "1211-M"
+            ],
+            [
+              "1212-M"
+            ]
+          ],
+          [
+            [
+              "1206-E"
+            ],
+            [
+              "1207-E"
+            ],
+            [
+              "1208-E"
+            ],
+            [
+              "1209-E"
+            ],
+            [
+              "1210-E"
+            ],
+            [
+              "1211-E"
+            ],
+            [
+              "1212-E"
+            ]
+          ],
+          [
+            [
+              "1206-N"
+            ],
+            [
+              "1207-N"
+            ],
+            [
+              "1208-N"
+            ],
+            [
+              "1209-N"
+            ],
+            [
+              "1210-N"
+            ],
+            [
+              "1211-N"
+            ],
+            [
+              "1212-N"
+            ]
+          ]
+        ]
+      },
+      {
+        "start": "2026-12-13",
+        "end": "2026-12-19",
+        "days": [
+          {
+            "date": "2026-12-13",
+            "inPeriod": true
+          },
+          {
+            "date": "2026-12-14",
+            "inPeriod": true
+          },
+          {
+            "date": "2026-12-15",
+            "inPeriod": true
+          },
+          {
+            "date": "2026-12-16",
+            "inPeriod": true
+          },
+          {
+            "date": "2026-12-17",
+            "inPeriod": true
+          },
+          {
+            "date": "2026-12-18",
+            "inPeriod": true
+          },
+          {
+            "date": "2026-12-19",
+            "inPeriod": true
+          }
+        ],
+        "cells": [
+          [
+            [
+              "1213-M"
+            ],
+            [
+              "1214-M"
+            ],
+            [
+              "1215-M"
+            ],
+            [
+              "1216-M"
+            ],
+            [
+              "1217-M"
+            ],
+            [
+              "1218-M"
+            ],
+            [
+              "1219-M"
+            ]
+          ],
+          [
+            [
+              "1213-E"
+            ],
+            [
+              "1214-E"
+            ],
+            [
+              "1215-E"
+            ],
+            [
+              "1216-E"
+            ],
+            [
+              "1217-E"
+            ],
+            [
+              "1218-E"
+            ],
+            [
+              "1219-E"
+            ]
+          ],
+          [
+            [
+              "1213-N"
+            ],
+            [
+              "1214-N"
+            ],
+            [
+              "1215-N"
+            ],
+            [
+              "1216-N"
+            ],
+            [
+              "1217-N"
+            ],
+            [
+              "1218-N"
+            ],
+            [
+              "1219-N"
+            ]
+          ]
+        ]
+      },
+      {
+        "start": "2026-12-20",
+        "end": "2026-12-26",
+        "days": [
+          {
+            "date": "2026-12-20",
+            "inPeriod": true
+          },
+          {
+            "date": "2026-12-21",
+            "inPeriod": true
+          },
+          {
+            "date": "2026-12-22",
+            "inPeriod": true
+          },
+          {
+            "date": "2026-12-23",
+            "inPeriod": true
+          },
+          {
+            "date": "2026-12-24",
+            "inPeriod": true
+          },
+          {
+            "date": "2026-12-25",
+            "inPeriod": true
+          },
+          {
+            "date": "2026-12-26",
+            "inPeriod": true
+          }
+        ],
+        "cells": [
+          [
+            [
+              "1220-M"
+            ],
+            [
+              "1221-M"
+            ],
+            [
+              "1222-M"
+            ],
+            [
+              "1223-M"
+            ],
+            [
+              "1224-M"
+            ],
+            [
+              "1225-M"
+            ],
+            [
+              "1226-M"
+            ]
+          ],
+          [
+            [
+              "1220-E"
+            ],
+            [
+              "1221-E"
+            ],
+            [
+              "1222-E"
+            ],
+            [
+              "1223-E"
+            ],
+            [
+              "1224-E"
+            ],
+            [
+              "1225-E"
+            ],
+            [
+              "1226-E"
+            ]
+          ],
+          [
+            [
+              "1220-N"
+            ],
+            [
+              "1221-N"
+            ],
+            [
+              "1222-N"
+            ],
+            [
+              "1223-N"
+            ],
+            [
+              "1224-N"
+            ],
+            [
+              "1225-N"
+            ],
+            [
+              "1226-N"
+            ]
+          ]
+        ]
+      },
+      {
+        "start": "2026-12-27",
+        "end": "2027-01-02",
+        "days": [
+          {
+            "date": "2026-12-27",
+            "inPeriod": true
+          },
+          {
+            "date": "2026-12-28",
+            "inPeriod": true
+          },
+          {
+            "date": "2026-12-29",
+            "inPeriod": true
+          },
+          {
+            "date": "2026-12-30",
+            "inPeriod": true
+          },
+          {
+            "date": "2026-12-31",
+            "inPeriod": true
+          },
+          {
+            "date": "2027-01-01",
+            "inPeriod": true
+          },
+          {
+            "date": "2027-01-02",
+            "inPeriod": true
+          }
+        ],
+        "cells": [
+          [
+            [
+              "1227-M"
+            ],
+            [
+              "1228-M"
+            ],
+            [
+              "1229-M"
+            ],
+            [
+              "1230-M"
+            ],
+            [
+              "1231-M"
+            ],
+            [
+              "0101-M"
+            ],
+            [
+              "0102-M"
+            ]
+          ],
+          [
+            [
+              "1227-E"
+            ],
+            [
+              "1228-E"
+            ],
+            [
+              "1229-E"
+            ],
+            [
+              "1230-E"
+            ],
+            [
+              "1231-E"
+            ],
+            [
+              "0101-E"
+            ],
+            [
+              "0102-E"
+            ]
+          ],
+          [
+            [
+              "1227-N"
+            ],
+            [
+              "1228-N"
+            ],
+            [
+              "1229-N"
+            ],
+            [
+              "1230-N"
+            ],
+            [
+              "1231-N"
+            ],
+            [
+              "0101-N"
+            ],
+            [
+              "0102-N"
+            ]
+          ]
+        ]
+      },
+      {
+        "start": "2027-01-03",
+        "end": "2027-01-09",
+        "days": [
+          {
+            "date": "2027-01-03",
+            "inPeriod": true
+          },
+          {
+            "date": "2027-01-04",
+            "inPeriod": true
+          },
+          {
+            "date": "2027-01-05",
+            "inPeriod": false
+          },
+          {
+            "date": "2027-01-06",
+            "inPeriod": false
+          },
+          {
+            "date": "2027-01-07",
+            "inPeriod": false
+          },
+          {
+            "date": "2027-01-08",
+            "inPeriod": false
+          },
+          {
+            "date": "2027-01-09",
+            "inPeriod": false
+          }
+        ],
+        "cells": [
+          [
+            [
+              "0103-M"
+            ],
+            [
+              "0104-M"
+            ],
+            [],
+            [],
+            [],
+            [],
+            []
+          ],
+          [
+            [
+              "0103-E"
+            ],
+            [
+              "0104-E"
+            ],
+            [],
+            [],
+            [],
+            [],
+            []
+          ],
+          [
+            [
+              "0103-N"
+            ],
+            [
+              "0104-N"
+            ],
+            [],
+            [],
+            [],
+            [],
+            []
+          ]
+        ]
+      }
+    ]
+  },
+  "shortages": [],
+  "schedules": [
+    {
+      "rank": 1,
+      "score": {
+        "medium": 0,
+        "soft": 374
+      },
+      "rules": [
+        {
+          "name": "below-min",
+          "level": "medium",
+          "violations": 0,
+          "weight": 1,
+          "penalty": 0,
+          "description": "person missing below a shift's minimum"
+        },
+        {
+          "name": "below-wanted",
+          "level": "soft",
+          "violations": 1,
+          "weight": 10,
+          "penalty": 10,
+          "description": "person missing below a shift's wanted staff"
+        },
+        {
+          "name": "double",
+          "level": "soft",
+          "violations": 0,
+          "weight": 5,
+          "penalty": 0,
+          "description": "double shift (approved, but best avoided)"
+        },
+        {
+          "name": "below-min-shifts",
+          "level": "soft",
+          "violations": 6,
+          "weight": 5,
+          "penalty": 30,
+          "description": "shift missing below an employee's minShifts"
+        },
+        {
+          "name": "not-preferred",
+          "level": "soft",
+          "violations": 80,
+          "weight": 1,
+          "penalty": 80,
+          "description": "assignment the employee did not mark as preferred"
+        },
+        {
+          "name": "consecutive-nights",
+          "level": "soft",
+          "violations": 8,
+          "weight": 3,
+          "penalty": 24,
+          "description": "night shift right after a night shift"
+        },
+        {
+          "name": "fairness",
+          "level": "soft",
+          "violations": 230,
+          "weight": 1,
+          "penalty": 230,
+          "description": "unevenness of shifts per employee (squares)"
+        },
+        {
+          "name": "fewer-trips",
+          "level": "soft",
+          "violations": 0,
+          "weight": 0,
+          "penalty": 0,
+          "description": "day outside the ideal trip length (days in a row)"
+        }
+      ],
+      "shifts": [
+        {
+          "shift": "1206-M",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 102,
+              "preferred": true,
+              "double": false
+            },
+            {
+              "employee": 103,
+              "preferred": false,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "1206-E",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 104,
+              "preferred": true,
+              "double": false
+            },
+            {
+              "employee": 107,
+              "preferred": true,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "1206-N",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 112,
+              "preferred": false,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "1207-M",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 101,
+              "preferred": false,
+              "double": false
+            },
+            {
+              "employee": 103,
+              "preferred": false,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "1207-E",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 108,
+              "preferred": true,
+              "double": false
+            },
+            {
+              "employee": 107,
+              "preferred": false,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "1207-N",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 111,
+              "preferred": false,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "1208-M",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 103,
+              "preferred": true,
+              "double": false
+            },
+            {
+              "employee": 101,
+              "preferred": false,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "1208-E",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 105,
+              "preferred": false,
+              "double": false
+            },
+            {
+              "employee": 106,
+              "preferred": false,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "1208-N",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 111,
+              "preferred": false,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "1209-M",
+          "status": "belowWanted",
+          "staff": [
+            {
+              "employee": 109,
+              "preferred": false,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "1209-E",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 106,
+              "preferred": true,
+              "double": false
+            },
+            {
+              "employee": 113,
+              "preferred": false,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "1209-N",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 112,
+              "preferred": false,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "1210-M",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 100,
+              "preferred": false,
+              "double": false
+            },
+            {
+              "employee": 108,
+              "preferred": false,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "1210-E",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 104,
+              "preferred": true,
+              "double": false
+            },
+            {
+              "employee": 105,
+              "preferred": false,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "1210-N",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 111,
+              "preferred": false,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "1211-M",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 101,
+              "preferred": true,
+              "double": false
+            },
+            {
+              "employee": 100,
+              "preferred": false,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "1211-E",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 104,
+              "preferred": false,
+              "double": false
+            },
+            {
+              "employee": 107,
+              "preferred": false,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "1211-N",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 111,
+              "preferred": true,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "1212-M",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 110,
+              "preferred": true,
+              "double": false
+            },
+            {
+              "employee": 101,
+              "preferred": false,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "1212-E",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 105,
+              "preferred": true,
+              "double": false
+            },
+            {
+              "employee": 113,
+              "preferred": true,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "1212-N",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 114,
+              "preferred": true,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "1213-M",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 108,
+              "preferred": true,
+              "double": false
+            },
+            {
+              "employee": 102,
+              "preferred": false,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "1213-E",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 104,
+              "preferred": true,
+              "double": false
+            },
+            {
+              "employee": 107,
+              "preferred": false,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "1213-N",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 114,
+              "preferred": false,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "1214-M",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 102,
+              "preferred": true,
+              "double": false
+            },
+            {
+              "employee": 103,
+              "preferred": true,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "1214-E",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 104,
+              "preferred": false,
+              "double": false
+            },
+            {
+              "employee": 105,
+              "preferred": false,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "1214-N",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 112,
+              "preferred": true,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "1215-M",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 101,
+              "preferred": false,
+              "double": false
+            },
+            {
+              "employee": 103,
+              "preferred": false,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "1215-E",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 105,
+              "preferred": true,
+              "double": false
+            },
+            {
+              "employee": 109,
+              "preferred": false,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "1215-N",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 112,
+              "preferred": true,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "1216-M",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 100,
+              "preferred": true,
+              "double": false
+            },
+            {
+              "employee": 101,
+              "preferred": false,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "1216-E",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 106,
+              "preferred": true,
+              "double": false
+            },
+            {
+              "employee": 107,
+              "preferred": true,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "1216-N",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 111,
+              "preferred": false,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "1217-M",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 108,
+              "preferred": true,
+              "double": false
+            },
+            {
+              "employee": 100,
+              "preferred": false,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "1217-E",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 107,
+              "preferred": true,
+              "double": false
+            },
+            {
+              "employee": 104,
+              "preferred": false,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "1217-N",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 114,
+              "preferred": false,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "1218-M",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 103,
+              "preferred": true,
+              "double": false
+            },
+            {
+              "employee": 101,
+              "preferred": false,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "1218-E",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 106,
+              "preferred": true,
+              "double": false
+            },
+            {
+              "employee": 104,
+              "preferred": false,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "1218-N",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 112,
+              "preferred": false,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "1219-M",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 101,
+              "preferred": false,
+              "double": false
+            },
+            {
+              "employee": 102,
+              "preferred": false,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "1219-E",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 105,
+              "preferred": true,
+              "double": false
+            },
+            {
+              "employee": 104,
+              "preferred": false,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "1219-N",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 112,
+              "preferred": false,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "1220-M",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 110,
+              "preferred": true,
+              "double": false
+            },
+            {
+              "employee": 102,
+              "preferred": false,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "1220-E",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 105,
+              "preferred": true,
+              "double": false
+            },
+            {
+              "employee": 104,
+              "preferred": false,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "1220-N",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 112,
+              "preferred": false,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "1221-M",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 101,
+              "preferred": true,
+              "double": false
+            },
+            {
+              "employee": 102,
+              "preferred": false,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "1221-E",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 104,
+              "preferred": false,
+              "double": false
+            },
+            {
+              "employee": 105,
+              "preferred": false,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "1221-N",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 113,
+              "preferred": true,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "1222-M",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 101,
+              "preferred": false,
+              "double": false
+            },
+            {
+              "employee": 103,
+              "preferred": false,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "1222-E",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 109,
+              "preferred": true,
+              "double": false
+            },
+            {
+              "employee": 105,
+              "preferred": false,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "1222-N",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 111,
+              "preferred": false,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "1223-M",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 110,
+              "preferred": true,
+              "double": false
+            },
+            {
+              "employee": 100,
+              "preferred": false,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "1223-E",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 104,
+              "preferred": false,
+              "double": false
+            },
+            {
+              "employee": 105,
+              "preferred": false,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "1223-N",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 112,
+              "preferred": true,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "1224-M",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 102,
+              "preferred": true,
+              "double": false
+            },
+            {
+              "employee": 100,
+              "preferred": false,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "1224-E",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 106,
+              "preferred": true,
+              "double": false
+            },
+            {
+              "employee": 109,
+              "preferred": false,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "1224-N",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 114,
+              "preferred": true,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "1225-M",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 100,
+              "preferred": true,
+              "double": false
+            },
+            {
+              "employee": 101,
+              "preferred": true,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "1225-E",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 104,
+              "preferred": true,
+              "double": false
+            },
+            {
+              "employee": 107,
+              "preferred": true,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "1225-N",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 111,
+              "preferred": true,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "1226-M",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 110,
+              "preferred": true,
+              "double": false
+            },
+            {
+              "employee": 101,
+              "preferred": false,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "1226-E",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 104,
+              "preferred": false,
+              "double": false
+            },
+            {
+              "employee": 105,
+              "preferred": false,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "1226-N",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 114,
+              "preferred": true,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "1227-M",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 102,
+              "preferred": true,
+              "double": false
+            },
+            {
+              "employee": 100,
+              "preferred": false,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "1227-E",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 104,
+              "preferred": false,
+              "double": false
+            },
+            {
+              "employee": 105,
+              "preferred": false,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "1227-N",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 112,
+              "preferred": false,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "1228-M",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 101,
+              "preferred": true,
+              "double": false
+            },
+            {
+              "employee": 102,
+              "preferred": false,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "1228-E",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 111,
+              "preferred": true,
+              "double": false
+            },
+            {
+              "employee": 114,
+              "preferred": true,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "1228-N",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 113,
+              "preferred": false,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "1229-M",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 101,
+              "preferred": true,
+              "double": false
+            },
+            {
+              "employee": 102,
+              "preferred": true,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "1229-E",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 106,
+              "preferred": false,
+              "double": false
+            },
+            {
+              "employee": 109,
+              "preferred": false,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "1229-N",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 112,
+              "preferred": false,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "1230-M",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 100,
+              "preferred": true,
+              "double": false
+            },
+            {
+              "employee": 101,
+              "preferred": false,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "1230-E",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 110,
+              "preferred": true,
+              "double": false
+            },
+            {
+              "employee": 109,
+              "preferred": false,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "1230-N",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 112,
+              "preferred": true,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "1231-M",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 101,
+              "preferred": true,
+              "double": false
+            },
+            {
+              "employee": 100,
+              "preferred": false,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "1231-E",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 109,
+              "preferred": true,
+              "double": false
+            },
+            {
+              "employee": 108,
+              "preferred": false,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "1231-N",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 114,
+              "preferred": true,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "0101-M",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 102,
+              "preferred": true,
+              "double": false
+            },
+            {
+              "employee": 100,
+              "preferred": false,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "0101-E",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 104,
+              "preferred": true,
+              "double": false
+            },
+            {
+              "employee": 110,
+              "preferred": true,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "0101-N",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 111,
+              "preferred": false,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "0102-M",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 101,
+              "preferred": true,
+              "double": false
+            },
+            {
+              "employee": 100,
+              "preferred": false,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "0102-E",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 104,
+              "preferred": true,
+              "double": false
+            },
+            {
+              "employee": 105,
+              "preferred": false,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "0102-N",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 112,
+              "preferred": false,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "0103-M",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 102,
+              "preferred": true,
+              "double": false
+            },
+            {
+              "employee": 103,
+              "preferred": false,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "0103-E",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 107,
+              "preferred": true,
+              "double": false
+            },
+            {
+              "employee": 114,
+              "preferred": true,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "0103-N",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 113,
+              "preferred": false,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "0104-M",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 102,
+              "preferred": true,
+              "double": false
+            },
+            {
+              "employee": 101,
+              "preferred": false,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "0104-E",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 104,
+              "preferred": true,
+              "double": false
+            },
+            {
+              "employee": 107,
+              "preferred": true,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "0104-N",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 113,
+              "preferred": true,
+              "double": false
+            }
+          ]
+        }
+      ],
+      "employees": [
+        {
+          "employee": 100,
+          "shifts": [
+            "1210-M",
+            "1211-M",
+            "1216-M",
+            "1217-M",
+            "1223-M",
+            "1224-M",
+            "1225-M",
+            "1227-M",
+            "1230-M",
+            "1231-M",
+            "0101-M",
+            "0102-M"
+          ],
+          "minutes": 5760
+        },
+        {
+          "employee": 101,
+          "shifts": [
+            "1207-M",
+            "1208-M",
+            "1211-M",
+            "1212-M",
+            "1215-M",
+            "1216-M",
+            "1218-M",
+            "1219-M",
+            "1221-M",
+            "1222-M",
+            "1225-M",
+            "1226-M",
+            "1228-M",
+            "1229-M",
+            "1230-M",
+            "1231-M",
+            "0102-M",
+            "0104-M"
+          ],
+          "minutes": 8640
+        },
+        {
+          "employee": 102,
+          "shifts": [
+            "1206-M",
+            "1213-M",
+            "1214-M",
+            "1219-M",
+            "1220-M",
+            "1221-M",
+            "1224-M",
+            "1227-M",
+            "1228-M",
+            "1229-M",
+            "0101-M",
+            "0103-M",
+            "0104-M"
+          ],
+          "minutes": 6240
+        },
+        {
+          "employee": 103,
+          "shifts": [
+            "1206-M",
+            "1207-M",
+            "1208-M",
+            "1214-M",
+            "1215-M",
+            "1218-M",
+            "1222-M",
+            "0103-M"
+          ],
+          "minutes": 3840
+        },
+        {
+          "employee": 104,
+          "shifts": [
+            "1206-E",
+            "1210-E",
+            "1211-E",
+            "1213-E",
+            "1214-E",
+            "1217-E",
+            "1218-E",
+            "1219-E",
+            "1220-E",
+            "1221-E",
+            "1223-E",
+            "1225-E",
+            "1226-E",
+            "1227-E",
+            "0101-E",
+            "0102-E",
+            "0104-E"
+          ],
+          "minutes": 8160
+        },
+        {
+          "employee": 105,
+          "shifts": [
+            "1208-E",
+            "1210-E",
+            "1212-E",
+            "1214-E",
+            "1215-E",
+            "1219-E",
+            "1220-E",
+            "1221-E",
+            "1222-E",
+            "1223-E",
+            "1226-E",
+            "1227-E",
+            "0102-E"
+          ],
+          "minutes": 6240
+        },
+        {
+          "employee": 106,
+          "shifts": [
+            "1208-E",
+            "1209-E",
+            "1216-E",
+            "1218-E",
+            "1224-E",
+            "1229-E"
+          ],
+          "minutes": 2880
+        },
+        {
+          "employee": 107,
+          "shifts": [
+            "1206-E",
+            "1207-E",
+            "1211-E",
+            "1213-E",
+            "1216-E",
+            "1217-E",
+            "1225-E",
+            "0103-E",
+            "0104-E"
+          ],
+          "minutes": 4320,
+          "belowMinShifts": 12
+        },
+        {
+          "employee": 108,
+          "shifts": [
+            "1207-E",
+            "1210-M",
+            "1213-M",
+            "1217-M",
+            "1231-E"
+          ],
+          "minutes": 2400
+        },
+        {
+          "employee": 109,
+          "shifts": [
+            "1209-M",
+            "1215-E",
+            "1222-E",
+            "1224-E",
+            "1229-E",
+            "1230-E",
+            "1231-E"
+          ],
+          "minutes": 3360,
+          "belowMinShifts": 10
+        },
+        {
+          "employee": 110,
+          "shifts": [
+            "1212-M",
+            "1220-M",
+            "1223-M",
+            "1226-M",
+            "1230-E",
+            "0101-E"
+          ],
+          "minutes": 2880
+        },
+        {
+          "employee": 111,
+          "shifts": [
+            "1207-N",
+            "1208-N",
+            "1210-N",
+            "1211-N",
+            "1216-N",
+            "1222-N",
+            "1225-N",
+            "1228-E",
+            "0101-N"
+          ],
+          "minutes": 4320
+        },
+        {
+          "employee": 112,
+          "shifts": [
+            "1206-N",
+            "1209-N",
+            "1214-N",
+            "1215-N",
+            "1218-N",
+            "1219-N",
+            "1220-N",
+            "1223-N",
+            "1227-N",
+            "1229-N",
+            "1230-N",
+            "0102-N"
+          ],
+          "minutes": 5760
+        },
+        {
+          "employee": 113,
+          "shifts": [
+            "1209-E",
+            "1212-E",
+            "1221-N",
+            "1228-N",
+            "0103-N",
+            "0104-N"
+          ],
+          "minutes": 2880
+        },
+        {
+          "employee": 114,
+          "shifts": [
+            "1212-N",
+            "1213-N",
+            "1217-N",
+            "1224-N",
+            "1226-N",
+            "1228-E",
+            "1231-N",
+            "0103-E"
+          ],
+          "minutes": 3840
+        }
+      ],
+      "weeks": [
+        {
+          "shifts": 21,
+          "full": 20,
+          "belowWanted": 1,
+          "belowMin": 0,
+          "perEmployee": [
+            {
+              "employee": 100,
+              "shifts": 2
+            },
+            {
+              "employee": 101,
+              "shifts": 4
+            },
+            {
+              "employee": 102,
+              "shifts": 1
+            },
+            {
+              "employee": 103,
+              "shifts": 3
+            },
+            {
+              "employee": 104,
+              "shifts": 3
+            },
+            {
+              "employee": 105,
+              "shifts": 3
+            },
+            {
+              "employee": 106,
+              "shifts": 2
+            },
+            {
+              "employee": 107,
+              "shifts": 3
+            },
+            {
+              "employee": 108,
+              "shifts": 2
+            },
+            {
+              "employee": 109,
+              "shifts": 1
+            },
+            {
+              "employee": 110,
+              "shifts": 1
+            },
+            {
+              "employee": 111,
+              "shifts": 4
+            },
+            {
+              "employee": 112,
+              "shifts": 2
+            },
+            {
+              "employee": 113,
+              "shifts": 2
+            },
+            {
+              "employee": 114,
+              "shifts": 1
+            }
+          ]
+        },
+        {
+          "shifts": 21,
+          "full": 21,
+          "belowWanted": 0,
+          "belowMin": 0,
+          "perEmployee": [
+            {
+              "employee": 100,
+              "shifts": 2
+            },
+            {
+              "employee": 101,
+              "shifts": 4
+            },
+            {
+              "employee": 102,
+              "shifts": 3
+            },
+            {
+              "employee": 103,
+              "shifts": 3
+            },
+            {
+              "employee": 104,
+              "shifts": 5
+            },
+            {
+              "employee": 105,
+              "shifts": 3
+            },
+            {
+              "employee": 106,
+              "shifts": 2
+            },
+            {
+              "employee": 107,
+              "shifts": 3
+            },
+            {
+              "employee": 108,
+              "shifts": 2
+            },
+            {
+              "employee": 109,
+              "shifts": 1
+            },
+            {
+              "employee": 110,
+              "shifts": 0
+            },
+            {
+              "employee": 111,
+              "shifts": 1
+            },
+            {
+              "employee": 112,
+              "shifts": 4
+            },
+            {
+              "employee": 113,
+              "shifts": 0
+            },
+            {
+              "employee": 114,
+              "shifts": 2
+            }
+          ]
+        },
+        {
+          "shifts": 21,
+          "full": 21,
+          "belowWanted": 0,
+          "belowMin": 0,
+          "perEmployee": [
+            {
+              "employee": 100,
+              "shifts": 3
+            },
+            {
+              "employee": 101,
+              "shifts": 4
+            },
+            {
+              "employee": 102,
+              "shifts": 3
+            },
+            {
+              "employee": 103,
+              "shifts": 1
+            },
+            {
+              "employee": 104,
+              "shifts": 5
+            },
+            {
+              "employee": 105,
+              "shifts": 5
+            },
+            {
+              "employee": 106,
+              "shifts": 1
+            },
+            {
+              "employee": 107,
+              "shifts": 1
+            },
+            {
+              "employee": 108,
+              "shifts": 0
+            },
+            {
+              "employee": 109,
+              "shifts": 2
+            },
+            {
+              "employee": 110,
+              "shifts": 3
+            },
+            {
+              "employee": 111,
+              "shifts": 2
+            },
+            {
+              "employee": 112,
+              "shifts": 2
+            },
+            {
+              "employee": 113,
+              "shifts": 1
+            },
+            {
+              "employee": 114,
+              "shifts": 2
+            }
+          ]
+        },
+        {
+          "shifts": 21,
+          "full": 21,
+          "belowWanted": 0,
+          "belowMin": 0,
+          "perEmployee": [
+            {
+              "employee": 100,
+              "shifts": 5
+            },
+            {
+              "employee": 101,
+              "shifts": 5
+            },
+            {
+              "employee": 102,
+              "shifts": 4
+            },
+            {
+              "employee": 103,
+              "shifts": 0
+            },
+            {
+              "employee": 104,
+              "shifts": 3
+            },
+            {
+              "employee": 105,
+              "shifts": 2
+            },
+            {
+              "employee": 106,
+              "shifts": 1
+            },
+            {
+              "employee": 107,
+              "shifts": 0
+            },
+            {
+              "employee": 108,
+              "shifts": 1
+            },
+            {
+              "employee": 109,
+              "shifts": 3
+            },
+            {
+              "employee": 110,
+              "shifts": 2
+            },
+            {
+              "employee": 111,
+              "shifts": 2
+            },
+            {
+              "employee": 112,
+              "shifts": 4
+            },
+            {
+              "employee": 113,
+              "shifts": 1
+            },
+            {
+              "employee": 114,
+              "shifts": 2
+            }
+          ]
+        },
+        {
+          "shifts": 6,
+          "full": 6,
+          "belowWanted": 0,
+          "belowMin": 0,
+          "perEmployee": [
+            {
+              "employee": 100,
+              "shifts": 0
+            },
+            {
+              "employee": 101,
+              "shifts": 1
+            },
+            {
+              "employee": 102,
+              "shifts": 2
+            },
+            {
+              "employee": 103,
+              "shifts": 1
+            },
+            {
+              "employee": 104,
+              "shifts": 1
+            },
+            {
+              "employee": 105,
+              "shifts": 0
+            },
+            {
+              "employee": 106,
+              "shifts": 0
+            },
+            {
+              "employee": 107,
+              "shifts": 2
+            },
+            {
+              "employee": 108,
+              "shifts": 0
+            },
+            {
+              "employee": 109,
+              "shifts": 0
+            },
+            {
+              "employee": 110,
+              "shifts": 0
+            },
+            {
+              "employee": 111,
+              "shifts": 0
+            },
+            {
+              "employee": 112,
+              "shifts": 0
+            },
+            {
+              "employee": 113,
+              "shifts": 2
+            },
+            {
+              "employee": 114,
+              "shifts": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "rank": 2,
+      "score": {
+        "medium": 0,
+        "soft": 376
+      },
+      "rules": [
+        {
+          "name": "below-min",
+          "level": "medium",
+          "violations": 0,
+          "weight": 1,
+          "penalty": 0,
+          "description": "person missing below a shift's minimum"
+        },
+        {
+          "name": "below-wanted",
+          "level": "soft",
+          "violations": 1,
+          "weight": 10,
+          "penalty": 10,
+          "description": "person missing below a shift's wanted staff"
+        },
+        {
+          "name": "double",
+          "level": "soft",
+          "violations": 0,
+          "weight": 5,
+          "penalty": 0,
+          "description": "double shift (approved, but best avoided)"
+        },
+        {
+          "name": "below-min-shifts",
+          "level": "soft",
+          "violations": 6,
+          "weight": 5,
+          "penalty": 30,
+          "description": "shift missing below an employee's minShifts"
+        },
+        {
+          "name": "not-preferred",
+          "level": "soft",
+          "violations": 82,
+          "weight": 1,
+          "penalty": 82,
+          "description": "assignment the employee did not mark as preferred"
+        },
+        {
+          "name": "consecutive-nights",
+          "level": "soft",
+          "violations": 8,
+          "weight": 3,
+          "penalty": 24,
+          "description": "night shift right after a night shift"
+        },
+        {
+          "name": "fairness",
+          "level": "soft",
+          "violations": 230,
+          "weight": 1,
+          "penalty": 230,
+          "description": "unevenness of shifts per employee (squares)"
+        },
+        {
+          "name": "fewer-trips",
+          "level": "soft",
+          "violations": 0,
+          "weight": 0,
+          "penalty": 0,
+          "description": "day outside the ideal trip length (days in a row)"
+        }
+      ],
+      "shifts": [
+        {
+          "shift": "1206-M",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 102,
+              "preferred": true,
+              "double": false
+            },
+            {
+              "employee": 103,
+              "preferred": false,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "1206-E",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 104,
+              "preferred": true,
+              "double": false
+            },
+            {
+              "employee": 107,
+              "preferred": true,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "1206-N",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 112,
+              "preferred": false,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "1207-M",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 101,
+              "preferred": false,
+              "double": false
+            },
+            {
+              "employee": 103,
+              "preferred": false,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "1207-E",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 108,
+              "preferred": true,
+              "double": false
+            },
+            {
+              "employee": 107,
+              "preferred": false,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "1207-N",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 111,
+              "preferred": false,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "1208-M",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 103,
+              "preferred": true,
+              "double": false
+            },
+            {
+              "employee": 101,
+              "preferred": false,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "1208-E",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 105,
+              "preferred": false,
+              "double": false
+            },
+            {
+              "employee": 106,
+              "preferred": false,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "1208-N",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 111,
+              "preferred": false,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "1209-M",
+          "status": "belowWanted",
+          "staff": [
+            {
+              "employee": 109,
+              "preferred": false,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "1209-E",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 106,
+              "preferred": true,
+              "double": false
+            },
+            {
+              "employee": 110,
+              "preferred": false,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "1209-N",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 112,
+              "preferred": false,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "1210-M",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 100,
+              "preferred": false,
+              "double": false
+            },
+            {
+              "employee": 108,
+              "preferred": false,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "1210-E",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 104,
+              "preferred": true,
+              "double": false
+            },
+            {
+              "employee": 105,
+              "preferred": false,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "1210-N",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 111,
+              "preferred": false,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "1211-M",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 101,
+              "preferred": true,
+              "double": false
+            },
+            {
+              "employee": 100,
+              "preferred": false,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "1211-E",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 104,
+              "preferred": false,
+              "double": false
+            },
+            {
+              "employee": 107,
+              "preferred": false,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "1211-N",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 111,
+              "preferred": true,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "1212-M",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 110,
+              "preferred": true,
+              "double": false
+            },
+            {
+              "employee": 101,
+              "preferred": false,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "1212-E",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 105,
+              "preferred": true,
+              "double": false
+            },
+            {
+              "employee": 113,
+              "preferred": true,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "1212-N",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 114,
+              "preferred": true,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "1213-M",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 108,
+              "preferred": true,
+              "double": false
+            },
+            {
+              "employee": 102,
+              "preferred": false,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "1213-E",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 104,
+              "preferred": true,
+              "double": false
+            },
+            {
+              "employee": 107,
+              "preferred": false,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "1213-N",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 114,
+              "preferred": false,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "1214-M",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 102,
+              "preferred": true,
+              "double": false
+            },
+            {
+              "employee": 103,
+              "preferred": true,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "1214-E",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 104,
+              "preferred": false,
+              "double": false
+            },
+            {
+              "employee": 105,
+              "preferred": false,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "1214-N",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 112,
+              "preferred": true,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "1215-M",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 101,
+              "preferred": false,
+              "double": false
+            },
+            {
+              "employee": 103,
+              "preferred": false,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "1215-E",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 105,
+              "preferred": true,
+              "double": false
+            },
+            {
+              "employee": 109,
+              "preferred": false,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "1215-N",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 112,
+              "preferred": true,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "1216-M",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 100,
+              "preferred": true,
+              "double": false
+            },
+            {
+              "employee": 101,
+              "preferred": false,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "1216-E",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 106,
+              "preferred": true,
+              "double": false
+            },
+            {
+              "employee": 107,
+              "preferred": true,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "1216-N",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 111,
+              "preferred": false,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "1217-M",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 108,
+              "preferred": true,
+              "double": false
+            },
+            {
+              "employee": 100,
+              "preferred": false,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "1217-E",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 107,
+              "preferred": true,
+              "double": false
+            },
+            {
+              "employee": 104,
+              "preferred": false,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "1217-N",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 114,
+              "preferred": false,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "1218-M",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 103,
+              "preferred": true,
+              "double": false
+            },
+            {
+              "employee": 101,
+              "preferred": false,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "1218-E",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 106,
+              "preferred": true,
+              "double": false
+            },
+            {
+              "employee": 104,
+              "preferred": false,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "1218-N",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 112,
+              "preferred": false,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "1219-M",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 101,
+              "preferred": false,
+              "double": false
+            },
+            {
+              "employee": 102,
+              "preferred": false,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "1219-E",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 105,
+              "preferred": true,
+              "double": false
+            },
+            {
+              "employee": 104,
+              "preferred": false,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "1219-N",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 112,
+              "preferred": false,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "1220-M",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 110,
+              "preferred": true,
+              "double": false
+            },
+            {
+              "employee": 102,
+              "preferred": false,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "1220-E",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 105,
+              "preferred": true,
+              "double": false
+            },
+            {
+              "employee": 104,
+              "preferred": false,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "1220-N",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 112,
+              "preferred": false,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "1221-M",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 101,
+              "preferred": true,
+              "double": false
+            },
+            {
+              "employee": 102,
+              "preferred": false,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "1221-E",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 104,
+              "preferred": false,
+              "double": false
+            },
+            {
+              "employee": 105,
+              "preferred": false,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "1221-N",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 113,
+              "preferred": true,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "1222-M",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 101,
+              "preferred": false,
+              "double": false
+            },
+            {
+              "employee": 103,
+              "preferred": false,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "1222-E",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 109,
+              "preferred": true,
+              "double": false
+            },
+            {
+              "employee": 105,
+              "preferred": false,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "1222-N",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 111,
+              "preferred": false,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "1223-M",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 110,
+              "preferred": true,
+              "double": false
+            },
+            {
+              "employee": 100,
+              "preferred": false,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "1223-E",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 104,
+              "preferred": false,
+              "double": false
+            },
+            {
+              "employee": 105,
+              "preferred": false,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "1223-N",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 112,
+              "preferred": true,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "1224-M",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 102,
+              "preferred": true,
+              "double": false
+            },
+            {
+              "employee": 100,
+              "preferred": false,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "1224-E",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 108,
+              "preferred": false,
+              "double": false
+            },
+            {
+              "employee": 109,
+              "preferred": false,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "1224-N",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 114,
+              "preferred": true,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "1225-M",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 100,
+              "preferred": true,
+              "double": false
+            },
+            {
+              "employee": 101,
+              "preferred": true,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "1225-E",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 104,
+              "preferred": true,
+              "double": false
+            },
+            {
+              "employee": 107,
+              "preferred": true,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "1225-N",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 111,
+              "preferred": true,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "1226-M",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 110,
+              "preferred": true,
+              "double": false
+            },
+            {
+              "employee": 101,
+              "preferred": false,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "1226-E",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 104,
+              "preferred": false,
+              "double": false
+            },
+            {
+              "employee": 105,
+              "preferred": false,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "1226-N",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 114,
+              "preferred": true,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "1227-M",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 102,
+              "preferred": true,
+              "double": false
+            },
+            {
+              "employee": 100,
+              "preferred": false,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "1227-E",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 104,
+              "preferred": false,
+              "double": false
+            },
+            {
+              "employee": 105,
+              "preferred": false,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "1227-N",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 112,
+              "preferred": false,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "1228-M",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 101,
+              "preferred": true,
+              "double": false
+            },
+            {
+              "employee": 102,
+              "preferred": false,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "1228-E",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 111,
+              "preferred": true,
+              "double": false
+            },
+            {
+              "employee": 114,
+              "preferred": true,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "1228-N",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 113,
+              "preferred": false,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "1229-M",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 101,
+              "preferred": true,
+              "double": false
+            },
+            {
+              "employee": 102,
+              "preferred": true,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "1229-E",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 106,
+              "preferred": false,
+              "double": false
+            },
+            {
+              "employee": 109,
+              "preferred": false,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "1229-N",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 112,
+              "preferred": false,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "1230-M",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 100,
+              "preferred": true,
+              "double": false
+            },
+            {
+              "employee": 101,
+              "preferred": false,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "1230-E",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 106,
+              "preferred": false,
+              "double": false
+            },
+            {
+              "employee": 109,
+              "preferred": false,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "1230-N",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 112,
+              "preferred": true,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "1231-M",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 101,
+              "preferred": true,
+              "double": false
+            },
+            {
+              "employee": 100,
+              "preferred": false,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "1231-E",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 109,
+              "preferred": true,
+              "double": false
+            },
+            {
+              "employee": 108,
+              "preferred": false,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "1231-N",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 114,
+              "preferred": true,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "0101-M",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 102,
+              "preferred": true,
+              "double": false
+            },
+            {
+              "employee": 100,
+              "preferred": false,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "0101-E",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 104,
+              "preferred": true,
+              "double": false
+            },
+            {
+              "employee": 110,
+              "preferred": true,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "0101-N",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 111,
+              "preferred": false,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "0102-M",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 101,
+              "preferred": true,
+              "double": false
+            },
+            {
+              "employee": 100,
+              "preferred": false,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "0102-E",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 104,
+              "preferred": true,
+              "double": false
+            },
+            {
+              "employee": 105,
+              "preferred": false,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "0102-N",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 112,
+              "preferred": false,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "0103-M",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 102,
+              "preferred": true,
+              "double": false
+            },
+            {
+              "employee": 103,
+              "preferred": false,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "0103-E",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 107,
+              "preferred": true,
+              "double": false
+            },
+            {
+              "employee": 114,
+              "preferred": true,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "0103-N",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 113,
+              "preferred": false,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "0104-M",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 102,
+              "preferred": true,
+              "double": false
+            },
+            {
+              "employee": 101,
+              "preferred": false,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "0104-E",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 104,
+              "preferred": true,
+              "double": false
+            },
+            {
+              "employee": 107,
+              "preferred": true,
+              "double": false
+            }
+          ]
+        },
+        {
+          "shift": "0104-N",
+          "status": "full",
+          "staff": [
+            {
+              "employee": 113,
+              "preferred": true,
+              "double": false
+            }
+          ]
+        }
+      ],
+      "employees": [
+        {
+          "employee": 100,
+          "shifts": [
+            "1210-M",
+            "1211-M",
+            "1216-M",
+            "1217-M",
+            "1223-M",
+            "1224-M",
+            "1225-M",
+            "1227-M",
+            "1230-M",
+            "1231-M",
+            "0101-M",
+            "0102-M"
+          ],
+          "minutes": 5760
+        },
+        {
+          "employee": 101,
+          "shifts": [
+            "1207-M",
+            "1208-M",
+            "1211-M",
+            "1212-M",
+            "1215-M",
+            "1216-M",
+            "1218-M",
+            "1219-M",
+            "1221-M",
+            "1222-M",
+            "1225-M",
+            "1226-M",
+            "1228-M",
+            "1229-M",
+            "1230-M",
+            "1231-M",
+            "0102-M",
+            "0104-M"
+          ],
+          "minutes": 8640
+        },
+        {
+          "employee": 102,
+          "shifts": [
+            "1206-M",
+            "1213-M",
+            "1214-M",
+            "1219-M",
+            "1220-M",
+            "1221-M",
+            "1224-M",
+            "1227-M",
+            "1228-M",
+            "1229-M",
+            "0101-M",
+            "0103-M",
+            "0104-M"
+          ],
+          "minutes": 6240
+        },
+        {
+          "employee": 103,
+          "shifts": [
+            "1206-M",
+            "1207-M",
+            "1208-M",
+            "1214-M",
+            "1215-M",
+            "1218-M",
+            "1222-M",
+            "0103-M"
+          ],
+          "minutes": 3840
+        },
+        {
+          "employee": 104,
+          "shifts": [
+            "1206-E",
+            "1210-E",
+            "1211-E",
+            "1213-E",
+            "1214-E",
+            "1217-E",
+            "1218-E",
+            "1219-E",
+            "1220-E",
+            "1221-E",
+            "1223-E",
+            "1225-E",
+            "1226-E",
+            "1227-E",
+            "0101-E",
+            "0102-E",
+            "0104-E"
+          ],
+          "minutes": 8160
+        },
+        {
+          "employee": 105,
+          "shifts": [
+            "1208-E",
+            "1210-E",
+            "1212-E",
+            "1214-E",
+            "1215-E",
+            "1219-E",
+            "1220-E",
+            "1221-E",
+            "1222-E",
+            "1223-E",
+            "1226-E",
+            "1227-E",
+            "0102-E"
+          ],
+          "minutes": 6240
+        },
+        {
+          "employee": 106,
+          "shifts": [
+            "1208-E",
+            "1209-E",
+            "1216-E",
+            "1218-E",
+            "1229-E",
+            "1230-E"
+          ],
+          "minutes": 2880
+        },
+        {
+          "employee": 107,
+          "shifts": [
+            "1206-E",
+            "1207-E",
+            "1211-E",
+            "1213-E",
+            "1216-E",
+            "1217-E",
+            "1225-E",
+            "0103-E",
+            "0104-E"
+          ],
+          "minutes": 4320,
+          "belowMinShifts": 12
+        },
+        {
+          "employee": 108,
+          "shifts": [
+            "1207-E",
+            "1210-M",
+            "1213-M",
+            "1217-M",
+            "1224-E",
+            "1231-E"
+          ],
+          "minutes": 2880
+        },
+        {
+          "employee": 109,
+          "shifts": [
+            "1209-M",
+            "1215-E",
+            "1222-E",
+            "1224-E",
+            "1229-E",
+            "1230-E",
+            "1231-E"
+          ],
+          "minutes": 3360,
+          "belowMinShifts": 10
+        },
+        {
+          "employee": 110,
+          "shifts": [
+            "1209-E",
+            "1212-M",
+            "1220-M",
+            "1223-M",
+            "1226-M",
+            "0101-E"
+          ],
+          "minutes": 2880
+        },
+        {
+          "employee": 111,
+          "shifts": [
+            "1207-N",
+            "1208-N",
+            "1210-N",
+            "1211-N",
+            "1216-N",
+            "1222-N",
+            "1225-N",
+            "1228-E",
+            "0101-N"
+          ],
+          "minutes": 4320
+        },
+        {
+          "employee": 112,
+          "shifts": [
+            "1206-N",
+            "1209-N",
+            "1214-N",
+            "1215-N",
+            "1218-N",
+            "1219-N",
+            "1220-N",
+            "1223-N",
+            "1227-N",
+            "1229-N",
+            "1230-N",
+            "0102-N"
+          ],
+          "minutes": 5760
+        },
+        {
+          "employee": 113,
+          "shifts": [
+            "1212-E",
+            "1221-N",
+            "1228-N",
+            "0103-N",
+            "0104-N"
+          ],
+          "minutes": 2400
+        },
+        {
+          "employee": 114,
+          "shifts": [
+            "1212-N",
+            "1213-N",
+            "1217-N",
+            "1224-N",
+            "1226-N",
+            "1228-E",
+            "1231-N",
+            "0103-E"
+          ],
+          "minutes": 3840
+        }
+      ],
+      "weeks": [
+        {
+          "shifts": 21,
+          "full": 20,
+          "belowWanted": 1,
+          "belowMin": 0,
+          "perEmployee": [
+            {
+              "employee": 100,
+              "shifts": 2
+            },
+            {
+              "employee": 101,
+              "shifts": 4
+            },
+            {
+              "employee": 102,
+              "shifts": 1
+            },
+            {
+              "employee": 103,
+              "shifts": 3
+            },
+            {
+              "employee": 104,
+              "shifts": 3
+            },
+            {
+              "employee": 105,
+              "shifts": 3
+            },
+            {
+              "employee": 106,
+              "shifts": 2
+            },
+            {
+              "employee": 107,
+              "shifts": 3
+            },
+            {
+              "employee": 108,
+              "shifts": 2
+            },
+            {
+              "employee": 109,
+              "shifts": 1
+            },
+            {
+              "employee": 110,
+              "shifts": 2
+            },
+            {
+              "employee": 111,
+              "shifts": 4
+            },
+            {
+              "employee": 112,
+              "shifts": 2
+            },
+            {
+              "employee": 113,
+              "shifts": 1
+            },
+            {
+              "employee": 114,
+              "shifts": 1
+            }
+          ]
+        },
+        {
+          "shifts": 21,
+          "full": 21,
+          "belowWanted": 0,
+          "belowMin": 0,
+          "perEmployee": [
+            {
+              "employee": 100,
+              "shifts": 2
+            },
+            {
+              "employee": 101,
+              "shifts": 4
+            },
+            {
+              "employee": 102,
+              "shifts": 3
+            },
+            {
+              "employee": 103,
+              "shifts": 3
+            },
+            {
+              "employee": 104,
+              "shifts": 5
+            },
+            {
+              "employee": 105,
+              "shifts": 3
+            },
+            {
+              "employee": 106,
+              "shifts": 2
+            },
+            {
+              "employee": 107,
+              "shifts": 3
+            },
+            {
+              "employee": 108,
+              "shifts": 2
+            },
+            {
+              "employee": 109,
+              "shifts": 1
+            },
+            {
+              "employee": 110,
+              "shifts": 0
+            },
+            {
+              "employee": 111,
+              "shifts": 1
+            },
+            {
+              "employee": 112,
+              "shifts": 4
+            },
+            {
+              "employee": 113,
+              "shifts": 0
+            },
+            {
+              "employee": 114,
+              "shifts": 2
+            }
+          ]
+        },
+        {
+          "shifts": 21,
+          "full": 21,
+          "belowWanted": 0,
+          "belowMin": 0,
+          "perEmployee": [
+            {
+              "employee": 100,
+              "shifts": 3
+            },
+            {
+              "employee": 101,
+              "shifts": 4
+            },
+            {
+              "employee": 102,
+              "shifts": 3
+            },
+            {
+              "employee": 103,
+              "shifts": 1
+            },
+            {
+              "employee": 104,
+              "shifts": 5
+            },
+            {
+              "employee": 105,
+              "shifts": 5
+            },
+            {
+              "employee": 106,
+              "shifts": 0
+            },
+            {
+              "employee": 107,
+              "shifts": 1
+            },
+            {
+              "employee": 108,
+              "shifts": 1
+            },
+            {
+              "employee": 109,
+              "shifts": 2
+            },
+            {
+              "employee": 110,
+              "shifts": 3
+            },
+            {
+              "employee": 111,
+              "shifts": 2
+            },
+            {
+              "employee": 112,
+              "shifts": 2
+            },
+            {
+              "employee": 113,
+              "shifts": 1
+            },
+            {
+              "employee": 114,
+              "shifts": 2
+            }
+          ]
+        },
+        {
+          "shifts": 21,
+          "full": 21,
+          "belowWanted": 0,
+          "belowMin": 0,
+          "perEmployee": [
+            {
+              "employee": 100,
+              "shifts": 5
+            },
+            {
+              "employee": 101,
+              "shifts": 5
+            },
+            {
+              "employee": 102,
+              "shifts": 4
+            },
+            {
+              "employee": 103,
+              "shifts": 0
+            },
+            {
+              "employee": 104,
+              "shifts": 3
+            },
+            {
+              "employee": 105,
+              "shifts": 2
+            },
+            {
+              "employee": 106,
+              "shifts": 2
+            },
+            {
+              "employee": 107,
+              "shifts": 0
+            },
+            {
+              "employee": 108,
+              "shifts": 1
+            },
+            {
+              "employee": 109,
+              "shifts": 3
+            },
+            {
+              "employee": 110,
+              "shifts": 1
+            },
+            {
+              "employee": 111,
+              "shifts": 2
+            },
+            {
+              "employee": 112,
+              "shifts": 4
+            },
+            {
+              "employee": 113,
+              "shifts": 1
+            },
+            {
+              "employee": 114,
+              "shifts": 2
+            }
+          ]
+        },
+        {
+          "shifts": 6,
+          "full": 6,
+          "belowWanted": 0,
+          "belowMin": 0,
+          "perEmployee": [
+            {
+              "employee": 100,
+              "shifts": 0
+            },
+            {
+              "employee": 101,
+              "shifts": 1
+            },
+            {
+              "employee": 102,
+              "shifts": 2
+            },
+            {
+              "employee": 103,
+              "shifts": 1
+            },
+            {
+              "employee": 104,
+              "shifts": 1
+            },
+            {
+              "employee": 105,
+              "shifts": 0
+            },
+            {
+              "employee": 106,
+              "shifts": 0
+            },
+            {
+              "employee": 107,
+              "shifts": 2
+            },
+            {
+              "employee": 108,
+              "shifts": 0
+            },
+            {
+              "employee": 109,
+              "shifts": 0
+            },
+            {
+              "employee": 110,
+              "shifts": 0
+            },
+            {
+              "employee": 111,
+              "shifts": 0
+            },
+            {
+              "employee": 112,
+              "shifts": 0
+            },
+            {
+              "employee": 113,
+              "shifts": 2
+            },
+            {
+              "employee": 114,
+              "shifts": 1
+            }
+          ]
+        }
+      ],
+      "vsBest": {
+        "differences": 3,
+        "changes": [
+          {
+            "shift": "1209-E",
+            "out": [
+              113
+            ],
+            "in": [
+              110
+            ]
+          },
+          {
+            "shift": "1224-E",
+            "out": [
+              106
+            ],
+            "in": [
+              108
+            ]
+          },
+          {
+            "shift": "1230-E",
+            "out": [
+              110
+            ],
+            "in": [
+              106
+            ]
+          }
+        ]
+      }
+    }
+  ],
+  "diagnostics": []
+}

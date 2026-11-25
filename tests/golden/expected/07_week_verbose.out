@@ -1,0 +1,86 @@
+Period: 2026-11-08 .. 2026-11-14  (7 days)
+
+Employees (4)
+  #101 Yossi Cohen  roles: cashier  max 4 shifts
+      2026-11-08 Sun  08:00-16:00 available
+      2026-11-09 Mon  08:00-20:00 preferred
+      2026-11-10 Tue  all day     unavailable
+  #102 Dana Levi  roles: cashier  min 3 shifts
+      2026-11-08 Sun  09:00-17:00 available
+      2026-11-08 Sun  16:00-00:00 preferred
+      2026-11-09 Mon  08:00-16:00 available
+      2026-11-10 Tue  08:00-00:00 available  (double ok)
+  #103 Avi Mizrahi  roles: cashier guard
+      2026-11-08 Sun  22:00-06:00 available
+      2026-11-09 Mon  22:00-06:00 preferred
+      2026-11-10 Tue  08:00-16:00 available
+  #104 Noa Shapira  roles: cashier
+      2026-11-08 Sun  08:00-16:00 preferred
+      2026-11-09 Mon  16:00-00:00 available
+      2026-11-10 Tue  16:00-00:00 available
+
+Shifts (8, in chronological order)
+  SUN-M  2026-11-08 Sun  08:00-16:00  staff 1-2
+  SUN-E  2026-11-08 Sun  16:00-00:00  staff 1-1
+  SUN-N  2026-11-08 Sun  22:00-06:00  staff 1-1  role: guard
+  MON-M  2026-11-09 Mon  08:00-16:00  staff 1-2
+  MON-E  2026-11-09 Mon  16:00-00:00  staff 1-1
+  MON-N  2026-11-09 Mon  22:00-06:00  staff 1-1  role: guard
+  TUE-M  2026-11-10 Tue  08:00-16:00  staff 1-2
+  TUE-E  2026-11-10 Tue  16:00-00:00  staff 1-1
+
+Rules
+  minRestHours        10 h
+  blockGapMinutes     0 min
+  doubleAboveHours    10 h
+  maxDoubleHours      16 h
+  maxConsecutiveDays  5 days
+
+Who can work each shift
+  SUN-M    Yossi Cohen  Noa Shapira (preferred)
+  SUN-E    Dana Levi (preferred)
+  SUN-N    Avi Mizrahi
+  MON-M    Yossi Cohen (preferred)  Dana Levi
+  MON-E    Noa Shapira
+  MON-N    Avi Mizrahi (preferred)
+  TUE-M    Dana Levi  Avi Mizrahi
+  TUE-E    Dana Levi  Noa Shapira
+
+Hard rules: no-overlap min-rest double-needs-approval max-shifts max-consecutive-days
+
+Search visited 43 nodes in X ms, the best schedule improved 2 times, 0 branches pruned
+No schedule can score better than: Medium 0, Soft 4
+
+Schedule 2026-11-08 .. 2026-11-14  (1 week)
+  * preferred   D part of a double   ! below wanted   !! below min (see the list below)
+
+Week 1  2026-11-08 .. 2026-11-14
+                     Sun 08/11  Mon 09/11  Tue 10/11  Wed 11/11  Thu 12/11  Fri 13/11  Sat 14/11
+--------------------------------------------------------------------------------------------------
+08:00-16:00          Noa*       Yossi*     Dana D
+                     Yossi      ! -1       ! -1
+--------------------------------------------------------------------------------------------------
+16:00-00:00          Dana*      Noa        Dana D
+--------------------------------------------------------------------------------------------------
+22:00-06:00 [guard]  Avi        Avi*
+--------------------------------------------------------------------------------------------------
+Week 1: 8 shifts, 6 full, 2 below wanted
+Shifts this week: Yossi 2, Dana 3, Avi 2, Noa 2
+
+Whole period, per employee
+  Yossi Cohen         2 shifts   16 h
+  Dana Levi           3 shifts   24 h
+  Avi Mizrahi         2 shifts   16 h
+  Noa Shapira         2 shifts   16 h
+  Fairness: 0  (0 = shifts spread as evenly as possible)
+
+Score (lower is better): Medium 0, Soft 33
+  below-min          Medium     0 x   1 =     0   person missing below a shift's minimum
+  below-wanted         Soft     2 x  10 =    20   person missing below a shift's wanted staff
+  double               Soft     1 x   5 =     5   double shift (approved, but best avoided)
+  below-min-shifts     Soft     0 x   5 =     0   shift missing below an employee's minShifts
+  not-preferred        Soft     5 x   1 =     5   assignment the employee did not mark as preferred
+  consecutive-nights   Soft     1 x   3 =     3   night shift right after a night shift
+  fairness             Soft     0 x   1 =     0   unevenness of shifts per employee (squares)
+  fewer-trips          Soft  off (weight 0)
+This is the best schedule: the whole search space was checked.

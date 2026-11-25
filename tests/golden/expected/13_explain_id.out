@@ -1,0 +1,13 @@
+Can Noa Shapira (#104) work TUE-E (Tue 2026-11-10 16:00-00:00)?
+  In this schedule Noa Shapira works: SUN-M MON-E
+  TUE-E has 1/1: Dana Levi
+
+  availability          ok       available; that day: available 16:00-00:00
+  role                  ok       no role needed
+  no-overlap            ok       
+  min-rest              ok       
+  double-needs-approval ok       
+  max-shifts            ok       
+  max-consecutive-days  ok       
+
+Answer: yes, nothing forbids it. (But TUE-E is already full: 1/1.)

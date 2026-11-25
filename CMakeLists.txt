@@ -42,6 +42,7 @@ add_library(schedule_core STATIC
     src/io/Terminal.cpp
     src/io/TracePrinter.cpp
     src/io/ScheduleFile.cpp
+    src/io/ResultJson.cpp
     src/solver/State.cpp
     src/solver/Availability.cpp
     src/solver/Solver.cpp
@@ -81,6 +82,7 @@ if(SCHEDULE_BUILD_TESTS)
         tests/test_score.cpp
         tests/test_schedule_file.cpp
         tests/test_report.cpp
+        tests/test_result_json.cpp
     )
     # Catch2WithMain supplies main() for the test runner.
     target_link_libraries(tests PRIVATE schedule_core Catch2::Catch2WithMain)

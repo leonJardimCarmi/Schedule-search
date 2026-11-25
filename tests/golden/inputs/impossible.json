@@ -1,0 +1,10 @@
+{
+  "period": {"start": "2026-11-08", "end": "2026-11-08"},
+  "employees": [
+    {"id": 1, "name": "Solo Worker", "availability": [{"date": "2026-11-08", "type": "available"}]}
+  ],
+  "shifts": [
+    {"id": "EARLY", "date": "2026-11-08", "time": "08:00-16:00", "min": 1, "wanted": 1},
+    {"id": "LATE", "date": "2026-11-08", "time": "12:00-20:00", "min": 1, "wanted": 1}
+  ]
+}

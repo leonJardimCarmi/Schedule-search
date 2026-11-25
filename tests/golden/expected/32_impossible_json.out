@@ -1,0 +1,128 @@
+{
+  "formatVersion": 1,
+  "run": {
+    "status": "noSchedule",
+    "exitCode": 2,
+    "mode": "best",
+    "complete": true,
+    "nodes": 4,
+    "ms": 0,
+    "improvements": 0,
+    "pruned": 0,
+    "startBound": {
+      "medium": 0,
+      "soft": 2
+    },
+    "options": {
+      "top": 5,
+      "minDiff": 3,
+      "timeLimit": 60.0
+    }
+  },
+  "problem": {
+    "period": {
+      "start": "2026-11-08",
+      "end": "2026-11-08"
+    },
+    "employees": [
+      {
+        "id": 1,
+        "name": "Solo Worker",
+        "roles": []
+      }
+    ],
+    "shifts": [
+      {
+        "id": "EARLY",
+        "date": "2026-11-08",
+        "time": "08:00-16:00",
+        "minutes": 480,
+        "min": 1,
+        "wanted": 1,
+        "kind": 0
+      },
+      {
+        "id": "LATE",
+        "date": "2026-11-08",
+        "time": "12:00-20:00",
+        "minutes": 480,
+        "min": 1,
+        "wanted": 1,
+        "kind": 1
+      }
+    ]
+  },
+  "layout": {
+    "kinds": [
+      {
+        "time": "08:00-16:00"
+      },
+      {
+        "time": "12:00-20:00"
+      }
+    ],
+    "weeks": [
+      {
+        "start": "2026-11-08",
+        "end": "2026-11-14",
+        "days": [
+          {
+            "date": "2026-11-08",
+            "inPeriod": true
+          },
+          {
+            "date": "2026-11-09",
+            "inPeriod": false
+          },
+          {
+            "date": "2026-11-10",
+            "inPeriod": false
+          },
+          {
+            "date": "2026-11-11",
+            "inPeriod": false
+          },
+          {
+            "date": "2026-11-12",
+            "inPeriod": false
+          },
+          {
+            "date": "2026-11-13",
+            "inPeriod": false
+          },
+          {
+            "date": "2026-11-14",
+            "inPeriod": false
+          }
+        ],
+        "cells": [
+          [
+            [
+              "EARLY"
+            ],
+            [],
+            [],
+            [],
+            [],
+            [],
+            []
+          ],
+          [
+            [
+              "LATE"
+            ],
+            [],
+            [],
+            [],
+            [],
+            [],
+            []
+          ]
+        ]
+      }
+    ]
+  },
+  "shortages": [],
+  "schedules": [],
+  "diagnostics": []
+}
