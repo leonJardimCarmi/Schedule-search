@@ -1,0 +1,548 @@
+{
+  "formatVersion": 1,
+  "run": {
+    "status": "checked",
+    "exitCode": 0,
+    "mode": "check"
+  },
+  "problem": {
+    "period": {
+      "start": "2026-11-08",
+      "end": "2026-11-14"
+    },
+    "employees": [
+      {
+        "id": 101,
+        "name": "Yossi Cohen",
+        "roles": [
+          "cashier"
+        ],
+        "maxShifts": 4
+      },
+      {
+        "id": 102,
+        "name": "Dana Levi",
+        "roles": [
+          "cashier"
+        ],
+        "minShifts": 3
+      },
+      {
+        "id": 103,
+        "name": "Avi Mizrahi",
+        "roles": [
+          "cashier",
+          "guard"
+        ]
+      },
+      {
+        "id": 104,
+        "name": "Noa Shapira",
+        "roles": [
+          "cashier"
+        ]
+      }
+    ],
+    "shifts": [
+      {
+        "id": "SUN-M",
+        "date": "2026-11-08",
+        "time": "08:00-16:00",
+        "minutes": 480,
+        "min": 1,
+        "wanted": 2,
+        "kind": 0
+      },
+      {
+        "id": "SUN-E",
+        "date": "2026-11-08",
+        "time": "16:00-00:00",
+        "minutes": 480,
+        "min": 1,
+        "wanted": 1,
+        "kind": 1
+      },
+      {
+        "id": "SUN-N",
+        "date": "2026-11-08",
+        "time": "22:00-06:00",
+        "minutes": 480,
+        "min": 1,
+        "wanted": 1,
+        "role": "guard",
+        "kind": 2
+      },
+      {
+        "id": "MON-M",
+        "date": "2026-11-09",
+        "time": "08:00-16:00",
+        "minutes": 480,
+        "min": 1,
+        "wanted": 2,
+        "kind": 0
+      },
+      {
+        "id": "MON-E",
+        "date": "2026-11-09",
+        "time": "16:00-00:00",
+        "minutes": 480,
+        "min": 1,
+        "wanted": 1,
+        "kind": 1
+      },
+      {
+        "id": "MON-N",
+        "date": "2026-11-09",
+        "time": "22:00-06:00",
+        "minutes": 480,
+        "min": 1,
+        "wanted": 1,
+        "role": "guard",
+        "kind": 2
+      },
+      {
+        "id": "TUE-M",
+        "date": "2026-11-10",
+        "time": "08:00-16:00",
+        "minutes": 480,
+        "min": 1,
+        "wanted": 2,
+        "kind": 0
+      },
+      {
+        "id": "TUE-E",
+        "date": "2026-11-10",
+        "time": "16:00-00:00",
+        "minutes": 480,
+        "min": 1,
+        "wanted": 1,
+        "kind": 1
+      }
+    ]
+  },
+  "layout": {
+    "kinds": [
+      {
+        "time": "08:00-16:00"
+      },
+      {
+        "time": "16:00-00:00"
+      },
+      {
+        "time": "22:00-06:00",
+        "role": "guard"
+      }
+    ],
+    "weeks": [
+      {
+        "start": "2026-11-08",
+        "end": "2026-11-14",
+        "days": [
+          {
+            "date": "2026-11-08",
+            "inPeriod": true
+          },
+          {
+            "date": "2026-11-09",
+            "inPeriod": true
+          },
+          {
+            "date": "2026-11-10",
+            "inPeriod": true
+          },
+          {
+            "date": "2026-11-11",
+            "inPeriod": true
+          },
+          {
+            "date": "2026-11-12",
+            "inPeriod": true
+          },
+          {
+            "date": "2026-11-13",
+            "inPeriod": true
+          },
+          {
+            "date": "2026-11-14",
+            "inPeriod": true
+          }
+        ],
+        "cells": [
+          [
+            [
+              "SUN-M"
+            ],
+            [
+              "MON-M"
+            ],
+            [
+              "TUE-M"
+            ],
+            [],
+            [],
+            [],
+            []
+          ],
+          [
+            [
+              "SUN-E"
+            ],
+            [
+              "MON-E"
+            ],
+            [
+              "TUE-E"
+            ],
+            [],
+            [],
+            [],
+            []
+          ],
+          [
+            [
+              "SUN-N"
+            ],
+            [
+              "MON-N"
+            ],
+            [],
+            [],
+            [],
+            [],
+            []
+          ]
+        ]
+      }
+    ]
+  },
+  "shortages": [],
+  "schedules": [],
+  "manual": {
+    "score": {
+      "medium": 0,
+      "soft": 21
+    },
+    "rules": [
+      {
+        "name": "below-min",
+        "level": "medium",
+        "violations": 0,
+        "weight": 1,
+        "penalty": 0,
+        "description": "person missing below a shift's minimum"
+      },
+      {
+        "name": "below-wanted",
+        "level": "soft",
+        "violations": 0,
+        "weight": 10,
+        "penalty": 0,
+        "description": "person missing below a shift's wanted staff"
+      },
+      {
+        "name": "double",
+        "level": "soft",
+        "violations": 1,
+        "weight": 5,
+        "penalty": 5,
+        "description": "double shift (approved, but best avoided)"
+      },
+      {
+        "name": "below-min-shifts",
+        "level": "soft",
+        "violations": 0,
+        "weight": 5,
+        "penalty": 0,
+        "description": "shift missing below an employee's minShifts"
+      },
+      {
+        "name": "not-preferred",
+        "level": "soft",
+        "violations": 8,
+        "weight": 1,
+        "penalty": 8,
+        "description": "assignment the employee did not mark as preferred"
+      },
+      {
+        "name": "consecutive-nights",
+        "level": "soft",
+        "violations": 2,
+        "weight": 3,
+        "penalty": 6,
+        "description": "night shift right after a night shift"
+      },
+      {
+        "name": "fairness",
+        "level": "soft",
+        "violations": 2,
+        "weight": 1,
+        "penalty": 2,
+        "description": "unevenness of shifts per employee (squares)"
+      },
+      {
+        "name": "fewer-trips",
+        "level": "soft",
+        "violations": 0,
+        "weight": 0,
+        "penalty": 0,
+        "description": "day outside the ideal trip length (days in a row)"
+      }
+    ],
+    "shifts": [
+      {
+        "shift": "SUN-M",
+        "status": "full",
+        "staff": [
+          {
+            "employee": 104,
+            "preferred": true,
+            "double": false,
+            "breaksRule": false
+          },
+          {
+            "employee": 101,
+            "preferred": false,
+            "double": false,
+            "breaksRule": false
+          }
+        ]
+      },
+      {
+        "shift": "SUN-E",
+        "status": "full",
+        "staff": [
+          {
+            "employee": 102,
+            "preferred": true,
+            "double": false,
+            "breaksRule": false
+          }
+        ]
+      },
+      {
+        "shift": "SUN-N",
+        "status": "full",
+        "staff": [
+          {
+            "employee": 103,
+            "preferred": false,
+            "double": false,
+            "breaksRule": false
+          },
+          {
+            "employee": 104,
+            "preferred": false,
+            "double": false,
+            "breaksRule": true
+          }
+        ]
+      },
+      {
+        "shift": "MON-M",
+        "status": "full",
+        "staff": [
+          {
+            "employee": 101,
+            "preferred": true,
+            "double": false,
+            "breaksRule": false
+          },
+          {
+            "employee": 102,
+            "preferred": false,
+            "double": false,
+            "breaksRule": true
+          }
+        ]
+      },
+      {
+        "shift": "MON-E",
+        "status": "full",
+        "staff": [
+          {
+            "employee": 104,
+            "preferred": false,
+            "double": false,
+            "breaksRule": false
+          }
+        ]
+      },
+      {
+        "shift": "MON-N",
+        "status": "full",
+        "staff": [
+          {
+            "employee": 103,
+            "preferred": true,
+            "double": false,
+            "breaksRule": false
+          }
+        ]
+      },
+      {
+        "shift": "TUE-M",
+        "status": "full",
+        "staff": [
+          {
+            "employee": 101,
+            "preferred": false,
+            "double": false,
+            "breaksRule": true
+          },
+          {
+            "employee": 102,
+            "preferred": false,
+            "double": true,
+            "breaksRule": false
+          }
+        ]
+      },
+      {
+        "shift": "TUE-E",
+        "status": "full",
+        "staff": [
+          {
+            "employee": 102,
+            "preferred": false,
+            "double": true,
+            "breaksRule": false
+          }
+        ]
+      }
+    ],
+    "employees": [
+      {
+        "employee": 101,
+        "shifts": [
+          "SUN-M",
+          "MON-M",
+          "TUE-M"
+        ],
+        "minutes": 1440
+      },
+      {
+        "employee": 102,
+        "shifts": [
+          "SUN-E",
+          "MON-M",
+          "TUE-M",
+          "TUE-E"
+        ],
+        "minutes": 1920
+      },
+      {
+        "employee": 103,
+        "shifts": [
+          "SUN-N",
+          "MON-N"
+        ],
+        "minutes": 960
+      },
+      {
+        "employee": 104,
+        "shifts": [
+          "SUN-M",
+          "SUN-N",
+          "MON-E"
+        ],
+        "minutes": 1440
+      }
+    ],
+    "weeks": [
+      {
+        "shifts": 8,
+        "full": 8,
+        "belowWanted": 0,
+        "belowMin": 0,
+        "perEmployee": [
+          {
+            "employee": 101,
+            "shifts": 3
+          },
+          {
+            "employee": 102,
+            "shifts": 4
+          },
+          {
+            "employee": 103,
+            "shifts": 2
+          },
+          {
+            "employee": 104,
+            "shifts": 3
+          }
+        ]
+      }
+    ],
+    "violations": [
+      {
+        "shift": "SUN-N",
+        "employee": 104,
+        "kind": "availability"
+      },
+      {
+        "shift": "SUN-N",
+        "employee": 104,
+        "kind": "role"
+      },
+      {
+        "shift": "SUN-N",
+        "employee": 104,
+        "kind": "rule",
+        "rule": "min-rest",
+        "why": "only 6h of rest between SUN-M and SUN-N, needs 10h"
+      },
+      {
+        "shift": "MON-M",
+        "employee": 102,
+        "kind": "rule",
+        "rule": "min-rest",
+        "why": "only 8h of rest between SUN-E and MON-M, needs 10h"
+      },
+      {
+        "shift": "TUE-M",
+        "employee": 101,
+        "kind": "availability"
+      }
+    ],
+    "overStaffed": [
+      {
+        "shift": "SUN-N",
+        "staff": 2,
+        "wanted": 1
+      }
+    ]
+  },
+  "explanation": {
+    "employee": 104,
+    "shift": "SUN-N",
+    "against": "manual",
+    "canWork": false,
+    "alreadyWorks": true,
+    "availability": "no",
+    "roleOk": false,
+    "rules": [
+      {
+        "name": "no-overlap"
+      },
+      {
+        "name": "min-rest",
+        "whyNot": "only 6h of rest between SUN-M and SUN-N, needs 10h"
+      },
+      {
+        "name": "double-needs-approval"
+      },
+      {
+        "name": "max-shifts"
+      },
+      {
+        "name": "max-consecutive-days"
+      }
+    ],
+    "staff": [
+      103,
+      104
+    ]
+  },
+  "diagnostics": []
+}

@@ -9,6 +9,7 @@ namespace {
 
 const char* statusName(RunStatus status) {
     switch (status) {
+    case RunStatus::Checked: return "checked";
     case RunStatus::Found: return "found";
     case RunStatus::NoSchedule: return "noSchedule";
     case RunStatus::LimitReached: return "limitReached";
@@ -58,6 +59,10 @@ json runJson(const RunInfo& run) {
     r["status"] = statusName(run.status);
     r["exitCode"] = run.exitCode;
     if (run.status == RunStatus::InputError) return r;   // there was no search
+    if (run.checkOnly) {
+        r["mode"] = "check";
+        return r;
+    }
     r["mode"] = run.firstOnly ? "first" : "best";
     if (!run.firstOnly) r["complete"] = run.complete;
     r["nodes"] = run.nodes;
@@ -144,6 +149,8 @@ json changesJson(const Problem& p, const std::vector<ShiftChange>& changes) {
     return list;
 }
 
+// One schedule. rank 0 = the hand-made one of --check: no rank, and each
+// person in a shift says whether that assignment breaks a rule.
 json scheduleJson(const Problem& p, const Report& r, int rank, const AlternativeReport* vsBest) {
     json rules = json::array();
     for (const ScoreLine& line : r.scoreLines)
@@ -154,8 +161,12 @@ json scheduleJson(const Problem& p, const Report& r, int rank, const Alternative
     for (const ShiftReport& row : r.shifts) {
         json staff = json::array();
         for (std::size_t k = 0; k < row.staff.size(); ++k)
-            staff.push_back(json{{"employee", p.employees[row.staff[k]].id},
-                                 {"preferred", row.preferred[k] != 0}, {"double", row.inDouble[k] != 0}});
+        {
+            json person{{"employee", p.employees[row.staff[k]].id},
+                        {"preferred", row.preferred[k] != 0}, {"double", row.inDouble[k] != 0}};
+            if (rank == 0) person["breaksRule"] = row.breaksRule[k] != 0;
+            staff.push_back(person);
+        }
         shifts.push_back(json{{"shift", p.shifts[row.shift].id}, {"status", shiftStatusName(row.status)},
                               {"staff", staff}});
     }
@@ -173,17 +184,83 @@ json scheduleJson(const Problem& p, const Report& r, int rank, const Alternative
         weeks.push_back(json{{"shifts", week.shifts}, {"full", week.full}, {"belowWanted", week.belowWanted},
                              {"belowMin", week.belowMin}, {"perEmployee", perEmployee}});
     }
-    json item{{"rank", rank}, {"score", scoreJson(r.score)}, {"rules", rules},
-              {"shifts", shifts}, {"employees", employees}, {"weeks", weeks}};
+    json item;
+    if (rank > 0) item["rank"] = rank;
+    item["score"] = scoreJson(r.score);
+    item["rules"] = rules;
+    item["shifts"] = shifts;
+    item["employees"] = employees;
+    item["weeks"] = weeks;
     if (vsBest)
         item["vsBest"] = json{{"differences", vsBest->differences}, {"changes", changesJson(p, vsBest->changes)}};
     return item;
 }
 
+const char* violationKind(Violation::Kind kind) {
+    switch (kind) {
+    case Violation::Kind::Availability: return "availability";
+    case Violation::Kind::Role: return "role";
+    case Violation::Kind::Rule: return "rule";
+    }
+    return "";
+}
+
+// --check: the hand-made schedule, in the same form as any other, and what it breaks.
+json manualJson(const Problem& p, const Report& r, const CheckReport& check) {
+    json item = scheduleJson(p, r, 0, nullptr);
+    json violations = json::array();
+    for (const Violation& v : check.violations) {
+        json one{{"shift", p.shifts[v.shift].id}, {"employee", p.employees[v.employee].id},
+                 {"kind", violationKind(v.kind)}};
+        if (v.kind == Violation::Kind::Rule) {
+            one["rule"] = v.rule;
+            one["why"] = v.why;
+        }
+        violations.push_back(one);
+    }
+    json over = json::array();
+    for (const OverStaffed& o : check.overStaffed)
+        over.push_back(json{{"shift", p.shifts[o.shift].id}, {"staff", o.staff}, {"wanted", o.wanted}});
+    item["violations"] = violations;
+    item["overStaffed"] = over;
+    return item;
+}
+
+json comparisonJson(const Problem& p, const ComparisonReport& c) {
+    json rules = json::array();
+    for (const RuleComparison& r : c.rules)
+        rules.push_back(json{{"name", r.rule}, {"level", levelName(r.level)}, {"weight", r.weight},
+                             {"mine", r.mine}, {"engine", r.engine}});
+    return json{{"mine", scoreJson(c.mine)}, {"engine", scoreJson(c.engine)}, {"differences", c.differences},
+                {"rules", rules}, {"changes", changesJson(p, c.changes)}};
+}
+
+const char* fitName(Fit fit) {
+    switch (fit) {
+    case Fit::No: return "no";
+    case Fit::Yes: return "yes";
+    case Fit::Preferred: return "preferred";
+    }
+    return "";
+}
+
+json explanationJson(const Problem& p, const Explanation& e, bool manual) {
+    json rules = json::array();
+    for (const RuleCheck& c : e.rules) {
+        json one{{"name", c.rule}};
+        if (c.whyNot) one["whyNot"] = *c.whyNot;
+        rules.push_back(one);
+    }
+    return json{{"employee", p.employees[e.employee].id}, {"shift", p.shifts[e.shift].id},
+                {"against", manual ? "manual" : "best"}, {"canWork", e.canWork()},
+                {"alreadyWorks", e.alreadyWorks}, {"availability", fitName(e.availability)},
+                {"roleOk", e.roleOk}, {"rules", rules}, {"staff", employeeIds(p, e.staff)}};
+}
+
 }  // namespace
 
 json resultToJson(const Problem* problem, const Report* shape, const std::vector<Report>& schedules,
-                  const RunInfo& run, const std::vector<Diagnostic>& diagnostics) {
+                  const RunInfo& run, const std::vector<Diagnostic>& diagnostics, const ResultExtras& extras) {
     json result;
     result["formatVersion"] = kResultFormatVersion;
     result["run"] = runJson(run);
@@ -200,6 +277,10 @@ json resultToJson(const Problem* problem, const Report* shape, const std::vector
         list.push_back(scheduleJson(*problem, schedules[k], static_cast<int>(k) + 1, vsBest));
     }
     result["schedules"] = list;
+    if (problem && extras.manual && extras.check) result["manual"] = manualJson(*problem, *extras.manual, *extras.check);
+    if (problem && extras.comparison) result["comparison"] = comparisonJson(*problem, *extras.comparison);
+    if (problem && extras.explanation)
+        result["explanation"] = explanationJson(*problem, *extras.explanation, extras.manual != nullptr);
     json notes = json::array();
     for (const Diagnostic& d : diagnostics)
         notes.push_back(json{{"severity", d.severity == Severity::Error ? "error" : "warning"},

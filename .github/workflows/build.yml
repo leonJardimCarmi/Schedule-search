@@ -50,6 +50,12 @@ jobs:
         run: |
           python3 -m pip install --quiet "jsonschema>=4.18"
           python3 tools/check_contract.py tests/golden/actual/*_json.out contract/examples/*.result.json
+          # The inputs (D66): every problem file the engine runs on, and the
+          # hand-made schedules; a broken problem file must fail.
+          python3 tools/check_contract.py --schema problem data/example_week.json data/month_15x90.json \
+            data/cafe_december.json data/medics_december.json tests/golden/inputs/holes.json tests/golden/inputs/impossible.json
+          python3 tools/check_contract.py --schema schedule tests/golden/inputs/broken.json tests/golden/actual/saved_week.json
+          ! python3 tools/check_contract.py --schema problem data/bad_example.json > /dev/null
 
       # The program itself, end to end, on the example week. Windows puts the
       # program in build/Release/, the others in build/.

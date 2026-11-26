@@ -237,3 +237,125 @@ TEST_CASE("the JSON goes to a stream for \"-\", and a bad path is an error", "[R
     CHECK(problems.hasErrors());
     CHECK(unused.str().empty());
 }
+
+// --- stage 8.2 (D66): --check, --compare and --explain in the JSON ---
+
+namespace {
+
+int at(const std::optional<std::size_t>& index) {
+    REQUIRE(index);
+    return static_cast<int>(*index);
+}
+
+}  // namespace
+
+TEST_CASE("the JSON of --check holds the hand-made schedule and what it breaks", "[ResultJson]") {
+    const Problem p = load();
+    const ScoreModel model = makeScoreModel(p);
+    Solver solver(p);
+    State mine(static_cast<int>(p.employees.size()), static_cast<int>(p.shifts.size()));
+    mine.assign(at(p.findEmployee(13)), at(p.findShift("SUN-N")));   // Cal is no guard: a role violation
+    mine.assign(at(p.findEmployee(12)), at(p.findShift("MON-D")));
+    mine.assign(at(p.findEmployee(13)), at(p.findShift("MON-D")));   // 2 in a shift that wants 1
+    const CheckReport check = checkSchedule(p, mine, solver.constraints());
+    const Report report = buildReport(p, mine, solver.shortages(), model, {}, &check);
+    RunInfo run;
+    run.status = RunStatus::Checked;
+    run.checkOnly = true;
+    run.exitCode = 4;
+    ResultExtras extras;
+    extras.manual = &report;
+    extras.check = &check;
+    const json j = resultToJson(&p, &report, {}, run, {}, extras);
+
+    CHECK(j["run"] == json{{"status", "checked"}, {"exitCode", 4}, {"mode", "check"}});
+    CHECK(j["schedules"].empty());
+    const json& m = j["manual"];
+    CHECK_FALSE(m.contains("rank"));
+    CHECK(m["score"]["soft"] == report.score.at(Level::Soft));
+
+    bool roleFound = false;
+    for (const json& v : m["violations"])
+        if (v["shift"] == "SUN-N" && v["employee"] == 13 && v["kind"] == "role") {
+            roleFound = true;
+            CHECK_FALSE(v.contains("rule"));   // only a hard rule has a name and a reason
+        }
+    CHECK(roleFound);
+    CHECK(m["violations"].size() == check.violations.size());
+    // Marked exactly where the check found a violation. Here also MON-D for
+    // Cal: 2 hours of rest after the night (min-rest).
+    std::set<std::pair<std::string, int>> broken;
+    for (const Violation& v : check.violations) broken.insert({p.shifts[v.shift].id, p.employees[v.employee].id});
+    CHECK(broken.count({"MON-D", 13}) == 1);
+    for (const json& shift : m["shifts"])
+        for (const json& person : shift["staff"]) {
+            const bool expected = broken.count({shift["shift"].get<std::string>(), person["employee"].get<int>()}) > 0;
+            CHECK(person["breaksRule"] == expected);
+        }
+    REQUIRE(m["overStaffed"].size() == 1);
+    CHECK(m["overStaffed"][0] == json{{"shift", "MON-D"}, {"staff", 2}, {"wanted", 1}});
+}
+
+TEST_CASE("the JSON of --compare holds both scores, rule by rule, and every change", "[ResultJson]") {
+    const Problem p = load();
+    const ScoreModel model = makeScoreModel(p);
+    Solver solver(p);
+    const auto engine = solver.findBest(model);
+    REQUIRE(engine);
+    State mine(static_cast<int>(p.employees.size()), static_cast<int>(p.shifts.size()));
+    mine.assign(at(p.findEmployee(11)), at(p.findShift("SUN-N")));
+    const CheckReport check = checkSchedule(p, mine, solver.constraints());
+    const Report report = buildReport(p, mine, solver.shortages(), model, {}, &check);
+    const ComparisonReport comparison = compareSchedules(p, mine, *engine, model);
+    const std::vector<Report> reports = buildReports(p, *engine, solver.shortages(), model, solver.top());
+    RunInfo run = bestRun(solver);
+    run.exitCode = check.clean() ? 0 : 4;
+    ResultExtras extras;
+    extras.manual = &report;
+    extras.check = &check;
+    extras.comparison = &comparison;
+    const json j = resultToJson(&p, &report, reports, run, {}, extras);
+
+    const json& c = j["comparison"];
+    CHECK(c["mine"]["soft"] == comparison.mine.at(Level::Soft));
+    CHECK(c["engine"]["soft"] == comparison.engine.at(Level::Soft));
+    CHECK(c["engine"] == j["schedules"][0]["score"]);   // the engine's side is schedules[0]
+    CHECK(c["differences"] == comparison.differences);
+    REQUIRE(c["rules"].size() == comparison.rules.size());
+    for (std::size_t k = 0; k < comparison.rules.size(); ++k) {
+        CHECK(c["rules"][k]["name"] == comparison.rules[k].rule);
+        CHECK(c["rules"][k]["mine"] == comparison.rules[k].mine);
+        CHECK(c["rules"][k]["engine"] == comparison.rules[k].engine);
+    }
+    CHECK(c["changes"].size() == comparison.changes.size());
+}
+
+TEST_CASE("the JSON of --explain has every check and its reason", "[ResultJson]") {
+    const Problem p = load();
+    const ScoreModel model = makeScoreModel(p);
+    Solver solver(p);
+    const auto best = solver.findBest(model);
+    REQUIRE(best);
+    // Cal on the night guard shift: available for the whole day (that covers
+    // a night that starts on it), but no guard.
+    const Explanation e =
+        explainAssignment(p, *best, solver.constraints(), at(p.findEmployee(13)), at(p.findShift("SUN-N")));
+    const std::vector<Report> reports = buildReports(p, *best, solver.shortages(), model, solver.top());
+    ResultExtras extras;
+    extras.explanation = &e;
+    const json j = resultToJson(&p, &reports[0], reports, bestRun(solver), {}, extras);
+
+    const json& x = j["explanation"];
+    CHECK(x["employee"] == 13);
+    CHECK(x["shift"] == "SUN-N");
+    CHECK(x["against"] == "best");
+    CHECK(x["canWork"] == false);
+    CHECK(x["roleOk"] == false);
+    CHECK(x["availability"] == "yes");
+    REQUIRE(x["rules"].size() == solver.constraints().size());
+    for (std::size_t k = 0; k < e.rules.size(); ++k) {
+        CHECK(x["rules"][k]["name"] == e.rules[k].rule);
+        CHECK(x["rules"][k].contains("whyNot") == e.rules[k].whyNot.has_value());
+    }
+    CHECK_FALSE(j.contains("manual"));
+}

@@ -75,6 +75,12 @@ run 32_impossible_json $IN/impossible.json --json -
 run 33_impossible      $IN/impossible.json
 run 34_week_json_file  data/example_week.json --json $OUT/week.json
 run 35_cafe            data/cafe_december.json --max-nodes 100000
+run 36_check_json      data/example_week.json --check $IN/broken.json --json -
+run 37_compare_json    data/example_week.json --check $IN/broken.json --compare --json -
+run 38_explain_json    data/example_week.json --explain "Dana Levi" MON-M --json -
+run 39_check_explain_json data/example_week.json --check $IN/broken.json --explain 104 SUN-N --json -
+run 40_bad_schedule_json data/example_week.json --check $IN/bad_schedule.json --json -
+run 41_check_json_file data/example_week.json --check $IN/broken.json --json $OUT/check.json
 
 files=()
 for name in "${names[@]}"; do files+=("$name.out" "$name.err" "$name.code"); done
@@ -86,11 +92,14 @@ if [ "$mode" = "--update" ]; then
 fi
 
 failed=0
-# --json <file> leaves the console as it is (D57): the same text as run 01.
-if ! diff -q "$OUT/01_week.out" "$OUT/34_week_json_file.out" > /dev/null; then
-    echo "golden: --json <file> changed the console output (34 vs 01)"
-    failed=1
-fi
+# --json <file> leaves the console as it is (D57): the same text as without it.
+for pair in "01_week 34_week_json_file" "16_check_broken 41_check_json_file"; do
+    set -- $pair
+    if ! diff -q "$OUT/$1.out" "$OUT/$2.out" > /dev/null; then
+        echo "golden: --json <file> changed the console output ($2 vs $1)"
+        failed=1
+    fi
+done
 for f in "${files[@]}"; do
     if [ ! -f "$EXPECTED/$f" ]; then
         echo "golden: $EXPECTED/$f is missing (new run? use --update)"

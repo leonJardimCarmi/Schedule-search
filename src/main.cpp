@@ -1,4 +1,5 @@
 #include <chrono>
+#include <functional>
 #include <iostream>
 #include <optional>
 #include <stdexcept>
@@ -198,10 +199,6 @@ std::optional<Options> parseArgs(int argc, char* argv[]) {
         return std::nullopt;
     }
     if (!options.jsonPath.empty()) {   // D57
-        if (!options.checkPath.empty() || options.explain) {
-            std::cerr << "--json does not work with --check or --explain yet\n";
-            return std::nullopt;
-        }
         if (options.jsonPath == "-" && (options.verbose || options.traceLines)) {
             std::cerr << "--json - writes only JSON to stdout, so it cannot be used with "
                       << (options.verbose ? "--verbose" : "--trace") << " (write the JSON to a file instead)\n";
@@ -246,34 +243,91 @@ bool printResult(const Options& options, const Problem& problem, const Report& r
     return true;
 }
 
+// Writes the JSON result, if --json was given (D57). Returns the run's exit
+// code, or kBadInput when the file cannot be written.
+using EmitJson = std::function<int(const Problem*, const Report*, const std::vector<Report>&, const RunInfo&,
+                                   const ResultExtras&)>;
+
+// The facts of a finished search, for the JSON (D58).
+RunInfo searchRunInfo(const Options& options, const Solver& solver, double ms) {
+    RunInfo run;
+    run.firstOnly = options.firstOnly;
+    run.nodes = solver.nodesVisited();
+    run.ms = ms;
+    run.complete = solver.complete();
+    run.improvements = solver.improvements();
+    run.pruned = solver.pruned();
+    run.startBound = solver.startBound();
+    run.top = options.top;
+    run.minDiff = options.minDifferent;
+    run.timeLimit = options.limits.seconds;
+    run.maxNodes = options.limits.maxNodes;
+    return run;
+}
+
+// --week n past the last week is an error, found before anything is written.
+bool weekExists(const Options& options, const Report& report) {
+    if (!options.week || *options.week <= static_cast<int>(report.weeks.size())) return true;
+    std::cerr << "--week " << *options.week << ": the period has only " << report.weeks.size() << " weeks\n";
+    return false;
+}
+
+// Employee and shift of --explain, or an error.
+std::optional<std::pair<int, int>> explainTarget(const Options& options, const Problem& problem) {
+    const auto emp = problem.findEmployee(options.explain->first);
+    const auto shift = problem.findShift(options.explain->second);
+    if (!emp) std::cerr << "--explain: no employee '" << options.explain->first << "' (use the id or the full name)\n";
+    if (!shift) std::cerr << "--explain: no shift '" << options.explain->second << "'\n";
+    if (!emp || !shift) return std::nullopt;
+    return std::make_pair(static_cast<int>(*emp), static_cast<int>(*shift));
+}
+
 // --check (stage 7.2, D51): no search. A schedule made by hand is loaded and
 // shown like a found one, with every rule it breaks. Nothing is blocked (D18).
-int checkHandMade(const Options& options, const Problem& problem, const ScoreModel& scoreModel, Solver& solver) {
+// With --json the same goes into the file: "manual", and with --compare
+// "comparison" and the engine's schedules (stage 8.2, D66).
+int checkHandMade(const Options& options, const Problem& problem, const ScoreModel& scoreModel, Solver& solver,
+                  std::vector<Diagnostic>& notes, const EmitJson& emitJson) {
     ScheduleLoadResult loaded = loadScheduleFile(options.checkPath, problem);
-    for (const Diagnostic& d : loaded.diagnostics.all()) std::cerr << d << '\n';
+    for (const Diagnostic& d : loaded.diagnostics.all()) {
+        std::cerr << d << '\n';
+        notes.push_back(d);
+    }
     if (!loaded.ok()) {
         std::cerr << "schedule file has errors, stopping.\n";
-        return kBadInput;
+        RunInfo run;
+        run.status = RunStatus::InputError;
+        run.exitCode = kBadInput;
+        return emitJson(nullptr, nullptr, {}, run, {});
     }
     const State& schedule = *loaded.schedule;
-    if (options.explain) {   // --explain against the hand-made schedule
-        const auto emp = problem.findEmployee(options.explain->first);
-        const auto shift = problem.findShift(options.explain->second);
-        if (!emp) std::cerr << "--explain: no employee '" << options.explain->first << "' (use the id or the full name)\n";
-        if (!shift) std::cerr << "--explain: no shift '" << options.explain->second << "'\n";
-        if (!emp || !shift) return kBadInput;
-        printExplanation(std::cout, problem, schedule,
-                         explainAssignment(problem, schedule, solver.constraints(), static_cast<int>(*emp),
-                                           static_cast<int>(*shift)));
-        return kOk;
-    }
     const CheckReport check = checkSchedule(problem, schedule, solver.constraints());
     const Report report = buildReport(problem, schedule, solver.shortages(), scoreModel, {}, &check);
+    const int code = check.clean() ? kOk : kViolations;
+    RunInfo checked;
+    checked.status = RunStatus::Checked;
+    checked.checkOnly = true;
+    checked.exitCode = code;
+    ResultExtras extras;
+    extras.manual = &report;
+    extras.check = &check;
+
+    if (options.explain) {   // --explain against the hand-made schedule
+        const auto target = explainTarget(options, problem);
+        if (!target) return kBadInput;
+        const Explanation explanation =
+            explainAssignment(problem, schedule, solver.constraints(), target->first, target->second);
+        extras.explanation = &explanation;
+        checked.exitCode = kOk;   // as on the console: the answer, not the check
+        if (emitJson(&problem, &report, {}, checked, extras) != kOk) return kBadInput;
+        printExplanation(std::cout, problem, schedule, explanation);
+        return kOk;
+    }
+    if (!weekExists(options, report)) return kBadInput;
     std::cout << "Checking " << options.checkPath << " (made by hand, not searched)\n\n";
-    if (!printResult(options, problem, report)) return kBadInput;
+    printResult(options, problem, report);
     printViolations(std::cout, problem, check);
-    const int code = check.clean() ? kOk : kViolations;   // --compare does not change it
-    if (!options.compare) return code;
+    if (!options.compare) return emitJson(&problem, &report, {}, checked, extras) == code ? code : kBadInput;
 
     // --compare (stage 7.3, D52): the engine's schedule for the same problem.
     std::optional<TracePrinter> trace;
@@ -282,14 +336,18 @@ int checkHandMade(const Options& options, const Problem& problem, const ScoreMod
         trace.emplace(std::cout, problem, solver.constraints(), *options.traceLines);
         solver.setObserver(&*trace);
     }
+    const auto searchStart = std::chrono::steady_clock::now();
     const std::optional<State> engine = options.firstOnly ? solver.findFirst() : solver.findBest(scoreModel);
+    const std::chrono::duration<double, std::milli> searchTime = std::chrono::steady_clock::now() - searchStart;
     if (trace) trace->finish();
+    RunInfo run = searchRunInfo(options, solver, searchTime.count());
+    run.exitCode = code;   // the check's code, also with --compare (D52)
     if (!engine) {
+        const bool limit = solver.status() == SearchStatus::LimitReached;
         std::cout << "\nThe engine found no schedule to compare with ("
-                  << (solver.status() == SearchStatus::LimitReached ? "stopped by a limit; try a larger --time-limit"
-                                                                     : "no legal schedule exists")
-                  << ").\n";
-        return code;
+                  << (limit ? "stopped by a limit; try a larger --time-limit" : "no legal schedule exists") << ").\n";
+        run.status = limit ? RunStatus::LimitReached : RunStatus::NoSchedule;
+        return emitJson(&problem, &report, {}, run, extras) == code ? code : kBadInput;
     }
     if (!options.savePath.empty()) {
         Diagnostics saveProblems;
@@ -299,9 +357,14 @@ int checkHandMade(const Options& options, const Problem& problem, const ScoreMod
         }
         std::cout << "\nThe engine's schedule saved to " << options.savePath << '\n';
     }
-    printComparison(std::cout, problem, compareSchedules(problem, schedule, *engine, scoreModel),
-                    !options.firstOnly && solver.complete(), check.violations.size());
-    return code;
+    const ComparisonReport comparison = compareSchedules(problem, schedule, *engine, scoreModel);
+    extras.comparison = &comparison;
+    run.status = RunStatus::Found;
+    printComparison(std::cout, problem, comparison, !options.firstOnly && solver.complete(), check.violations.size());
+    if (options.jsonPath.empty()) return code;
+    const std::vector<Report> engineReports =
+        buildReports(problem, *engine, solver.shortages(), scoreModel, solver.top());
+    return emitJson(&problem, &report, engineReports, run, extras) == code ? code : kBadInput;
 }
 
 }  // namespace
@@ -322,11 +385,12 @@ int main(int argc, char* argv[]) {
     std::vector<Diagnostic> notes;   // every warning and error, also for the JSON (D61)
     // Writes the JSON, if asked for. Returns `code`, or kBadInput when the
     // file cannot be written.
-    auto emitJson = [&](const Problem* problem, const Report* shape, const std::vector<Report>& schedules,
-                        const RunInfo& run) {
+    const EmitJson emitJson = [&](const Problem* problem, const Report* shape, const std::vector<Report>& schedules,
+                                  const RunInfo& run, const ResultExtras& extras) {
         if (options->jsonPath.empty()) return run.exitCode;
         Diagnostics problems;
-        if (writeResultJson(options->jsonPath, resultToJson(problem, shape, schedules, run, notes), jsonOut, problems))
+        if (writeResultJson(options->jsonPath, resultToJson(problem, shape, schedules, run, notes, extras), jsonOut,
+                            problems))
             return run.exitCode;
         for (const Diagnostic& d : problems.all()) std::cerr << d << '\n';
         return kBadInput;
@@ -345,7 +409,7 @@ int main(int argc, char* argv[]) {
         RunInfo run;
         run.status = RunStatus::InputError;
         run.exitCode = kBadInput;
-        return emitJson(nullptr, nullptr, {}, run);
+        return emitJson(nullptr, nullptr, {}, run, {});
     }
     // --weight wins over "weights" in the file; a later --weight wins over
     // an earlier one for the same rule (D43).
@@ -368,7 +432,7 @@ int main(int argc, char* argv[]) {
         for (const auto& constraint : solver.constraints()) std::cout << ' ' << constraint->name();
         std::cout << "\n\n";
     }
-    if (!options->checkPath.empty()) return checkHandMade(*options, problem, scoreModel, solver);
+    if (!options->checkPath.empty()) return checkHandMade(*options, problem, scoreModel, solver, notes, emitJson);
 
     // --trace (D48): the search tells the printer every step. It goes to
     // stdout before the result, and stops printing after its line limit.
@@ -396,18 +460,7 @@ int main(int argc, char* argv[]) {
     if (options->verbose) std::cout << "\n";
 
     // How the search went, for the JSON (D58, D61).
-    RunInfo run;
-    run.firstOnly = options->firstOnly;
-    run.nodes = solver.nodesVisited();
-    run.ms = searchTime.count();
-    run.complete = solver.complete();
-    run.improvements = solver.improvements();
-    run.pruned = solver.pruned();
-    run.startBound = solver.startBound();
-    run.top = options->top;
-    run.minDiff = options->minDifferent;
-    run.timeLimit = options->limits.seconds;
-    run.maxNodes = options->limits.maxNodes;
+    RunInfo run = searchRunInfo(*options, solver, searchTime.count());
 
     // 3. Report.
     if (solver.status() == SearchStatus::LimitReached || !schedule) {
@@ -425,7 +478,7 @@ int main(int argc, char* argv[]) {
         if (options->jsonPath.empty()) return run.exitCode;
         const State empty(static_cast<int>(problem.employees.size()), static_cast<int>(problem.shifts.size()));
         const Report shape = buildReport(problem, empty, solver.shortages(), scoreModel, {});
-        return emitJson(&problem, &shape, {}, run);
+        return emitJson(&problem, &shape, {}, run, {});
     }
     // --save (D51): the schedule found, in the format --check reads.
     if (!options->savePath.empty()) {
@@ -438,16 +491,22 @@ int main(int argc, char* argv[]) {
     }
 
     // --explain (D43, D47): the answer about one employee and one shift in
-    // the schedule found, instead of the whole schedule.
+    // the schedule found, instead of the whole schedule. The JSON has both.
     if (options->explain) {
-        const auto emp = problem.findEmployee(options->explain->first);
-        const auto shift = problem.findShift(options->explain->second);
-        if (!emp) std::cerr << "--explain: no employee '" << options->explain->first << "' (use the id or the full name)\n";
-        if (!shift) std::cerr << "--explain: no shift '" << options->explain->second << "'\n";
-        if (!emp || !shift) return kBadInput;
-        printExplanation(std::cout, problem, *schedule,
-                         explainAssignment(problem, *schedule, solver.constraints(), static_cast<int>(*emp),
-                                           static_cast<int>(*shift)));
+        const auto target = explainTarget(*options, problem);
+        if (!target) return kBadInput;
+        const Explanation explanation =
+            explainAssignment(problem, *schedule, solver.constraints(), target->first, target->second);
+        if (!options->jsonPath.empty()) {
+            const std::vector<Report> reports =
+                buildReports(problem, *schedule, solver.shortages(), scoreModel, solver.top());
+            run.status = RunStatus::Found;
+            run.exitCode = kOk;
+            ResultExtras extras;
+            extras.explanation = &explanation;
+            if (emitJson(&problem, &reports.front(), reports, run, extras) != kOk) return kBadInput;
+        }
+        printExplanation(std::cout, problem, *schedule, explanation);
         return kOk;
     }
 
@@ -458,13 +517,10 @@ int main(int argc, char* argv[]) {
             ? std::vector<Report>{buildReport(problem, *schedule, solver.shortages(), scoreModel, solver.top())}
             : buildReports(problem, *schedule, solver.shortages(), scoreModel, solver.top());
     const Report& report = reports.front();
-    if (options->week && *options->week > static_cast<int>(report.weeks.size())) {   // before any output
-        std::cerr << "--week " << *options->week << ": the period has only " << report.weeks.size() << " weeks\n";
-        return kBadInput;
-    }
+    if (!weekExists(*options, report)) return kBadInput;   // before any output
     run.status = RunStatus::Found;
     run.exitCode = kOk;
-    if (emitJson(&problem, &report, reports, run) != kOk) return kBadInput;
+    if (emitJson(&problem, &report, reports, run, {}) != kOk) return kBadInput;
     if (!printResult(*options, problem, report)) return kBadInput;
 
     // Anytime (D31, D34): a usable schedule, but the search did not finish.

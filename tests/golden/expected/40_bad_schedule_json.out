@@ -1,0 +1,30 @@
+{
+  "formatVersion": 1,
+  "run": {
+    "status": "inputError",
+    "exitCode": 1
+  },
+  "schedules": [],
+  "diagnostics": [
+    {
+      "severity": "error",
+      "where": "tests/golden/inputs/bad_schedule.json: assignments.MON-M[1]",
+      "message": "Dana Levi is listed twice in this shift"
+    },
+    {
+      "severity": "error",
+      "where": "tests/golden/inputs/bad_schedule.json: assignments.NO-SUCH-SHIFT",
+      "message": "no shift with this id in the problem"
+    },
+    {
+      "severity": "error",
+      "where": "tests/golden/inputs/bad_schedule.json: assignments.SUN-M[1]",
+      "message": "no employee 999 in the problem"
+    },
+    {
+      "severity": "warning",
+      "where": "tests/golden/inputs/bad_schedule.json: assignments",
+      "message": "6 shift(s) not in the file, taken as empty: SUN-E, SUN-N, MON-E, MON-N, TUE-M, ..."
+    }
+  ]
+}

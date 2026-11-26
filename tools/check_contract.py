@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""Check result files against the contract (DECISIONS D62).
+"""Check files against the contract (DECISIONS D62, D66).
 
-Two checks for every file:
+--schema result (the default): result files, what --json writes. Two checks:
 1. The shape: contract/result.schema.json (draft 2020-12, strict).
 2. What a schema cannot say: every employee and shift id that is used
    exists in "problem", every "kind" points to a row of the layout, and
@@ -9,7 +9,10 @@ Two checks for every file:
 
 The Catch2 tests check the values; this checks the form an app relies on.
 
-usage: python3 tools/check_contract.py <result.json> [...]
+--schema problem / --schema schedule: input files, the problem (D3) and a
+hand-made schedule for --check (D51), against their schemas only.
+
+usage: python3 tools/check_contract.py [--schema result|problem|schedule] <file.json> [...]
 needs: pip install "jsonschema>=4.18"
 """
 import json
@@ -18,7 +21,7 @@ import sys
 
 from jsonschema import Draft202012Validator
 
-SCHEMA = pathlib.Path(__file__).resolve().parent.parent / "contract" / "result.schema.json"
+CONTRACT = pathlib.Path(__file__).resolve().parent.parent / "contract"
 
 
 def references(result):
@@ -81,24 +84,64 @@ def references(result):
             shift(f"{at}.vsBest", c["shift"])
             for eid in c["out"] + c["in"]:
                 employee(f"{at}.vsBest {c['shift']}", eid)
+        for s in schedule["shifts"]:
+            if any("breaksRule" in person for person in s["staff"]):
+                found.append(f"{at}.shifts {s['shift']}: breaksRule belongs to the hand-made schedule only")
+
+    manual = result.get("manual")
+    if manual:
+        if sorted(s["shift"] for s in manual["shifts"]) != sorted(shifts):
+            found.append("manual.shifts: not exactly one entry per shift of the problem")
+        broken = set()
+        for s in manual["shifts"]:
+            for person in s["staff"]:
+                employee(f"manual.shifts {s['shift']}", person["employee"])
+                if "breaksRule" not in person:
+                    found.append(f"manual.shifts {s['shift']}: breaksRule missing")
+                elif person["breaksRule"]:
+                    broken.add((s["shift"], person["employee"]))
+        listed = set()
+        for v in manual["violations"]:
+            shift("manual.violations", v["shift"])
+            employee("manual.violations", v["employee"])
+            listed.add((v["shift"], v["employee"]))
+        if broken != listed:
+            found.append("manual: the assignments marked breaksRule are not the ones in violations")
+        for o in manual["overStaffed"]:
+            shift("manual.overStaffed", o["shift"])
+    for c in result.get("comparison", {}).get("changes", []):
+        shift("comparison.changes", c["shift"])
+        for eid in c["out"] + c["in"]:
+            employee(f"comparison.changes {c['shift']}", eid)
+    e = result.get("explanation")
+    if e:
+        employee("explanation", e["employee"])
+        shift("explanation", e["shift"])
+        for eid in e["staff"]:
+            employee("explanation.staff", eid)
     return found
 
 
 def main():
-    if len(sys.argv) < 2:
+    args = sys.argv[1:]
+    kind = "result"
+    if args[:1] == ["--schema"] and len(args) >= 2:
+        kind, args = args[1], args[2:]
+    if kind not in ("result", "problem", "schedule") or not args:
         sys.exit(__doc__.strip().splitlines()[-2])
-    validator = Draft202012Validator(json.loads(SCHEMA.read_text(encoding="utf-8")))
+    schema = CONTRACT / f"{kind}.schema.json"
+    validator = Draft202012Validator(json.loads(schema.read_text(encoding="utf-8")))
     failed = 0
-    for path in sys.argv[1:]:
+    for path in args:
         result = json.loads(pathlib.Path(path).read_text(encoding="utf-8"))
         problems = [f"{'/'.join(map(str, e.absolute_path)) or '(root)'}: {e.message[:160]}"
                     for e in validator.iter_errors(result)]
-        if not problems:
+        if not problems and kind == "result":
             problems = references(result)
         for p in problems[:20]:
             print(f"{path}: {p}")
         failed += bool(problems)
-    print(f"contract: {len(sys.argv) - 1 - failed} of {len(sys.argv) - 1} files match")
+    print(f"contract ({kind}): {len(args) - failed} of {len(args)} files match")
     sys.exit(1 if failed else 0)
 
 

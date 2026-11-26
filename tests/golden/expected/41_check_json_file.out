@@ -1,0 +1,43 @@
+Checking tests/golden/inputs/broken.json (made by hand, not searched)
+
+Schedule 2026-11-08 .. 2026-11-14  (1 week)
+  * preferred   D part of a double   ! below wanted   !! below min (see the list below)   x breaks a rule
+
+Week 1  2026-11-08 .. 2026-11-14
+                     Sun 08/11  Mon 09/11  Tue 10/11  Wed 11/11  Thu 12/11  Fri 13/11  Sat 14/11
+--------------------------------------------------------------------------------------------------
+08:00-16:00          Noa*       Yossi*     Yossi x
+                     Yossi      Dana x     Dana D
+--------------------------------------------------------------------------------------------------
+16:00-00:00          Dana*      Noa        Dana D
+--------------------------------------------------------------------------------------------------
+22:00-06:00 [guard]  Avi        Avi*
+                     Noa x
+--------------------------------------------------------------------------------------------------
+Week 1: 8 shifts, 8 full
+Shifts this week: Yossi 3, Dana 4, Avi 2, Noa 3
+
+Whole period, per employee
+  Yossi Cohen         3 shifts   24 h
+  Dana Levi           4 shifts   32 h
+  Avi Mizrahi         2 shifts   16 h
+  Noa Shapira         3 shifts   24 h
+  Fairness: 2  (0 = shifts spread as evenly as possible)
+
+Score (lower is better): Medium 0, Soft 21
+  below-min          Medium     0 x   1 =     0   person missing below a shift's minimum
+  below-wanted         Soft     0 x  10 =     0   person missing below a shift's wanted staff
+  double               Soft     1 x   5 =     5   double shift (approved, but best avoided)
+  below-min-shifts     Soft     0 x   5 =     0   shift missing below an employee's minShifts
+  not-preferred        Soft     8 x   1 =     8   assignment the employee did not mark as preferred
+  consecutive-nights   Soft     2 x   3 =     6   night shift right after a night shift
+  fairness             Soft     2 x   1 =     2   unevenness of shifts per employee (squares)
+  fewer-trips          Soft  off (weight 0)
+
+Rule violations (5): nothing was blocked, each is listed at the later of the shifts involved
+  SUN-N      Noa Shapira        availability          not available for 2026-11-08 22:00-06:00
+  SUN-N      Noa Shapira        role                  does not have the role 'guard'
+  SUN-N      Noa Shapira        min-rest              only 6h of rest between SUN-M and SUN-N, needs 10h
+  MON-M      Dana Levi          min-rest              only 8h of rest between SUN-E and MON-M, needs 10h
+  TUE-M      Yossi Cohen        availability          not available for 2026-11-10 08:00-16:00
+  note: SUN-N has 2 people, it wants 1

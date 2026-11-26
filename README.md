@@ -263,7 +263,7 @@ On a real month of this kind (7 medics, 62 shifts, 20 s search), the days outsid
 ./build/schedule_search data/medics_december.json --json result.json
 python3 tools/check_contract.py result.json      # needs: pip install "jsonschema>=4.18"
 ```
-A JSON is written also when there is no schedule (`"status": "noSchedule"` or `"limitReached"`) or when the input has errors (`"inputError"`, with the errors in `"diagnostics"`).
+A JSON is written also when there is no schedule (`"status": "noSchedule"` or `"limitReached"`) or when the input has errors (`"inputError"`, with the errors in `"diagnostics"`). `--check`, `--compare` and `--explain` add their answers to it (`"manual"` with the violations, `"comparison"`, `"explanation"`), and `contract/problem.schema.json` and `contract/schedule.schema.json` describe the two input files.
 
 Exit codes: `0` schedule found (with a note if it is the best found in time, not proven best) · `1` bad arguments or input · `2` valid input, and no schedule exists (the whole search space was checked) · `3` stopped by a limit before finding a schedule (one may still exist) · `4` (`--check`) the schedule breaks a rule.
 

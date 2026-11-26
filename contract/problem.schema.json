@@ -1,0 +1,222 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/leonJardimCarmi/Schedule-search/contract/problem.schema.json",
+  "title": "schedule_search problem (input)",
+  "description": "The input file of schedule_search: the period, the employees with their availability, the shifts, and the business's rules (DECISIONS section 2, D3-D5, D13-D17, D28, D49). Stricter than the engine, which only warns about an unknown field: an app that writes this file should not write one. Checks across fields (duplicate ids, min above wanted, a shift outside the period, minShifts above maxShifts) are done by the engine and reported in \"diagnostics\". See contract/CONTRACT.md.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "period",
+    "employees",
+    "shifts"
+  ],
+  "properties": {
+    "period": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "start",
+        "end"
+      ],
+      "properties": {
+        "start": {
+          "$ref": "#/$defs/date"
+        },
+        "end": {
+          "$ref": "#/$defs/date"
+        }
+      }
+    },
+    "employees": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/employee"
+      }
+    },
+    "shifts": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/shift"
+      }
+    },
+    "rules": {
+      "$ref": "#/$defs/rules"
+    },
+    "weights": {
+      "type": "object",
+      "description": "Soft-rule weights by rule name (D28); 0 turns a rule off",
+      "propertyNames": {
+        "enum": [
+          "below-min",
+          "below-wanted",
+          "double",
+          "below-min-shifts",
+          "not-preferred",
+          "consecutive-nights",
+          "fairness",
+          "fewer-trips"
+        ]
+      },
+      "additionalProperties": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 1000000
+      }
+    }
+  },
+  "$defs": {
+    "date": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+    },
+    "time": {
+      "type": "string",
+      "pattern": "^[0-9]{2}:[0-9]{2}-[0-9]{2}:[0-9]{2}$"
+    },
+    "employee": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "name"
+      ],
+      "properties": {
+        "id": {
+          "type": "integer"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "maxShifts": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Hard: never more shifts than this (a double counts as two, D19)"
+        },
+        "minShifts": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Soft: a wish, scored when not met (D22)"
+        },
+        "roles": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "availability": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/availability"
+          }
+        }
+      }
+    },
+    "availability": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "date",
+        "type"
+      ],
+      "description": "One line of availability. Without \"time\" it is the whole day. A shift needs one available or preferred line that covers all of it; unavailable wins (D5).",
+      "properties": {
+        "date": {
+          "$ref": "#/$defs/date"
+        },
+        "time": {
+          "$ref": "#/$defs/time"
+        },
+        "type": {
+          "enum": [
+            "available",
+            "preferred",
+            "unavailable"
+          ]
+        },
+        "double": {
+          "type": "boolean",
+          "description": "Approves a double inside this line (D16)"
+        }
+      }
+    },
+    "shift": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "date",
+        "time",
+        "min",
+        "wanted"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "date": {
+          "$ref": "#/$defs/date"
+        },
+        "time": {
+          "$ref": "#/$defs/time"
+        },
+        "min": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "wanted": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "role": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "rules": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Every field is optional, with the default in DECISIONS section 2.4",
+      "properties": {
+        "minRestHours": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "blockGapMinutes": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "doubleAboveHours": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "maxDoubleHours": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "maxConsecutiveDays": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "nightWindow": {
+          "$ref": "#/$defs/time"
+        },
+        "nightMinHours": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "tripMinDays": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "tripMaxDays": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    }
+  }
+}

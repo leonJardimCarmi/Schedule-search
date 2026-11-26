@@ -1,0 +1,5 @@
+error: tests/golden/inputs/bad_schedule.json: assignments.MON-M[1]: Dana Levi is listed twice in this shift
+error: tests/golden/inputs/bad_schedule.json: assignments.NO-SUCH-SHIFT: no shift with this id in the problem
+error: tests/golden/inputs/bad_schedule.json: assignments.SUN-M[1]: no employee 999 in the problem
+warning: tests/golden/inputs/bad_schedule.json: assignments: 6 shift(s) not in the file, taken as empty: SUN-E, SUN-N, MON-E, MON-N, TUE-M, ...
+schedule file has errors, stopping.

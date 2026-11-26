@@ -25,6 +25,7 @@
 constexpr int kResultFormatVersion = 1;
 
 enum class RunStatus {
+    Checked,        // --check without --compare: a hand-made schedule, no search
     Found,          // a schedule was found ("complete" says if it is proven best)
     NoSchedule,     // the whole search space was checked: no schedule exists
     LimitReached,   // stopped by a limit before any schedule was found
@@ -35,6 +36,7 @@ enum class RunStatus {
 struct RunInfo {
     RunStatus status = RunStatus::Found;
     int exitCode = 0;
+    bool checkOnly = false;          // --check without --compare: no search facts at all
     bool firstOnly = false;          // --first
     // Search facts; not written for InputError. The last four only in the
     // default mode (the best schedule), where they have a meaning.
@@ -51,13 +53,23 @@ struct RunInfo {
     std::optional<long long> maxNodes;
 };
 
+// What --check, --compare and --explain add (stage 8.2, D66). Each pointer
+// is null when its option was not given.
+struct ResultExtras {
+    const Report* manual = nullptr;                 // --check: the hand-made schedule
+    const CheckReport* check = nullptr;             //   ... and what it breaks
+    const ComparisonReport* comparison = nullptr;   // --compare
+    const Explanation* explanation = nullptr;       // --explain
+};
+
 // The whole result. `problem` is null when the input could not be loaded.
 // `shape` gives the layout (rows and weeks) and the shifts that cannot be
 // staffed; it is reports[0] when there is a schedule, or the report of an
 // empty schedule when there is none. `schedules` is best first (see
 // buildReports); empty when no schedule was found.
 nlohmann::ordered_json resultToJson(const Problem* problem, const Report* shape, const std::vector<Report>& schedules,
-                                    const RunInfo& run, const std::vector<Diagnostic>& diagnostics);
+                                    const RunInfo& run, const std::vector<Diagnostic>& diagnostics,
+                                    const ResultExtras& extras = {});
 
 // The text of the file: indented, ends with a newline.
 std::string resultJsonText(const nlohmann::ordered_json& result);

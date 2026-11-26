@@ -9,3 +9,6 @@ Inputs used only by `tools/golden.sh` (DECISIONS D63).
 - `impossible.json`: two overlapping shifts and one worker. Each shift alone
   has someone, so the check before the search finds nothing, but no schedule
   exists (exit code 2, `"status": "noSchedule"` in the JSON, D61).
+- `bad_schedule.json`: a hand-made schedule with errors (an unknown employee,
+  an unknown shift, the same person twice in a shift): `--check` stops with
+  exit code 1, and with `--json` the errors are in `"diagnostics"` (D61, D66).

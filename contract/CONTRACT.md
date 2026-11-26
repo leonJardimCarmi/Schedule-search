@@ -2,14 +2,18 @@
 
 What `schedule_search` writes with `--json`: everything the engine knows about
 a result, for an app that shows it without parsing text and without calling
-the engine's code (DECISIONS D40, D41, D53). This document describes every
-field. The exact shape is [`result.schema.json`](result.schema.json); where
-the two disagree, that is a bug in one of them.
+the engine's code (DECISIONS D40, D41, D53), and what an app writes for the
+engine: the problem and a hand-made schedule. This document describes every
+field. The exact shapes are [`result.schema.json`](result.schema.json),
+[`problem.schema.json`](problem.schema.json) and
+[`schedule.schema.json`](schedule.schema.json); where a schema and this
+document disagree, that is a bug in one of them.
 
 - **Current version:** `formatVersion: 1`
 - **Examples:** [`examples/`](examples/): the café (the main example, D65),
   the example week (small, several schedules), and the medics (an edge case)
-- **Check a file:** `python3 tools/check_contract.py result.json`
+- **Check a file:** `python3 tools/check_contract.py result.json`, or
+  `--schema problem` / `--schema schedule` for the inputs
   (`pip install "jsonschema>=4.18"`)
 
 ## Getting a result
@@ -17,6 +21,9 @@ the two disagree, that is a bug in one of them.
 ```bash
 schedule_search problem.json --json result.json   # the console as usual, and the file
 schedule_search problem.json --json -             # only the JSON, to stdout (for a server)
+schedule_search problem.json --check mine.json --json -              # a hand-made schedule, checked
+schedule_search problem.json --check mine.json --compare --json -    # ... and the engine's next to it
+schedule_search problem.json --explain 102 MON-M --json -            # could 102 also work MON-M, and why not
 ```
 
 All the other options work as usual (`--time-limit`, `--max-nodes`, `--top`,
@@ -30,12 +37,15 @@ JSON (`diagnostics`). The exit code is the same as without `--json`:
 | 1 | `inputError` | The input has errors; they are in `diagnostics` |
 | 2 | `noSchedule` | The whole search space was checked: no schedule exists |
 | 3 | `limitReached` | Stopped by `--time-limit` or `--max-nodes` before finding any schedule |
+| 0 or 4 | `checked` | `--check` without `--compare`: 4 if the hand-made schedule breaks availability, a role or a hard rule |
 
-A JSON is written in all four cases (D61). It is **not** written when the
+With `--check --compare` the exit code is the check's (0 or 4), and `status`
+is the engine's search (`found`, `noSchedule` or `limitReached`). With
+`--explain` the exit code is 0 (the answer was given). A JSON is written in
+every case (D61). It is **not** written when the
 command line itself is wrong (exit code 1, a message on stderr), or when the
-file cannot be written. `--json` does not work yet with `--check`, `--compare`
-and `--explain` (stage 8.2), and `--json -` does not work with `--verbose` or
-`--trace`, which print to stdout.
+file cannot be written, or the employee or shift of `--explain` does not exist.
+`--json -` does not work with `--verbose` or `--trace`, which print to stdout.
 
 ## Conventions
 
@@ -67,8 +77,11 @@ and `--explain` (stage 8.2), and `--json -` does not work with `--verbose` or
   "problem":     { ... },   // the period, employees and shifts   (not with inputError)
   "layout":      { ... },   // the rows and weeks of the table    (not with inputError)
   "shortages":   [ ... ],   // shifts that can never be staffed   (not with inputError)
-  "schedules":   [ ... ],   // best first; empty unless "found"
-  "diagnostics": [ ... ]    // warnings and errors from loading the input
+  "schedules":   [ ... ],   // the engine's, best first; empty unless "found"
+  "manual":      { ... },   // --check: the hand-made schedule and what it breaks
+  "comparison":  { ... },   // --check --compare: the hand-made schedule vs the engine's
+  "explanation": { ... },   // --explain: one employee, one shift
+  "diagnostics": [ ... ]    // warnings and errors from loading the input files
 }
 ```
 
@@ -84,7 +97,7 @@ and `--explain` (stage 8.2), and `--json -` does not work with `--verbose` or
 | Field | Meaning |
 |---|---|
 | `status`, `exitCode` | See the table above. With `inputError` these are the only two fields |
-| `mode` | `"best"` (the default: search for the best schedule) or `"first"` (`--first`: the first legal one) |
+| `mode` | `"best"` (the default: search for the best schedule), `"first"` (`--first`: the first legal one), or `"check"` (`--check` without `--compare`: no search, so the fields below are not written) |
 | `complete` | `best` only. `true`: the whole search space was checked, so `schedules[0]` is proven best. `false`: the search stopped at a limit, and a better schedule may exist (the "anytime" result, D31) |
 | `nodes`, `ms` | How many steps the search took, and how long, in milliseconds |
 | `improvements`, `pruned` | `best` only. How often the best schedule improved; how many branches were cut by the bound |
@@ -196,12 +209,93 @@ them in the same way.
   `changes`: every shift that differs, in calendar order; `out`: in the best
   schedule but not in this one, `in`: in this one but not in the best.
 
+### `manual` (`--check`)
+
+The hand-made schedule (D51), **in exactly the form of a schedule** above
+(`score`, `rules`, `shifts`, `employees`, `weeks`), without `rank` and
+`vsBest`, and with:
+
+- **`breaksRule`** on every person in `shifts[].staff`: this assignment breaks
+  something listed in `violations` (the console marks it ` x`). Only here,
+  never in `schedules`.
+- **`violations`**: every problem, each listed once, at the later of the shifts
+  involved (D51): `{ "shift": "SUN-N", "employee": 104, "kind": "rule",
+  "rule": "min-rest", "why": "only 6h of rest between SUN-M and SUN-N, needs 10h" }`.
+  `kind` is `availability` (not available for the whole shift), `role` (does
+  not have the shift's role) or `rule` (a hard rule: `no-overlap`, `min-rest`,
+  `double-needs-approval`, `max-shifts`, `max-consecutive-days`). Only a `rule`
+  has `rule` and `why`; `why` is English text for people (D47), so show your
+  own text by `rule`, with `why` as the detail.
+- **`overStaffed`**: shifts with more people than `wanted`. A note, not a
+  violation: `{ "shift": "SUN-N", "staff": 2, "wanted": 1 }`.
+
+Nothing is blocked (D18): the score counts the soft rules only, so a schedule
+that breaks hard rules can score better than the engine's. Always show
+`violations` next to the score.
+
+### `comparison` (`--check --compare`)
+
+The hand-made schedule next to the engine's best, which is `schedules[0]`
+(D52).
+
+```json
+{ "mine": { "medium": 0, "soft": 21 }, "engine": { "medium": 0, "soft": 33 }, "differences": 3,
+  "rules": [ { "name": "below-wanted", "level": "soft", "weight": 10, "mine": 0, "engine": 20 } ],
+  "changes": [ { "shift": "SUN-N", "out": [104], "in": [] } ] }
+```
+
+`rules`: the penalty of each soft rule in both (already multiplied by the
+weight). `changes`: every shift that differs; `out`: only in the hand-made
+schedule, `in`: only in the engine's, that is, what to change in the
+hand-made one to get the engine's. If the engine found no schedule there is
+no `comparison` (and `status` says why).
+
+### `explanation` (`--explain <employee> <shift>`)
+
+Could this employee also work this shift, in the schedule found (`against:
+"best"`, `schedules[0]`) or in the hand-made one (`against: "manual"`)? Every
+check answers on its own, so all the reasons show at once (D47).
+
+```json
+{ "employee": 102, "shift": "MON-M", "against": "best", "canWork": false, "alreadyWorks": false,
+  "availability": "yes", "roleOk": true,
+  "rules": [ { "name": "no-overlap" }, { "name": "min-rest", "whyNot": "only 8h of rest between SUN-E and MON-M, needs 10h" } ],
+  "staff": [101] }
+```
+
+`availability`: `no`, `yes` or `preferred`. `rules`: every hard rule, with
+`whyNot` only when it says no. `canWork`: available, with the role, and no
+`whyNot`. `alreadyWorks`: they work it in that schedule, and the rules were
+checked as if they did not (otherwise they would overlap themselves).
+`staff`: who works the shift in that schedule. A shift that is already full
+can still say `canWork: true`: the rules allow it, `wanted` is a target.
+
 ### `diagnostics`
 
 Every warning and error from loading the input, the same lines the console
 prints to stderr: `{ "severity": "error", "where": "problem.json: employees[0].availability[0].date", "message": "date does not exist: 2026-02-30" }`.
-`where` starts with the file name and points into it. With `inputError` at
+`where` starts with the file name and points into it: the problem file, the
+availability CSV, or the schedule file of `--check`. With `inputError` at
 least one has `severity: "error"`; otherwise there are only warnings.
+
+## The inputs
+
+What an app writes for the engine (D56, D66). Both schemas are stricter than
+the engine, which only warns about an unknown field: a file an app writes
+should have none.
+
+- **The problem** ([`problem.schema.json`](problem.schema.json)): `period`,
+  `employees` (with their `availability`), `shifts`, and the optional `rules`
+  and `weights`, as in DECISIONS section 2. What a schema cannot check, the
+  engine checks when it loads the file, and reports in `diagnostics` (with
+  `inputError` for an error): a date that does not exist (2026-02-30), a time
+  such as 25:00, a duplicate id, `min` above `wanted`, a shift outside the
+  period, `minShifts` above `maxShifts`.
+- **A hand-made schedule** ([`schedule.schema.json`](schedule.schema.json)),
+  for `--check` (D51): `{ "assignments": { "SUN-M": [104, "Dana Levi"] } }`,
+  shifts by id, employees by id or full name. A shift that is left out is
+  empty (a warning). An unknown shift or employee, or the same person twice
+  in a shift, is an error (`inputError`, in `diagnostics`).
 
 ## What an app computes itself
 
@@ -220,13 +314,15 @@ should be added to the contract rather than computed in the app.
   the engine's writer. The engine and the app live in one repository (A1),
   so both always use the schema of the same commit.
 - A change to the contract changes, in one commit: the writer
-  (`src/io/ResultJson.cpp`), `result.schema.json`, this document, the
+  (`src/io/ResultJson.cpp`) or the loader, the schema, this document, the
   examples (`examples/README.md` has the commands), and the golden output
   (`bash tools/golden.sh <exe> --update`).
 
 ## Not in the contract yet
 
-- `--check` and `--compare` as JSON (rule violations and the comparison), and a
-  JSON Schema for the input: stage 8.2
 - Progress events while searching, and stopping a search early: stage 8.4
-- Availability (D59): read the problem file, until an app needs it here
+- Reasons as data and not only text (`why`, `whyNot`): when an app needs
+  them in its own language, a `details` field is added next to the text,
+  without a new version (D66)
+- Availability in the result (D59): read the problem file, until an app needs
+  it here

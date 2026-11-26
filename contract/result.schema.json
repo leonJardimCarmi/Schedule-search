@@ -2,276 +2,1330 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://github.com/leonJardimCarmi/Schedule-search/contract/result.schema.json",
   "title": "schedule_search result",
-  "description": "What schedule_search writes with --json (DECISIONS D57-D62). Every field is described in contract/CONTRACT.md. Strict on purpose: an unknown field is an error, so a mistake in the engine's writer is caught (D62).",
+  "description": "What schedule_search writes with --json (DECISIONS D57-D66). Every field is described in contract/CONTRACT.md. Strict on purpose: an unknown field is an error, so a mistake in the engine's writer is caught (D62).",
   "type": "object",
   "additionalProperties": false,
-  "required": ["formatVersion", "run", "schedules", "diagnostics"],
+  "required": [
+    "formatVersion",
+    "run",
+    "schedules",
+    "diagnostics"
+  ],
   "properties": {
-    "formatVersion": { "const": 1 },
-    "run": { "$ref": "#/$defs/run" },
-    "problem": { "$ref": "#/$defs/problem" },
-    "layout": { "$ref": "#/$defs/layout" },
-    "shortages": { "type": "array", "items": { "$ref": "#/$defs/shortage" } },
-    "schedules": { "type": "array", "items": { "$ref": "#/$defs/schedule" } },
-    "diagnostics": { "type": "array", "items": { "$ref": "#/$defs/diagnostic" } }
+    "formatVersion": {
+      "const": 1
+    },
+    "run": {
+      "$ref": "#/$defs/run"
+    },
+    "problem": {
+      "$ref": "#/$defs/problem"
+    },
+    "layout": {
+      "$ref": "#/$defs/layout"
+    },
+    "shortages": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/shortage"
+      }
+    },
+    "schedules": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/schedule"
+      }
+    },
+    "diagnostics": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/diagnostic"
+      }
+    },
+    "manual": {
+      "$ref": "#/$defs/manual"
+    },
+    "comparison": {
+      "$ref": "#/$defs/comparison"
+    },
+    "explanation": {
+      "$ref": "#/$defs/explanation"
+    }
   },
   "allOf": [
     {
-      "if": { "properties": { "run": { "properties": { "status": { "const": "inputError" } } } } },
-      "then": { "not": { "anyOf": [ { "required": ["problem"] }, { "required": ["layout"] }, { "required": ["shortages"] } ] },
-                "properties": { "schedules": { "maxItems": 0 } } },
-      "else": { "required": ["problem", "layout", "shortages"] }
-    },
-    {
-      "if": { "properties": { "run": { "properties": { "status": { "const": "found" } } } } },
-      "then": { "properties": { "schedules": { "minItems": 1 } } },
-      "else": { "properties": { "schedules": { "maxItems": 0 } } }
-    }
-  ],
-  "$defs": {
-    "date": { "type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$" },
-    "time": { "type": "string", "pattern": "^[0-9]{2}:[0-9]{2}-[0-9]{2}:[0-9]{2}$" },
-    "employeeId": { "type": "integer" },
-    "shiftId": { "type": "string", "minLength": 1 },
-    "count": { "type": "integer", "minimum": 0 },
-    "employeeIds": { "type": "array", "items": { "$ref": "#/$defs/employeeId" } },
-    "shiftIds": { "type": "array", "items": { "$ref": "#/$defs/shiftId" } },
-    "score": {
-      "type": "object", "additionalProperties": false, "required": ["medium", "soft"],
-      "properties": { "medium": { "$ref": "#/$defs/count" }, "soft": { "$ref": "#/$defs/count" } }
-    },
-
-    "run": {
-      "type": "object", "additionalProperties": false, "required": ["status", "exitCode"],
-      "properties": {
-        "status": { "enum": ["found", "noSchedule", "limitReached", "inputError"] },
-        "exitCode": { "enum": [0, 1, 2, 3] },
-        "mode": { "enum": ["best", "first"] },
-        "complete": { "type": "boolean" },
-        "nodes": { "$ref": "#/$defs/count" },
-        "ms": { "type": "number", "minimum": 0 },
-        "improvements": { "$ref": "#/$defs/count" },
-        "pruned": { "$ref": "#/$defs/count" },
-        "startBound": { "$ref": "#/$defs/score" },
-        "options": {
-          "type": "object", "additionalProperties": false,
-          "properties": {
-            "top": { "type": "integer", "minimum": 1 },
-            "minDiff": { "type": "integer", "minimum": 1 },
-            "timeLimit": { "type": "number", "exclusiveMinimum": 0 },
-            "maxNodes": { "type": "integer", "minimum": 1 }
+      "if": {
+        "properties": {
+          "run": {
+            "properties": {
+              "status": {
+                "const": "inputError"
+              }
+            }
           }
         }
       },
-      "allOf": [
-        {
-          "if": { "properties": { "status": { "const": "inputError" } } },
-          "then": { "properties": { "exitCode": { "const": 1 } },
-                    "not": { "anyOf": [ { "required": ["mode"] }, { "required": ["nodes"] } ] } },
-          "else": { "required": ["mode", "nodes", "ms", "options"] }
+      "then": {
+        "not": {
+          "anyOf": [
+            {
+              "required": [
+                "problem"
+              ]
+            },
+            {
+              "required": [
+                "layout"
+              ]
+            },
+            {
+              "required": [
+                "shortages"
+              ]
+            },
+            {
+              "required": [
+                "manual"
+              ]
+            },
+            {
+              "required": [
+                "comparison"
+              ]
+            },
+            {
+              "required": [
+                "explanation"
+              ]
+            }
+          ]
         },
-        {
-          "if": { "required": ["mode"], "properties": { "mode": { "const": "best" } } },
-          "then": { "required": ["complete", "improvements", "pruned", "startBound"] },
-          "else": { "not": { "anyOf": [ { "required": ["complete"] }, { "required": ["improvements"] },
-                                        { "required": ["pruned"] }, { "required": ["startBound"] } ] } }
-        },
-        { "if": { "properties": { "status": { "const": "found" } } }, "then": { "properties": { "exitCode": { "const": 0 } } } },
-        { "if": { "properties": { "status": { "const": "noSchedule" } } }, "then": { "properties": { "exitCode": { "const": 2 } } } },
-        { "if": { "properties": { "status": { "const": "limitReached" } } }, "then": { "properties": { "exitCode": { "const": 3 } } } }
-      ]
+        "properties": {
+          "schedules": {
+            "maxItems": 0
+          }
+        }
+      },
+      "else": {
+        "required": [
+          "problem",
+          "layout",
+          "shortages"
+        ]
+      }
     },
-
-    "problem": {
-      "type": "object", "additionalProperties": false, "required": ["period", "employees", "shifts"],
-      "properties": {
-        "period": {
-          "type": "object", "additionalProperties": false, "required": ["start", "end"],
-          "properties": { "start": { "$ref": "#/$defs/date" }, "end": { "$ref": "#/$defs/date" } }
-        },
-        "employees": {
-          "type": "array",
-          "items": {
-            "type": "object", "additionalProperties": false, "required": ["id", "name", "roles"],
+    {
+      "if": {
+        "properties": {
+          "run": {
             "properties": {
-              "id": { "$ref": "#/$defs/employeeId" },
-              "name": { "type": "string" },
-              "roles": { "type": "array", "items": { "type": "string" } },
-              "minShifts": { "$ref": "#/$defs/count" },
-              "maxShifts": { "$ref": "#/$defs/count" }
+              "status": {
+                "const": "found"
+              }
             }
           }
-        },
-        "shifts": {
-          "type": "array",
-          "items": {
-            "type": "object", "additionalProperties": false,
-            "required": ["id", "date", "time", "minutes", "min", "wanted", "kind"],
-            "properties": {
-              "id": { "$ref": "#/$defs/shiftId" },
-              "date": { "$ref": "#/$defs/date" },
-              "time": { "$ref": "#/$defs/time" },
-              "minutes": { "type": "integer", "minimum": 1 },
-              "min": { "$ref": "#/$defs/count" },
-              "wanted": { "$ref": "#/$defs/count" },
-              "role": { "type": "string", "minLength": 1 },
-              "kind": { "$ref": "#/$defs/count" }
-            }
+        }
+      },
+      "then": {
+        "properties": {
+          "schedules": {
+            "minItems": 1
+          }
+        }
+      },
+      "else": {
+        "properties": {
+          "schedules": {
+            "maxItems": 0
           }
         }
       }
     },
-
-    "layout": {
-      "type": "object", "additionalProperties": false, "required": ["kinds", "weeks"],
-      "properties": {
-        "kinds": {
-          "type": "array",
-          "items": {
-            "type": "object", "additionalProperties": false, "required": ["time"],
-            "properties": { "time": { "$ref": "#/$defs/time" }, "role": { "type": "string", "minLength": 1 } }
-          }
-        },
-        "weeks": {
-          "type": "array",
-          "items": {
-            "type": "object", "additionalProperties": false, "required": ["start", "end", "days", "cells"],
+    {
+      "if": {
+        "properties": {
+          "run": {
             "properties": {
-              "start": { "$ref": "#/$defs/date" },
-              "end": { "$ref": "#/$defs/date" },
-              "days": {
-                "type": "array", "minItems": 7, "maxItems": 7,
-                "items": {
-                  "type": "object", "additionalProperties": false, "required": ["date", "inPeriod"],
-                  "properties": { "date": { "$ref": "#/$defs/date" }, "inPeriod": { "type": "boolean" } }
-                }
-              },
-              "cells": {
-                "description": "cells[kind][day]: the shifts of that row on that day, Sunday first",
-                "type": "array",
-                "items": { "type": "array", "minItems": 7, "maxItems": 7, "items": { "$ref": "#/$defs/shiftIds" } }
+              "status": {
+                "const": "checked"
+              }
+            }
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "manual"
+        ],
+        "not": {
+          "required": [
+            "comparison"
+          ]
+        }
+      }
+    },
+    {
+      "if": {
+        "required": [
+          "comparison"
+        ]
+      },
+      "then": {
+        "required": [
+          "manual"
+        ],
+        "properties": {
+          "run": {
+            "properties": {
+              "status": {
+                "const": "found"
               }
             }
           }
         }
       }
     },
-
-    "shortage": {
-      "type": "object", "additionalProperties": false,
-      "required": ["shift", "needed", "candidates", "available", "reason"],
-      "properties": {
-        "shift": { "$ref": "#/$defs/shiftId" },
-        "needed": { "$ref": "#/$defs/count" },
-        "candidates": { "$ref": "#/$defs/count" },
-        "available": { "$ref": "#/$defs/count" },
-        "reason": { "enum": ["nobodyAvailable", "missingRole", "tooFewAvailable"] }
-      }
-    },
-
-    "schedule": {
-      "type": "object", "additionalProperties": false,
-      "required": ["rank", "score", "rules", "shifts", "employees", "weeks"],
-      "properties": {
-        "rank": { "type": "integer", "minimum": 1 },
-        "score": { "$ref": "#/$defs/score" },
-        "rules": {
-          "type": "array",
-          "items": {
-            "type": "object", "additionalProperties": false,
-            "required": ["name", "level", "violations", "weight", "penalty", "description"],
+    {
+      "if": {
+        "required": [
+          "manual"
+        ]
+      },
+      "then": {
+        "properties": {
+          "run": {
             "properties": {
-              "name": { "type": "string" },
-              "level": { "enum": ["medium", "soft"] },
-              "violations": { "$ref": "#/$defs/count" },
-              "weight": { "$ref": "#/$defs/count" },
-              "penalty": { "$ref": "#/$defs/count" },
-              "description": { "type": "string" }
+              "exitCode": {
+                "enum": [
+                  0,
+                  4
+                ]
+              }
             }
           }
-        },
-        "shifts": {
-          "type": "array",
-          "items": {
-            "type": "object", "additionalProperties": false, "required": ["shift", "status", "staff"],
-            "properties": {
-              "shift": { "$ref": "#/$defs/shiftId" },
-              "status": { "enum": ["full", "belowWanted", "belowMin"] },
-              "staff": {
-                "type": "array",
-                "items": {
-                  "type": "object", "additionalProperties": false, "required": ["employee", "preferred", "double"],
+        }
+      },
+      "else": {
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "run": {
                   "properties": {
-                    "employee": { "$ref": "#/$defs/employeeId" },
-                    "preferred": { "type": "boolean" },
-                    "double": { "type": "boolean" }
+                    "status": {
+                      "const": "found"
+                    }
+                  }
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "run": {
+                  "properties": {
+                    "exitCode": {
+                      "const": 0
+                    }
+                  }
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "run": {
+                  "properties": {
+                    "status": {
+                      "const": "noSchedule"
+                    }
+                  }
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "run": {
+                  "properties": {
+                    "exitCode": {
+                      "const": 2
+                    }
+                  }
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "run": {
+                  "properties": {
+                    "status": {
+                      "const": "limitReached"
+                    }
+                  }
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "run": {
+                  "properties": {
+                    "exitCode": {
+                      "const": 3
+                    }
                   }
                 }
               }
             }
           }
+        ]
+      }
+    }
+  ],
+  "$defs": {
+    "date": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+    },
+    "time": {
+      "type": "string",
+      "pattern": "^[0-9]{2}:[0-9]{2}-[0-9]{2}:[0-9]{2}$"
+    },
+    "employeeId": {
+      "type": "integer"
+    },
+    "shiftId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "employeeIds": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/employeeId"
+      }
+    },
+    "shiftIds": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/shiftId"
+      }
+    },
+    "score": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "medium",
+        "soft"
+      ],
+      "properties": {
+        "medium": {
+          "$ref": "#/$defs/count"
+        },
+        "soft": {
+          "$ref": "#/$defs/count"
+        }
+      }
+    },
+    "run": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "exitCode"
+      ],
+      "properties": {
+        "status": {
+          "enum": [
+            "found",
+            "noSchedule",
+            "limitReached",
+            "checked",
+            "inputError"
+          ]
+        },
+        "exitCode": {
+          "enum": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        "mode": {
+          "enum": [
+            "best",
+            "first",
+            "check"
+          ]
+        },
+        "complete": {
+          "type": "boolean"
+        },
+        "nodes": {
+          "$ref": "#/$defs/count"
+        },
+        "ms": {
+          "type": "number",
+          "minimum": 0
+        },
+        "improvements": {
+          "$ref": "#/$defs/count"
+        },
+        "pruned": {
+          "$ref": "#/$defs/count"
+        },
+        "startBound": {
+          "$ref": "#/$defs/score"
+        },
+        "options": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "top": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "minDiff": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "timeLimit": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "maxNodes": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "const": "inputError"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "exitCode": {
+                "const": 1
+              }
+            },
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "mode"
+                  ]
+                },
+                {
+                  "required": [
+                    "nodes"
+                  ]
+                }
+              ]
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "const": "checked"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "mode"
+            ],
+            "properties": {
+              "mode": {
+                "const": "check"
+              }
+            },
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "nodes"
+                  ]
+                },
+                {
+                  "required": [
+                    "ms"
+                  ]
+                },
+                {
+                  "required": [
+                    "improvements"
+                  ]
+                },
+                {
+                  "required": [
+                    "pruned"
+                  ]
+                },
+                {
+                  "required": [
+                    "startBound"
+                  ]
+                },
+                {
+                  "required": [
+                    "complete"
+                  ]
+                },
+                {
+                  "required": [
+                    "options"
+                  ]
+                }
+              ]
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "enum": [
+                  "found",
+                  "noSchedule",
+                  "limitReached"
+                ]
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "mode",
+              "nodes",
+              "ms",
+              "options"
+            ],
+            "properties": {
+              "mode": {
+                "enum": [
+                  "best",
+                  "first"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "required": [
+              "mode"
+            ],
+            "properties": {
+              "mode": {
+                "const": "best"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "complete",
+              "improvements",
+              "pruned",
+              "startBound"
+            ]
+          },
+          "else": {
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "complete"
+                  ]
+                },
+                {
+                  "required": [
+                    "improvements"
+                  ]
+                },
+                {
+                  "required": [
+                    "pruned"
+                  ]
+                },
+                {
+                  "required": [
+                    "startBound"
+                  ]
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "problem": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "period",
+        "employees",
+        "shifts"
+      ],
+      "properties": {
+        "period": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "start",
+            "end"
+          ],
+          "properties": {
+            "start": {
+              "$ref": "#/$defs/date"
+            },
+            "end": {
+              "$ref": "#/$defs/date"
+            }
+          }
         },
         "employees": {
           "type": "array",
           "items": {
-            "type": "object", "additionalProperties": false, "required": ["employee", "shifts", "minutes"],
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "id",
+              "name",
+              "roles"
+            ],
             "properties": {
-              "employee": { "$ref": "#/$defs/employeeId" },
-              "shifts": { "$ref": "#/$defs/shiftIds" },
-              "minutes": { "$ref": "#/$defs/count" },
-              "belowMinShifts": { "type": "integer", "minimum": 1 }
+              "id": {
+                "$ref": "#/$defs/employeeId"
+              },
+              "name": {
+                "type": "string"
+              },
+              "roles": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "minShifts": {
+                "$ref": "#/$defs/count"
+              },
+              "maxShifts": {
+                "$ref": "#/$defs/count"
+              }
+            }
+          }
+        },
+        "shifts": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "id",
+              "date",
+              "time",
+              "minutes",
+              "min",
+              "wanted",
+              "kind"
+            ],
+            "properties": {
+              "id": {
+                "$ref": "#/$defs/shiftId"
+              },
+              "date": {
+                "$ref": "#/$defs/date"
+              },
+              "time": {
+                "$ref": "#/$defs/time"
+              },
+              "minutes": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "min": {
+                "$ref": "#/$defs/count"
+              },
+              "wanted": {
+                "$ref": "#/$defs/count"
+              },
+              "role": {
+                "type": "string",
+                "minLength": 1
+              },
+              "kind": {
+                "$ref": "#/$defs/count"
+              }
+            }
+          }
+        }
+      }
+    },
+    "layout": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kinds",
+        "weeks"
+      ],
+      "properties": {
+        "kinds": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "time"
+            ],
+            "properties": {
+              "time": {
+                "$ref": "#/$defs/time"
+              },
+              "role": {
+                "type": "string",
+                "minLength": 1
+              }
             }
           }
         },
         "weeks": {
           "type": "array",
           "items": {
-            "type": "object", "additionalProperties": false,
-            "required": ["shifts", "full", "belowWanted", "belowMin", "perEmployee"],
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "start",
+              "end",
+              "days",
+              "cells"
+            ],
             "properties": {
-              "shifts": { "$ref": "#/$defs/count" },
-              "full": { "$ref": "#/$defs/count" },
-              "belowWanted": { "$ref": "#/$defs/count" },
-              "belowMin": { "$ref": "#/$defs/count" },
-              "perEmployee": {
+              "start": {
+                "$ref": "#/$defs/date"
+              },
+              "end": {
+                "$ref": "#/$defs/date"
+              },
+              "days": {
+                "type": "array",
+                "minItems": 7,
+                "maxItems": 7,
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "date",
+                    "inPeriod"
+                  ],
+                  "properties": {
+                    "date": {
+                      "$ref": "#/$defs/date"
+                    },
+                    "inPeriod": {
+                      "type": "boolean"
+                    }
+                  }
+                }
+              },
+              "cells": {
+                "description": "cells[kind][day]: the shifts of that row on that day, Sunday first",
                 "type": "array",
                 "items": {
-                  "type": "object", "additionalProperties": false, "required": ["employee", "shifts"],
-                  "properties": { "employee": { "$ref": "#/$defs/employeeId" }, "shifts": { "$ref": "#/$defs/count" } }
+                  "type": "array",
+                  "minItems": 7,
+                  "maxItems": 7,
+                  "items": {
+                    "$ref": "#/$defs/shiftIds"
+                  }
                 }
               }
             }
           }
+        }
+      }
+    },
+    "shortage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "shift",
+        "needed",
+        "candidates",
+        "available",
+        "reason"
+      ],
+      "properties": {
+        "shift": {
+          "$ref": "#/$defs/shiftId"
+        },
+        "needed": {
+          "$ref": "#/$defs/count"
+        },
+        "candidates": {
+          "$ref": "#/$defs/count"
+        },
+        "available": {
+          "$ref": "#/$defs/count"
+        },
+        "reason": {
+          "enum": [
+            "nobodyAvailable",
+            "missingRole",
+            "tooFewAvailable"
+          ]
+        }
+      }
+    },
+    "schedule": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "rank",
+        "score",
+        "rules",
+        "shifts",
+        "employees",
+        "weeks"
+      ],
+      "properties": {
+        "rank": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "score": {
+          "$ref": "#/$defs/score"
+        },
+        "rules": {
+          "$ref": "#/$defs/scheduleRules"
+        },
+        "shifts": {
+          "$ref": "#/$defs/scheduleShifts"
+        },
+        "employees": {
+          "$ref": "#/$defs/scheduleEmployees"
+        },
+        "weeks": {
+          "$ref": "#/$defs/scheduleWeeks"
         },
         "vsBest": {
-          "type": "object", "additionalProperties": false, "required": ["differences", "changes"],
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "differences",
+            "changes"
+          ],
           "properties": {
-            "differences": { "type": "integer", "minimum": 1 },
+            "differences": {
+              "type": "integer",
+              "minimum": 1
+            },
             "changes": {
               "type": "array",
               "items": {
-                "type": "object", "additionalProperties": false, "required": ["shift", "out", "in"],
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "shift",
+                  "out",
+                  "in"
+                ],
                 "properties": {
-                  "shift": { "$ref": "#/$defs/shiftId" },
-                  "out": { "$ref": "#/$defs/employeeIds" },
-                  "in": { "$ref": "#/$defs/employeeIds" }
+                  "shift": {
+                    "$ref": "#/$defs/shiftId"
+                  },
+                  "out": {
+                    "$ref": "#/$defs/employeeIds"
+                  },
+                  "in": {
+                    "$ref": "#/$defs/employeeIds"
+                  }
                 }
               }
             }
           }
         }
       },
-      "if": { "properties": { "rank": { "const": 1 } } },
-      "then": { "not": { "required": ["vsBest"] } },
-      "else": { "required": ["vsBest"] }
+      "if": {
+        "properties": {
+          "rank": {
+            "const": 1
+          }
+        }
+      },
+      "then": {
+        "not": {
+          "required": [
+            "vsBest"
+          ]
+        }
+      },
+      "else": {
+        "required": [
+          "vsBest"
+        ]
+      }
     },
-
     "diagnostic": {
-      "type": "object", "additionalProperties": false, "required": ["severity", "where", "message"],
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "severity",
+        "where",
+        "message"
+      ],
       "properties": {
-        "severity": { "enum": ["error", "warning"] },
-        "where": { "type": "string" },
-        "message": { "type": "string" }
+        "severity": {
+          "enum": [
+            "error",
+            "warning"
+          ]
+        },
+        "where": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        }
+      }
+    },
+    "scheduleRules": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "name",
+          "level",
+          "violations",
+          "weight",
+          "penalty",
+          "description"
+        ],
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "level": {
+            "enum": [
+              "medium",
+              "soft"
+            ]
+          },
+          "violations": {
+            "$ref": "#/$defs/count"
+          },
+          "weight": {
+            "$ref": "#/$defs/count"
+          },
+          "penalty": {
+            "$ref": "#/$defs/count"
+          },
+          "description": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "scheduleShifts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "shift",
+          "status",
+          "staff"
+        ],
+        "properties": {
+          "shift": {
+            "$ref": "#/$defs/shiftId"
+          },
+          "status": {
+            "enum": [
+              "full",
+              "belowWanted",
+              "belowMin"
+            ]
+          },
+          "staff": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "employee",
+                "preferred",
+                "double"
+              ],
+              "properties": {
+                "employee": {
+                  "$ref": "#/$defs/employeeId"
+                },
+                "preferred": {
+                  "type": "boolean"
+                },
+                "double": {
+                  "type": "boolean"
+                },
+                "breaksRule": {
+                  "type": "boolean",
+                  "description": "Only in \"manual\": this assignment breaks availability, a role or a hard rule"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "scheduleEmployees": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "employee",
+          "shifts",
+          "minutes"
+        ],
+        "properties": {
+          "employee": {
+            "$ref": "#/$defs/employeeId"
+          },
+          "shifts": {
+            "$ref": "#/$defs/shiftIds"
+          },
+          "minutes": {
+            "$ref": "#/$defs/count"
+          },
+          "belowMinShifts": {
+            "type": "integer",
+            "minimum": 1
+          }
+        }
+      }
+    },
+    "scheduleWeeks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "shifts",
+          "full",
+          "belowWanted",
+          "belowMin",
+          "perEmployee"
+        ],
+        "properties": {
+          "shifts": {
+            "$ref": "#/$defs/count"
+          },
+          "full": {
+            "$ref": "#/$defs/count"
+          },
+          "belowWanted": {
+            "$ref": "#/$defs/count"
+          },
+          "belowMin": {
+            "$ref": "#/$defs/count"
+          },
+          "perEmployee": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "employee",
+                "shifts"
+              ],
+              "properties": {
+                "employee": {
+                  "$ref": "#/$defs/employeeId"
+                },
+                "shifts": {
+                  "$ref": "#/$defs/count"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "manual": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "score",
+        "rules",
+        "shifts",
+        "employees",
+        "weeks",
+        "violations",
+        "overStaffed"
+      ],
+      "properties": {
+        "score": {
+          "$ref": "#/$defs/score"
+        },
+        "rules": {
+          "$ref": "#/$defs/scheduleRules"
+        },
+        "shifts": {
+          "$ref": "#/$defs/scheduleShifts"
+        },
+        "employees": {
+          "$ref": "#/$defs/scheduleEmployees"
+        },
+        "weeks": {
+          "$ref": "#/$defs/scheduleWeeks"
+        },
+        "violations": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "shift",
+              "employee",
+              "kind"
+            ],
+            "properties": {
+              "shift": {
+                "$ref": "#/$defs/shiftId"
+              },
+              "employee": {
+                "$ref": "#/$defs/employeeId"
+              },
+              "kind": {
+                "enum": [
+                  "availability",
+                  "role",
+                  "rule"
+                ]
+              },
+              "rule": {
+                "type": "string",
+                "minLength": 1
+              },
+              "why": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "if": {
+              "properties": {
+                "kind": {
+                  "const": "rule"
+                }
+              }
+            },
+            "then": {
+              "required": [
+                "rule",
+                "why"
+              ]
+            },
+            "else": {
+              "not": {
+                "anyOf": [
+                  {
+                    "required": [
+                      "rule"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "why"
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "overStaffed": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "shift",
+              "staff",
+              "wanted"
+            ],
+            "properties": {
+              "shift": {
+                "$ref": "#/$defs/shiftId"
+              },
+              "staff": {
+                "$ref": "#/$defs/count"
+              },
+              "wanted": {
+                "$ref": "#/$defs/count"
+              }
+            }
+          }
+        }
+      }
+    },
+    "comparison": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "mine",
+        "engine",
+        "differences",
+        "rules",
+        "changes"
+      ],
+      "properties": {
+        "mine": {
+          "$ref": "#/$defs/score"
+        },
+        "engine": {
+          "$ref": "#/$defs/score"
+        },
+        "differences": {
+          "$ref": "#/$defs/count"
+        },
+        "rules": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "name",
+              "level",
+              "weight",
+              "mine",
+              "engine"
+            ],
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "level": {
+                "enum": [
+                  "medium",
+                  "soft"
+                ]
+              },
+              "weight": {
+                "$ref": "#/$defs/count"
+              },
+              "mine": {
+                "$ref": "#/$defs/count"
+              },
+              "engine": {
+                "$ref": "#/$defs/count"
+              }
+            }
+          }
+        },
+        "changes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "shift",
+              "out",
+              "in"
+            ],
+            "properties": {
+              "shift": {
+                "$ref": "#/$defs/shiftId"
+              },
+              "out": {
+                "$ref": "#/$defs/employeeIds"
+              },
+              "in": {
+                "$ref": "#/$defs/employeeIds"
+              }
+            }
+          }
+        }
+      }
+    },
+    "explanation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "employee",
+        "shift",
+        "against",
+        "canWork",
+        "alreadyWorks",
+        "availability",
+        "roleOk",
+        "rules",
+        "staff"
+      ],
+      "properties": {
+        "employee": {
+          "$ref": "#/$defs/employeeId"
+        },
+        "shift": {
+          "$ref": "#/$defs/shiftId"
+        },
+        "against": {
+          "enum": [
+            "best",
+            "manual"
+          ]
+        },
+        "canWork": {
+          "type": "boolean"
+        },
+        "alreadyWorks": {
+          "type": "boolean"
+        },
+        "availability": {
+          "enum": [
+            "no",
+            "yes",
+            "preferred"
+          ]
+        },
+        "roleOk": {
+          "type": "boolean"
+        },
+        "rules": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "name"
+            ],
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "whyNot": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        },
+        "staff": {
+          "$ref": "#/$defs/employeeIds"
+        }
       }
     }
   }

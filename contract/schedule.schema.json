@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/leonJardimCarmi/Schedule-search/contract/schedule.schema.json",
+  "title": "schedule_search schedule (for --check)",
+  "description": "Who works in which shift (D51): written by --save, read by --check. Shifts by id; employees by id (a number) or full name (a string). A shift left out is taken as empty, with a warning. The problem file stays the source of employees, shifts and rules.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "assignments"
+  ],
+  "properties": {
+    "assignments": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "array",
+        "uniqueItems": true,
+        "items": {
+          "oneOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "string",
+              "minLength": 1
+            }
+          ]
+        }
+      }
+    }
+  }
+}
