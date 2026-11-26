@@ -34,8 +34,10 @@ run() {
     names+=("$name")
     "$exe" "$@" > "$OUT/$name.out" 2> "$OUT/$name.err"
     echo $? > "$OUT/$name.code"
-    # Search times change from run to run.
-    sed -i -E 's/ in [0-9.e+-]+ ms/ in X ms/; s/"ms": [0-9.e+-]+/"ms": 0/' "$OUT/$name.out"
+    # Search times change from run to run. Not "sed -i": on macOS it takes
+    # the next argument as a backup suffix (found by CI on macOS).
+    sed -E 's/ in [0-9.e+-]+ ms/ in X ms/; s/"ms": [0-9.e+-]+/"ms": 0/' "$OUT/$name.out" > "$OUT/$name.tmp"
+    mv "$OUT/$name.tmp" "$OUT/$name.out"
 }
 
 run 01_week            data/example_week.json
