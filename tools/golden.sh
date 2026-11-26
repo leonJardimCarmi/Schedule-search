@@ -36,8 +36,10 @@ run() {
     echo $? > "$OUT/$name.code"
     # Search times change from run to run. Not "sed -i": on macOS it takes
     # the next argument as a backup suffix (found by CI on macOS).
-    sed -E 's/ in [0-9.e+-]+ ms/ in X ms/; s/"ms": [0-9.e+-]+/"ms": 0/' "$OUT/$name.out" > "$OUT/$name.tmp"
-    mv "$OUT/$name.tmp" "$OUT/$name.out"
+    for f in "$OUT/$name.out" "$OUT/$name.err"; do
+        sed -E 's/ in [0-9.e+-]+ ms/ in X ms/; s/"ms": ?[0-9.e+-]+/"ms": 0/g' "$f" > "$OUT/$name.tmp"
+        mv "$OUT/$name.tmp" "$f"
+    done
 }
 
 run 01_week            data/example_week.json
@@ -81,6 +83,7 @@ run 38_explain_json    data/example_week.json --explain "Dana Levi" MON-M --json
 run 39_check_explain_json data/example_week.json --check $IN/broken.json --explain 104 SUN-N --json -
 run 40_bad_schedule_json data/example_week.json --check $IN/bad_schedule.json --json -
 run 41_check_json_file data/example_week.json --check $IN/broken.json --json $OUT/check.json
+run 42_week_progress   data/example_week.json --progress --min-diff 1 --json -
 
 files=()
 for name in "${names[@]}"; do files+=("$name.out" "$name.err" "$name.code"); done

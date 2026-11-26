@@ -48,4 +48,8 @@ public:
     // `place` its place in the list of best schedules (0 = the new best),
     // or -1 if it did not get in. Otherwise `score` is null and `place` -1.
     virtual void scheduleFound(int /*depth*/, const Score* /*score*/, int /*place*/) {}
+
+    // Once every 1024 nodes, where the search checks its limits (stage 8.4,
+    // D67): a heartbeat for --progress. `nodes` = nodes visited so far.
+    virtual void tick(long long /*nodes*/) {}
 };

@@ -263,7 +263,7 @@ On a real month of this kind (7 medics, 62 shifts, 20 s search), the days outsid
 ./build/schedule_search data/medics_december.json --json result.json
 python3 tools/check_contract.py result.json      # needs: pip install "jsonschema>=4.18"
 ```
-A JSON is written also when there is no schedule (`"status": "noSchedule"` or `"limitReached"`) or when the input has errors (`"inputError"`, with the errors in `"diagnostics"`). `--check`, `--compare` and `--explain` add their answers to it (`"manual"` with the violations, `"comparison"`, `"explanation"`), and `contract/problem.schema.json` and `contract/schedule.schema.json` describe the two input files.
+A JSON is written also when there is no schedule (`"status": "noSchedule"` or `"limitReached"`) or when the input has errors (`"inputError"`, with the errors in `"diagnostics"`). For a long search, `--progress` writes a JSON line to stderr for each better schedule and once a second, and Ctrl+C (or the line `stop` on stdin, with `--stop-on-stdin`) stops it with the best schedule found so far. `--check`, `--compare` and `--explain` add their answers to it (`"manual"` with the violations, `"comparison"`, `"explanation"`), and `contract/problem.schema.json` and `contract/schedule.schema.json` describe the two input files.
 
 Exit codes: `0` schedule found (with a note if it is the best found in time, not proven best) · `1` bad arguments or input · `2` valid input, and no schedule exists (the whole search space was checked) · `3` stopped by a limit before finding a schedule (one may still exist) · `4` (`--check`) the schedule breaks a rule.
 
@@ -355,7 +355,7 @@ DECISIONS.md        design decisions D1–D63 and the reasoning behind them (Heb
 | 5 | **Optimization**: pluggable soft-rule scoring, best-so-far search (anytime), Branch & Bound with per-rule lower bounds, top-N distinct schedules | ✅ |
 | 6 | Output and tools to explore the engine: a table per week with colors, `--explain` (why someone can't work a shift), `--trace` (the search step by step), `--weight` (CSV/HTML export postponed) | ✅ |
 | 7 | Manual edits: `--save` a schedule, `--check` a hand-made one against every rule (marked, not blocked), and `--compare` it with the engine's | ✅ |
-| 8 | The contract for apps: the whole result as JSON (`--json`), with a JSON Schema and a checker | 🔶 |
+| 8 | The contract for apps: the whole result as JSON (`--json`), also for `--check`, `--compare` and `--explain`; JSON Schemas for the result and the inputs; progress lines and stopping a search | ✅ |
 
 ## Continuous integration
 

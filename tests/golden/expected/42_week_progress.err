@@ -1,0 +1,8 @@
+{"event":"start","mode":"best","shifts":8,"employees":4}
+{"event":"improved","nodes":26,"ms": 0,"score":{"medium":0,"soft":36},"place":0}
+{"event":"improved","nodes":28,"ms": 0,"score":{"medium":0,"soft":33},"place":0}
+{"event":"improved","nodes":34,"ms": 0,"score":{"medium":0,"soft":47},"place":2}
+{"event":"improved","nodes":36,"ms": 0,"score":{"medium":0,"soft":44},"place":2}
+{"event":"improved","nodes":41,"ms": 0,"score":{"medium":0,"soft":46},"place":3}
+{"event":"improved","nodes":43,"ms": 0,"score":{"medium":0,"soft":45},"place":3}
+{"event":"done","status":"found","nodes":43,"ms": 0,"complete":true}

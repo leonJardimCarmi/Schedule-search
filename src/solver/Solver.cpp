@@ -74,6 +74,7 @@ void Solver::reset() {
     top_.clear();
     nodes_ = 0;
     limitHit_ = false;
+    stopReason_ = StopReason::None;
     startTime_ = std::chrono::steady_clock::now();
     refreshAll();   // nobody is assigned yet: the cache starts from scratch
 }
@@ -105,11 +106,22 @@ bool Solver::limitReached() {
 
     if (limits_.maxNodes && nodes_ > *limits_.maxNodes) {
         limitHit_ = true;
-    } else if (limits_.seconds && nodes_ % 1024 == 0) {
+        stopReason_ = StopReason::Nodes;
+    } else if (nodes_ % 1024 == 0) {
         // Reading the clock costs more than a whole node, so it is done
-        // only once every 1024 nodes: a few microseconds late at most.
-        const std::chrono::duration<double> elapsed = std::chrono::steady_clock::now() - startTime_;
-        if (elapsed.count() >= *limits_.seconds) limitHit_ = true;
+        // only once every 1024 nodes: a few microseconds late at most. A
+        // stop request and the observer's tick (D67) share the same check.
+        if (limits_.stop && limits_.stop->load(std::memory_order_relaxed)) {
+            limitHit_ = true;
+            stopReason_ = StopReason::Request;
+        } else if (limits_.seconds) {
+            const std::chrono::duration<double> elapsed = std::chrono::steady_clock::now() - startTime_;
+            if (elapsed.count() >= *limits_.seconds) {
+                limitHit_ = true;
+                stopReason_ = StopReason::Time;
+            }
+        }
+        if (observer_ && !limitHit_) observer_->tick(nodes_);
     }
     return limitHit_;
 }

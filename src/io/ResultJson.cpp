@@ -67,6 +67,7 @@ json runJson(const RunInfo& run) {
     if (!run.firstOnly) r["complete"] = run.complete;
     r["nodes"] = run.nodes;
     r["ms"] = std::round(run.ms * 10) / 10;
+    if (run.stopped != StopReason::None) r["stopped"] = stopReasonName(run.stopped);
     if (!run.firstOnly) {
         r["improvements"] = run.improvements;
         r["pruned"] = run.pruned;
@@ -287,6 +288,16 @@ json resultToJson(const Problem* problem, const Report* shape, const std::vector
                              {"where", d.where}, {"message", d.message}});
     result["diagnostics"] = notes;
     return result;
+}
+
+const char* stopReasonName(StopReason reason) {
+    switch (reason) {
+    case StopReason::Time: return "time";
+    case StopReason::Nodes: return "nodes";
+    case StopReason::Request: return "request";
+    case StopReason::None: break;
+    }
+    return "";
 }
 
 std::string resultJsonText(const json& result) {

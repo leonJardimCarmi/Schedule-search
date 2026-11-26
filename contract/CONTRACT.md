@@ -100,6 +100,7 @@ file cannot be written, or the employee or shift of `--explain` does not exist.
 | `mode` | `"best"` (the default: search for the best schedule), `"first"` (`--first`: the first legal one), or `"check"` (`--check` without `--compare`: no search, so the fields below are not written) |
 | `complete` | `best` only. `true`: the whole search space was checked, so `schedules[0]` is proven best. `false`: the search stopped at a limit, and a better schedule may exist (the "anytime" result, D31) |
 | `nodes`, `ms` | How many steps the search took, and how long, in milliseconds |
+| `stopped` | Only when the search stopped before checking everything: `"time"` (`--time-limit`), `"nodes"` (`--max-nodes`) or `"request"` (stopped by the user, see [Progress and stopping](#progress-and-stopping)). Never with `complete: true` |
 | `improvements`, `pruned` | `best` only. How often the best schedule improved; how many branches were cut by the bound |
 | `startBound` | `best` only. No schedule can score better than this. The gap to `schedules[0].score` shows how far from proven the result is |
 | `options` | What the search ran with: `top` and `minDiff` (`best` only), `timeLimit` (seconds), `maxNodes` (only if given) |
@@ -297,6 +298,48 @@ should have none.
   empty (a warning). An unknown shift or employee, or the same person twice
   in a shift, is an error (`inputError`, in `diagnostics`).
 
+## Progress and stopping
+
+For a search that takes a while (a month can take a minute), the app can
+show it moving and let the manager stop it (D56, D67).
+
+**`--progress`** writes one JSON object per line to **stderr** while the
+search runs; stdout stays for the result (`--json -`). Read only the lines
+that start with `{`: warnings on stderr stay plain text (they are also in
+`diagnostics`).
+
+```
+{"event":"start","mode":"best","shifts":88,"employees":12}
+{"event":"improved","nodes":342,"ms":2.0,"score":{"medium":4,"soft":590},"place":0}
+{"event":"tick","nodes":51200,"ms":1000.3,"best":{"medium":4,"soft":585}}
+{"event":"done","status":"found","nodes":386048,"ms":2501.5,"complete":false,"stopped":"time"}
+```
+
+| `event` | When | Fields |
+|---|---|---|
+| `start` | The search starts | `mode` (`best` or `first`), `shifts`, `employees` |
+| `improved` | A schedule entered the list of good schedules | `nodes`, `ms`, `score`, `place` (0 = the new best) |
+| `found` | `--first`: the first legal schedule; the search ends | `nodes`, `ms` |
+| `tick` | About once a second while searching | `nodes`, `ms`, `best` (the best score so far, if any) |
+| `done` | The search ended; the result follows | `status` (as `run.status`), `nodes`, `ms`, `complete` (`best` only), `stopped` (if it stopped early) |
+
+`--progress` works with `--check --compare`, but not with `--trace`.
+
+**Stopping.** The search stops at its next check, within 1024 nodes (a few
+milliseconds), and ends like a time limit: the result is the best schedule
+so far, with `complete: false` and `stopped: "request"`, and exit code 0. If
+no schedule was found yet, it is `limitReached` (exit code 3). Two ways:
+
+- **Ctrl+C, or SIGTERM:** always, during the search. A second Ctrl+C quits at
+  once, without a result.
+- **`--stop-on-stdin`:** the line `stop` on the engine's stdin, or the end of
+  stdin, stops the search. This is the way for a server on Windows, where
+  Node cannot send Ctrl+C to a child process (`kill()` ends it at once,
+  without a result). Do not use it with an empty stdin: it would stop at once.
+
+A search that ends before its first check (under 1024 nodes) is complete,
+even if it was asked to stop.
+
 ## What an app computes itself
 
 The contract gives facts; how to show them is the app's choice (D41, D44):
@@ -320,7 +363,6 @@ should be added to the contract rather than computed in the app.
 
 ## Not in the contract yet
 
-- Progress events while searching, and stopping a search early: stage 8.4
 - Reasons as data and not only text (`why`, `whyNot`): when an app needs
   them in its own language, a `details` field is added next to the text,
   without a new version (D66)

@@ -6,7 +6,8 @@
     "mode": "best",
     "complete": false,
     "nodes": 1000001,
-    "ms": 6493.2,
+    "ms": 6474.1,
+    "stopped": "nodes",
     "improvements": 6,
     "pruned": 73562,
     "startBound": {

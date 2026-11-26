@@ -46,6 +46,7 @@ struct RunInfo {
     long long improvements = 0;
     long long pruned = 0;
     Score startBound;
+    StopReason stopped = StopReason::None;   // why the search stopped early (D67)
     // The options the search ran with.
     int top = 1;
     int minDiff = 1;
@@ -70,6 +71,9 @@ struct ResultExtras {
 nlohmann::ordered_json resultToJson(const Problem* problem, const Report* shape, const std::vector<Report>& schedules,
                                     const RunInfo& run, const std::vector<Diagnostic>& diagnostics,
                                     const ResultExtras& extras = {});
+
+// "time", "nodes" or "request" (D67); the result's run.stopped and --progress.
+const char* stopReasonName(StopReason reason);
 
 // The text of the file: indented, ends with a newline.
 std::string resultJsonText(const nlohmann::ordered_json& result);

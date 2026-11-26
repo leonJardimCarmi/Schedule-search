@@ -1,14 +1,19 @@
+#include <atomic>
 #include <chrono>
+#include <csignal>
+#include <cstdlib>
 #include <functional>
 #include <iostream>
 #include <optional>
 #include <stdexcept>
 #include <string>
+#include <thread>
 #include <utility>
 #include <vector>
 
 #include "io/CsvLoader.h"
 #include "io/JsonLoader.h"
+#include "io/ProgressPrinter.h"
 #include "io/Printer.h"
 #include "io/ResultJson.h"
 #include "io/ScheduleFile.h"
@@ -55,6 +60,9 @@ void printUsage() {
                  "                             (search options work here; --save saves the engine's schedule)\n"
                  "  --json <file.json>         also write the whole result as JSON, the contract for apps\n"
                  "                             (\"-\" = to stdout, instead of the text; see contract/)\n"
+                 "  --progress                 a JSON line on stderr for each better schedule, and once a second\n"
+                 "  --stop-on-stdin            stop the search when stdin gets the line \"stop\" or ends\n"
+                 "                             (Ctrl+C also stops it; the best schedule so far is the result)\n"
                  "  --verbose                  also print the input, the candidates and the search size\n";
 }
 
@@ -76,6 +84,8 @@ struct Options {
     std::string checkPath;           // D51: --check file; empty = search as usual
     bool compare = false;            // D52: --check ... --compare: also search and compare
     std::string jsonPath;            // D57: --json file, "-" = stdout; empty = no JSON
+    bool progress = false;           // D67: --progress, JSON lines on stderr
+    bool stopOnStdin = false;        // D67: --stop-on-stdin
     std::vector<std::string> searchFlags;   // given flags that only make sense with a search
 };
 
@@ -96,6 +106,9 @@ std::optional<Options> parseArgs(int argc, char* argv[]) {
         } else if (arg == "--trace") {
             options.searchFlags.push_back(arg);
             if (!options.traceLines) options.traceLines = kDefaultTraceLines;   // keeps an earlier --trace-lines
+        } else if (arg == "--progress" || arg == "--stop-on-stdin") {
+            (arg == "--progress" ? options.progress : options.stopOnStdin) = true;
+            options.searchFlags.push_back(arg);
         } else if (arg == "--compare") {
             options.compare = true;
         } else if (arg == "--first") {
@@ -205,6 +218,10 @@ std::optional<Options> parseArgs(int argc, char* argv[]) {
             return std::nullopt;
         }
     }
+    if (options.progress && options.traceLines) {
+        std::cerr << "--progress and --trace cannot be used together\n";
+        return std::nullopt;
+    }
     if (options.week && options.listView) {
         std::cerr << "--week works with the table (--view grid) only\n";
         return std::nullopt;
@@ -243,6 +260,72 @@ bool printResult(const Options& options, const Problem& problem, const Report& r
     return true;
 }
 
+// Stopping a search (stage 8.4, D67). Ctrl+C or SIGTERM during the search,
+// or "stop" on stdin with --stop-on-stdin, sets this flag; the search sees it
+// within 1024 nodes and ends like a time limit, so the best schedule so far
+// is still the result (anytime, D31). A second Ctrl+C quits at once.
+std::atomic<bool> gStopRequested{false};
+
+extern "C" void onStopSignal(int signal) {
+    if (gStopRequested.load()) std::_Exit(128 + signal);
+    gStopRequested.store(true);
+}
+
+void catchStopSignals(bool on) {
+    const auto handler = on ? onStopSignal : SIG_DFL;
+    std::signal(SIGINT, handler);
+    std::signal(SIGTERM, handler);
+#ifdef SIGBREAK
+    std::signal(SIGBREAK, handler);   // Ctrl+Break in the Windows console
+#endif
+}
+
+// --stop-on-stdin: a server on Windows cannot send Ctrl+C to a child
+// process (Node's kill() ends it at once), so it writes "stop" to stdin, or
+// closes it. The thread is detached: it may still wait on stdin at exit.
+void watchStdinForStop() {
+    std::thread([] {
+        std::string line;
+        while (std::getline(std::cin, line)) {
+            while (!line.empty() && (line.back() == '\r' || line.back() == ' ')) line.pop_back();
+            if (line == "stop") break;
+        }
+        gStopRequested.store(true);
+    }).detach();
+}
+
+// The search itself, the same for a plain run and for --compare: --trace or
+// --progress watch it, and Ctrl+C or stdin may stop it. `ms` gets its time.
+std::optional<State> runSearch(const Options& options, const Problem& problem, Solver& solver,
+                               const ScoreModel& scoreModel, double& ms) {
+    // --trace (D48): every step, to stdout before the result.
+    std::optional<TracePrinter> trace;
+    if (options.traceLines) {
+        trace.emplace(std::cout, problem, solver.constraints(), *options.traceLines);
+        solver.setObserver(&*trace);
+    }
+    std::optional<ProgressPrinter> progress;
+    if (options.progress) {
+        progress.emplace(std::cerr, solver);
+        progress->start(problem, options.firstOnly);
+        solver.setObserver(&*progress);
+    }
+    if (options.stopOnStdin) watchStdinForStop();
+    catchStopSignals(true);
+    const auto searchStart = std::chrono::steady_clock::now();
+    // By default, the best schedule (D2, D33). --first stops at the first legal one.
+    std::optional<State> schedule = options.firstOnly ? solver.findFirst() : solver.findBest(scoreModel);
+    ms = std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - searchStart).count();
+    catchStopSignals(false);   // after the search, Ctrl+C ends the program as usual
+    solver.setObserver(nullptr);
+    if (trace) trace->finish();
+    if (progress)
+        progress->done(schedule ? "found"
+                                : solver.status() == SearchStatus::LimitReached ? "limitReached" : "noSchedule",
+                       options.firstOnly);
+    return schedule;
+}
+
 // Writes the JSON result, if --json was given (D57). Returns the run's exit
 // code, or kBadInput when the file cannot be written.
 using EmitJson = std::function<int(const Problem*, const Report*, const std::vector<Report>&, const RunInfo&,
@@ -262,6 +345,7 @@ RunInfo searchRunInfo(const Options& options, const Solver& solver, double ms) {
     run.minDiff = options.minDifferent;
     run.timeLimit = options.limits.seconds;
     run.maxNodes = options.limits.maxNodes;
+    run.stopped = solver.stopReason();
     return run;
 }
 
@@ -330,22 +414,18 @@ int checkHandMade(const Options& options, const Problem& problem, const ScoreMod
     if (!options.compare) return emitJson(&problem, &report, {}, checked, extras) == code ? code : kBadInput;
 
     // --compare (stage 7.3, D52): the engine's schedule for the same problem.
-    std::optional<TracePrinter> trace;
-    if (options.traceLines) {
-        std::cout << '\n';
-        trace.emplace(std::cout, problem, solver.constraints(), *options.traceLines);
-        solver.setObserver(&*trace);
-    }
-    const auto searchStart = std::chrono::steady_clock::now();
-    const std::optional<State> engine = options.firstOnly ? solver.findFirst() : solver.findBest(scoreModel);
-    const std::chrono::duration<double, std::milli> searchTime = std::chrono::steady_clock::now() - searchStart;
-    if (trace) trace->finish();
-    RunInfo run = searchRunInfo(options, solver, searchTime.count());
+    if (options.traceLines) std::cout << '\n';
+    double ms = 0;
+    const std::optional<State> engine = runSearch(options, problem, solver, scoreModel, ms);
+    RunInfo run = searchRunInfo(options, solver, ms);
     run.exitCode = code;   // the check's code, also with --compare (D52)
     if (!engine) {
         const bool limit = solver.status() == SearchStatus::LimitReached;
         std::cout << "\nThe engine found no schedule to compare with ("
-                  << (limit ? "stopped by a limit; try a larger --time-limit" : "no legal schedule exists") << ").\n";
+                  << (!limit ? "no legal schedule exists"
+                      : solver.stopReason() == StopReason::Request ? "stopped on request"
+                                                                   : "stopped by a limit; try a larger --time-limit")
+                  << ").\n";
         run.status = limit ? RunStatus::LimitReached : RunStatus::NoSchedule;
         return emitJson(&problem, &report, {}, run, extras) == code ? code : kBadInput;
     }
@@ -423,7 +503,9 @@ int main(int argc, char* argv[]) {
         std::cerr << notes.back() << '\n';
     }
     Solver solver(problem);
-    solver.setLimits(options->limits);
+    SearchLimits limits = options->limits;
+    limits.stop = &gStopRequested;   // Ctrl+C, or "stop" on stdin (D67)
+    solver.setLimits(limits);
     solver.setTop(options->top, options->minDifferent);
     if (options->verbose) {
         printProblem(std::cout, problem);
@@ -434,22 +516,11 @@ int main(int argc, char* argv[]) {
     }
     if (!options->checkPath.empty()) return checkHandMade(*options, problem, scoreModel, solver, notes, emitJson);
 
-    // --trace (D48): the search tells the printer every step. It goes to
-    // stdout before the result, and stops printing after its line limit.
-    std::optional<TracePrinter> trace;
-    if (options->traceLines) {
-        trace.emplace(std::cout, problem, solver.constraints(), *options->traceLines);
-        solver.setObserver(&*trace);
-    }
-    const auto searchStart = std::chrono::steady_clock::now();
-    // By default, the best schedule (D2, D33). --first stops at the first legal one.
-    const std::optional<State> schedule =
-        options->firstOnly ? solver.findFirst() : solver.findBest(scoreModel);
-    const std::chrono::duration<double, std::milli> searchTime = std::chrono::steady_clock::now() - searchStart;
-    if (trace) trace->finish();
+    double searchMs = 0;
+    const std::optional<State> schedule = runSearch(*options, problem, solver, scoreModel, searchMs);
     if (options->verbose)
         std::cout << "Search visited " << solver.nodesVisited() << " nodes in "
-                  << searchTime.count() << " ms"
+                  << searchMs << " ms"
                   << (options->firstOnly ? "" : ", the best schedule improved "
                                                + std::to_string(solver.improvements()) + " times, "
                                                + std::to_string(solver.pruned()) + " branches pruned")
@@ -460,14 +531,17 @@ int main(int argc, char* argv[]) {
     if (options->verbose) std::cout << "\n";
 
     // How the search went, for the JSON (D58, D61).
-    RunInfo run = searchRunInfo(*options, solver, searchTime.count());
+    RunInfo run = searchRunInfo(*options, solver, searchMs);
 
     // 3. Report.
     if (solver.status() == SearchStatus::LimitReached || !schedule) {
         // No schedule. The JSON still has the problem, its layout and the
         // shifts that cannot be staffed, from the report of an empty schedule.
         const bool limit = solver.status() == SearchStatus::LimitReached;
-        if (limit)
+        if (limit && solver.stopReason() == StopReason::Request)
+            std::cout << "Search stopped on request after " << solver.nodesVisited()
+                      << " nodes. No schedule found yet;\na schedule may still exist.\n";
+        else if (limit)
             std::cout << "Search stopped after " << solver.nodesVisited()
                       << " nodes (time or node limit). No schedule found yet;\n"
                          "a schedule may still exist. Try a larger --time-limit.\n";
@@ -527,6 +601,9 @@ int main(int argc, char* argv[]) {
     if (!options->firstOnly) {
         if (solver.complete())
             std::cout << "This is the best schedule: the whole search space was checked.\n";
+        else if (solver.stopReason() == StopReason::Request)
+            std::cout << "Search stopped on request: this is the best schedule found so far,\n"
+                         "and a better one may exist.\n";
         else
             std::cout << "Search stopped by the time or node limit: this is the best schedule\n"
                          "found so far, and a better one may exist. Try a larger --time-limit.\n";

@@ -7,6 +7,7 @@
     "complete": false,
     "nodes": 6,
     "ms": 0,
+    "stopped": "nodes",
     "improvements": 0,
     "pruned": 0,
     "startBound": {

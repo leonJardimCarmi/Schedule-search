@@ -1,5 +1,6 @@
 #pragma once
 #include <algorithm>
+#include <atomic>
 #include <chrono>
 #include <optional>
 #include <vector>
@@ -25,7 +26,14 @@
 struct SearchLimits {
     std::optional<double> seconds;
     std::optional<long long> maxNodes;
+    // Stop on request (stage 8.4, D67): when this becomes true, the search
+    // stops at its next check, as if a limit was reached (anytime, D31).
+    // Set from a signal handler or another thread, so it is atomic.
+    const std::atomic<bool>* stop = nullptr;
 };
+
+// Why the search stopped before it checked everything (D67).
+enum class StopReason { None, Time, Nodes, Request };
 
 // A shift that can never reach its min: fewer employees are available for
 // it (and have its role) than it needs (DECISIONS D25). Found once, before
@@ -91,6 +99,7 @@ public:
     // True when the last search explored everything it had to: with
     // findBest, the schedule returned is then proven to be the best.
     bool complete() const { return !limitHit_; }
+    StopReason stopReason() const { return stopReason_; }
 
     // How many different legal schedules exist (explores the whole tree).
     // If a limit stops it, the count is partial and status() says so.
@@ -169,4 +178,5 @@ private:
     SearchLimits limits_;
     std::chrono::steady_clock::time_point startTime_;
     bool limitHit_ = false;
+    StopReason stopReason_ = StopReason::None;
 };

@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://github.com/leonJardimCarmi/Schedule-search/contract/result.schema.json",
   "title": "schedule_search result",
-  "description": "What schedule_search writes with --json (DECISIONS D57-D66). Every field is described in contract/CONTRACT.md. Strict on purpose: an unknown field is an error, so a mistake in the engine's writer is caught (D62).",
+  "description": "What schedule_search writes with --json (DECISIONS D57-D67). Every field is described in contract/CONTRACT.md. Strict on purpose: an unknown field is an error, so a mistake in the engine's writer is caught (D62).",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -374,6 +374,14 @@
           "type": "number",
           "minimum": 0
         },
+        "stopped": {
+          "enum": [
+            "time",
+            "nodes",
+            "request"
+          ],
+          "description": "Why the search stopped before checking everything: --time-limit, --max-nodes, or a stop request (Ctrl+C, \"stop\" on stdin) (D67)"
+        },
         "improvements": {
           "$ref": "#/$defs/count"
         },
@@ -490,6 +498,11 @@
                   "required": [
                     "options"
                   ]
+                },
+                {
+                  "required": [
+                    "stopped"
+                  ]
                 }
               ]
             }
@@ -566,6 +579,25 @@
                     "startBound"
                   ]
                 }
+              ]
+            }
+          }
+        },
+        {
+          "if": {
+            "required": [
+              "complete"
+            ],
+            "properties": {
+              "complete": {
+                "const": true
+              }
+            }
+          },
+          "then": {
+            "not": {
+              "required": [
+                "stopped"
               ]
             }
           }
